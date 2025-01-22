@@ -71,10 +71,10 @@ class Language {
         }
 
         ///Parsing///
-        
         Node ast = expresion();
-        
-        return -1;
+
+        ///Interpreting//
+        return ast.visit();
     }
 
     static void error(String log){
@@ -143,6 +143,9 @@ enum TokenType{Double, PLUS, MINUS, MULTIPLY, DIVIDE}
 
 class Node {
     Token token;
+    double visit(){
+        return 0.0;
+    }
 }
 
 class NumberNode extends Node {
@@ -150,6 +153,10 @@ class NumberNode extends Node {
     NumberNode(Token token, double value_){
         this.token = token;
         this.value_ = value_;
+    }
+
+    double visit(){
+        return this.value_;
     }
 
     @Override
@@ -165,6 +172,16 @@ class BinOpNode extends Node {
         this.left_node = left_node;
         this.token = op_token;
         this.right_node = right_node;
+    }
+
+    double visit(){
+        return switch (token.type) {
+            case TokenType.PLUS -> left_node.visit() + right_node.visit();
+            case TokenType.MINUS -> left_node.visit() - right_node.visit();
+            case TokenType.MULTIPLY -> left_node.visit() * right_node.visit();
+            case TokenType.DIVIDE -> left_node.visit() / right_node.visit();
+            default -> 0.0;
+        };
     }
 
     @Override
