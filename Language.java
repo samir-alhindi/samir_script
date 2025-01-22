@@ -73,9 +73,8 @@ class Language {
         ///Parsing///
         
         Node ast = expresion();
-        System.out.println(ast);
         
-        return 0.0;
+        return -1;
     }
 
     static void error(String log){
@@ -101,6 +100,7 @@ class Language {
         while (tokens.get(tok_idx).type == TokenType.MULTIPLY || tokens.get(tok_idx).type == TokenType.DIVIDE) {
             Token op_token = tokens.get(tok_idx);
             tok_idx ++;
+            if(tok_idx >= tokens.size()){ error("Invalid syntax !!!"); break;}
             NumberNode right = factor();
             tok_idx ++;
             left = new BinOpNode(left, op_token, right);
@@ -116,6 +116,7 @@ class Language {
         while (tokens.get(tok_idx).type == TokenType.PLUS || tokens.get(tok_idx).type == TokenType.MINUS) {
             Token op_token = tokens.get(tok_idx);
             tok_idx ++;
+            if(tok_idx >= tokens.size()){ error("Invalid syntax !!!"); break;}
             Node right = term();
             left = new BinOpNode(left, op_token, right);
             if(tok_idx >= tokens.size()) return left;
