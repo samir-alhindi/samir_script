@@ -10,6 +10,8 @@ class Language {
 
         ///Tokenization///
         
+        tokens.clear();
+        
         for (int i = 0; i < input.length(); i++) {
         
         //Check if char is white space:
@@ -40,7 +42,7 @@ class Language {
                     return 0.0;
                 }
             }
-
+            i--;
             Token token = new Token(TokenType.Double, Double.parseDouble(num_str));
             tokens.add(token);
         }
@@ -71,6 +73,7 @@ class Language {
         }
 
         ///Parsing///
+        tok_idx = 0;
         Node ast = expresion();
 
         ///Interpreting//
@@ -144,7 +147,7 @@ enum TokenType{Double, PLUS, MINUS, MULTIPLY, DIVIDE}
 class Node {
     Token token;
     double visit(){
-        return 0.0;
+        return 999999999.0;
     }
 }
 
