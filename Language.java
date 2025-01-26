@@ -221,6 +221,7 @@ class UnaryOpNode extends Node {
         }
 
     double visit(){
+        if (child_node == null) {Language.error("No number for the minus !!!"); return 0.0;}
         return child_node.visit() * -1;
     }
 
