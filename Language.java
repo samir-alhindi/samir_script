@@ -47,7 +47,7 @@ class Language {
             tokens.add(token);
         }
         
-        //Check if char is Binary opperator:
+        //Check if char is opperator:
         else if(input.charAt(i) == '+'){
             Token token = new Token(TokenType.PLUS, 0);
             tokens.add(token);
@@ -62,6 +62,10 @@ class Language {
         }
         else if(input.charAt(i) == '/'){
             Token token = new Token(TokenType.DIVIDE, 0);
+            tokens.add(token);
+        }
+        else if(input.charAt(i) == '^'){
+            Token token = new Token(TokenType.POWER, 0);
             tokens.add(token);
         }
 
@@ -119,7 +123,7 @@ class Language {
         tok_idx ++;
         if(tok_idx >= tokens.size()) return left;
 
-        while (tokens.get(tok_idx).type == TokenType.MULTIPLY || tokens.get(tok_idx).type == TokenType.DIVIDE) {
+        while (tokens.get(tok_idx).type == TokenType.MULTIPLY || tokens.get(tok_idx).type == TokenType.DIVIDE || tokens.get(tok_idx).type == TokenType.POWER) {
             Token op_token = tokens.get(tok_idx);
             tok_idx ++;
             if(tok_idx >= tokens.size()){ error("Invalid syntax !!!"); break;}
@@ -161,7 +165,7 @@ class Token {
     }
 }
 
-enum TokenType{Double, PLUS, MINUS, MULTIPLY, DIVIDE}
+enum TokenType{Double, PLUS, MINUS, MULTIPLY, DIVIDE, POWER}
 
 class Node {
     Token token;
@@ -202,6 +206,7 @@ class BinOpNode extends Node {
             case TokenType.MINUS -> left_node.visit() - right_node.visit();
             case TokenType.MULTIPLY -> left_node.visit() * right_node.visit();
             case TokenType.DIVIDE -> left_node.visit() / right_node.visit();
+            case TokenType.POWER -> Math.pow(left_node.visit(), right_node.visit());
             default -> 0.0;
         };
     }
