@@ -47,7 +47,7 @@ class Language {
             tokens.add(token);
         }
         
-        //Check if char is Boolean opperator:
+        //Check if char is Binary opperator:
         else if(input.charAt(i) == '+'){
             Token token = new Token(TokenType.PLUS, 0);
             tokens.add(token);
@@ -85,10 +85,29 @@ class Language {
     }
 
     ///Helper parsing methods///
-    static NumberNode factor(){
+    static Node factor(){
         if(tokens.get(tok_idx).type == TokenType.Double){
             return new NumberNode(tokens.get(tok_idx), tokens.get(tok_idx).value);
         }
+
+        //Making unary opperator:
+        else if(tokens.get(tok_idx).type == TokenType.MINUS){
+
+            UnaryOpNode unary_op = new UnaryOpNode(null, null);
+
+            while (tokens.get(tok_idx).type == TokenType.MINUS) {
+                Token op_Token = tokens.get(tok_idx);
+                tok_idx ++;
+                if(tok_idx >= tokens.size()){ error("Invalid syntax !!!"); break;}
+                Node child_node = factor();
+                tok_idx ++; // Should i increment here ?
+                unary_op = new UnaryOpNode(child_node, op_Token);
+                if(tok_idx >= tokens.size()) return unary_op;
+            }
+            tok_idx--;
+            return unary_op;
+        }
+
         else {
             error(tokens.get(tok_idx).type +  " is not a number !!!");
             return new NumberNode(null, 0.0);
@@ -104,7 +123,7 @@ class Language {
             Token op_token = tokens.get(tok_idx);
             tok_idx ++;
             if(tok_idx >= tokens.size()){ error("Invalid syntax !!!"); break;}
-            NumberNode right = factor();
+            Node right = factor();
             tok_idx ++;
             left = new BinOpNode(left, op_token, right);
             if(tok_idx >= tokens.size()) return left;
@@ -193,3 +212,20 @@ class BinOpNode extends Node {
     }
 
 }
+
+class UnaryOpNode extends Node {
+    Node child_node;
+    UnaryOpNode(Node child_node, Token op_token){
+        this.child_node = child_node;
+        this.token = op_token;
+        }
+
+    double visit(){
+        return child_node.visit() * -1;
+    }
+
+    @Override
+    public String toString() {
+        return "(" + child_node + ", " + token.type + ")";
+        }
+    }
