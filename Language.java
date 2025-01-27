@@ -69,6 +69,16 @@ class Language {
             tokens.add(token);
         }
 
+        //Check if char is parentheses:
+        else if (input.charAt(i) == '('){
+            Token token = new Token(TokenType.L_PAR, 0);
+            tokens.add(token);
+        }
+        else if (input.charAt(i) == ')'){
+            Token token = new Token(TokenType.R_PAR, 0);
+            tokens.add(token);
+        }
+
         else {
             error(input.charAt(i) + " is Illegal char !");
             return 0.0;
@@ -81,7 +91,11 @@ class Language {
         Node ast = expresion();
 
         ///Interpreting//
-        return ast.visit();
+        if(ast != null)
+            return ast.visit();
+        else
+            return 9999999.0;
+        
     }
 
     static void error(String log){
@@ -90,6 +104,7 @@ class Language {
 
     ///Helper parsing methods///
     static Node factor(){
+        //Making number nodes:
         if(tokens.get(tok_idx).type == TokenType.Double){
             return new NumberNode(tokens.get(tok_idx), tokens.get(tok_idx).value);
         }
@@ -104,12 +119,25 @@ class Language {
                 tok_idx ++;
                 if(tok_idx >= tokens.size()){ error("Invalid syntax !!!"); break;}
                 Node child_node = factor();
-                tok_idx ++; // Should i increment here ?
+                tok_idx ++; // Should i increment here ? Yes.
                 unary_op = new UnaryOpNode(child_node, op_Token);
                 if(tok_idx >= tokens.size()) return unary_op;
             }
             tok_idx--;
             return unary_op;
+        }
+
+        //Handling parentheses:
+        else if(tokens.get(tok_idx).type == TokenType.L_PAR){
+            tok_idx ++;
+            if(tok_idx >= tokens.size()){ error("parenthesis never closed !"); return null;}
+            Node expr_inside_parentheses = expresion();
+            if(tok_idx >= tokens.size()){ error("parenthesis never closed !"); return null;}
+            if(tokens.get(tok_idx).type == TokenType.R_PAR){
+                return expr_inside_parentheses;}
+            else{
+                error("parenthesis never closed !");
+                return null;}
         }
 
         else {
@@ -165,7 +193,7 @@ class Token {
     }
 }
 
-enum TokenType{Double, PLUS, MINUS, MULTIPLY, DIVIDE, POWER}
+enum TokenType{Double, PLUS, MINUS, MULTIPLY, DIVIDE, POWER, L_PAR, R_PAR}
 
 class Node {
     Token token;
