@@ -5,6 +5,8 @@ class Language {
     static ArrayList<Token> tokens = new ArrayList<>();
     static int tok_idx = 0;
 
+    static final String[] keywords = {"var",};
+
     //// running ////
     static double run (String input){
 
@@ -68,6 +70,10 @@ class Language {
             Token token = new Token(TokenType.POWER, 0);
             tokens.add(token);
         }
+        else if(input.charAt(i) == '='){
+            Token token = new Token(TokenType.EQUALS, 0);
+            tokens.add(token);
+        }
 
         //Check if char is parentheses:
         else if (input.charAt(i) == '('){
@@ -79,12 +85,37 @@ class Language {
             tokens.add(token);
         }
 
+        //Check if char is identifier/keyword:
+        else if(Character.isLetter(input.charAt(i)) || input.charAt(i) == '_'){
+            String word = "";
+        
+            while (Character.isLetter(input.charAt(i)) || input.charAt(i) == '_'){
+                word += input.charAt(i);
+                i++;
+                if(i >= input.length()) break;
+            }
+
+            //Check if word is keyword and tokenize it:
+            Token token = new Token(null, null);
+            if(is_keyword(word)){
+                switch (word) {
+                    case "var" -> token.type = TokenType.VAR;
+                }
+            }
+            else
+                token = new Token(TokenType.IDENTIFIER, word);
+            tokens.add(token);
+            
+        }
+
         else {
             error(input.charAt(i) + " is Illegal char !");
             return 0.0;
         }
 
         }
+
+        System.out.println(tokens);
 
         ///Parsing///
         tok_idx = 0;
@@ -177,23 +208,37 @@ class Language {
         }
         return left;
     }
+
+    //Method to check if word is keyword:
+    static boolean is_keyword(String word){
+        for (int i = 0; i < keywords.length; i++) 
+            if(keywords[i] .equals(word)) return true;
+        return false;
+        
+    }
 }
 
 class Token {
     TokenType type;
     double value;
+    String word = "";
     Token(TokenType type, double value){
         this.type = type;
         this.value = value;
     }
+    //Constructer for identifiers:
+    Token(TokenType type, String word){
+        this.type = type;
+        this.word = word;
+    }
 
     @Override
     public String toString() {
-        return  "[" + type + " : " + value + "]";
+        return  "[" + type + " : " + value + " : " + word + "]";
     }
 }
 
-enum TokenType{Double, PLUS, MINUS, MULTIPLY, DIVIDE, POWER, L_PAR, R_PAR}
+enum TokenType{Double, PLUS, MINUS, MULTIPLY, DIVIDE, POWER, L_PAR, R_PAR, VAR, IDENTIFIER, EQUALS}
 
 class Node {
     Token token;

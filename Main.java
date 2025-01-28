@@ -10,6 +10,5 @@ public class Main {
             double result = Language.run(input);
             System.out.println(result);
         }
-        
     }
 }
