@@ -1,6 +1,9 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 
 class Language {
+
+    static HashMap<String, Double> variables = new HashMap<>();
 
     static ArrayList<Token> tokens = new ArrayList<>();
     static int tok_idx = 0;
@@ -115,11 +118,41 @@ class Language {
 
         }
 
-        System.out.println(tokens);
-
         ///Parsing///
         tok_idx = 0;
-        Node ast = expresion();
+        Node ast;
+        
+        //Check if there's variable assignment: 
+        if(tokens.get(tok_idx).type == TokenType.VAR){
+            tok_idx ++;
+            //Find identfier token:
+            if(tokens.get(tok_idx).type == TokenType.IDENTIFIER){
+                Token identifier_token = tokens.get(tok_idx);
+                //Find 'equals' sign:
+                tok_idx ++;
+                if(tokens.get(tok_idx).type == TokenType.EQUALS){
+                    tok_idx ++;
+                    ast = new VarAssignmentNode(identifier_token.word, expresion());
+                }
+                //We don't find equal sign:
+                else {
+                    error("Expected '=' after identfier !!!");
+                    return 999999.0;
+                }
+            }
+                
+            //We don't find an identfier which is an error:
+            else {
+                error("Expected identfier after 'var' !!!");
+                return 9999999.0;
+            }
+        }
+
+        //No variable asignment:
+        else 
+            ast = expresion();
+        
+        System.out.println(ast); // Test.
 
         ///Interpreting//
         if(ast != null)
@@ -308,3 +341,28 @@ class UnaryOpNode extends Node {
         return "(" + child_node + ", " + token.type + ")";
         }
     }
+
+class VarAssignmentNode extends Node {
+    String identifier;
+    Node expresion;
+    double value_;
+    VarAssignmentNode(String identifier, Node expresion){
+        this.identifier = identifier;
+        this.expresion = expresion;
+    }
+
+    double visit(){
+        value_ = expresion.visit();
+        Language.variables.put(identifier, value_);
+        return 0.0;
+    }
+
+    @Override
+    public String toString() {
+        return "(" + identifier + " = " + expresion + ")";
+    }
+}
+
+class VarAccessNode extends Node {
+
+}
