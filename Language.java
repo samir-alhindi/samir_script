@@ -122,7 +122,7 @@ class Language {
         tok_idx = 0;
         Node ast;
         
-        //Check if there's variable assignment: 
+        //Check if there's variable declaration and assignment: 
         if(tokens.get(tok_idx).type == TokenType.VAR){
             tok_idx ++;
             //Find identfier token:
@@ -148,12 +148,26 @@ class Language {
             }
         }
 
+        //Check if there's variable re-asignment:
+        else if(tokens.get(tok_idx).type == TokenType.IDENTIFIER){
+            Token identifier_token = tokens.get(tok_idx);
+            //Find 'equals' sign:
+            tok_idx ++;
+            if(tok_idx >= tokens.size()) return variables.get(identifier_token.word);
+            if(tokens.get(tok_idx).type == TokenType.EQUALS){
+                tok_idx ++;
+                ast = new VarAssignmentNode(identifier_token.word, expresion());
+            }
+            //We don't find equal sign, We're just accsesing:
+            else {
+                ast = expresion();
+            }
+        }
+
         //No variable asignment:
         else 
             ast = expresion();
         
-        System.out.println(ast); // Test.
-
         ///Interpreting//
         if(ast != null)
             return ast.visit();
@@ -173,7 +187,21 @@ class Language {
             return new NumberNode(tokens.get(tok_idx), tokens.get(tok_idx).value);
         }
 
-        //Making unary opperator:
+        //Making variable access nodes:
+        else if(tokens.get(tok_idx).type == TokenType.IDENTIFIER){
+            Token identfier_token = tokens.get(tok_idx);
+            //Check if variable has been declared and can be accessed:
+            if(variables.containsKey(identfier_token.word)){
+                return new VarAccessNode(identfier_token.word);
+            }
+            //Variable doesn't exist !
+            else{
+                error("Variable: "+ tokens.get(tok_idx).word + " not declared !!!");
+                return new VarAccessNode(null);
+            } 
+        }
+
+        //Making unary opperator nodes:
         else if(tokens.get(tok_idx).type == TokenType.MINUS){
 
             UnaryOpNode unary_op = new UnaryOpNode(null, null);
@@ -364,5 +392,22 @@ class VarAssignmentNode extends Node {
 }
 
 class VarAccessNode extends Node {
+    String identifier;
+    VarAccessNode(String identifier){
+        this.identifier = identifier;
+    }
 
+    double visit(){
+        if(identifier != null){
+            double value_ = Language.variables.get(identifier);
+            return value_;
+        }
+        return 0.0;
+
+    }
+
+    @Override
+    public String toString() {
+        return "(" + identifier + " : " + Language.variables.get(identifier) + ")";
+    }
 }
