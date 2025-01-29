@@ -11,7 +11,7 @@ class Language {
     static final String[] keywords = {"let",};
 
     //// running ////
-    static double run (String input){
+    static Double run (String input){
 
         ///Tokenization///
         
@@ -44,7 +44,7 @@ class Language {
                 //Error cases:
                 else if(input.charAt(i) == '.' && found_dot){
                     error("Number can't have more than 1 dot !!!");
-                    return 0.0;
+                    return null;
                 }
             }
             i--;
@@ -113,7 +113,7 @@ class Language {
 
         else {
             error(input.charAt(i) + " is Illegal char !");
-            return 0.0;
+            return null;
         }
 
         }
@@ -125,10 +125,12 @@ class Language {
         //Check if there's variable declaration and assignment: 
         if(tokens.get(tok_idx).type == TokenType.LET){
             tok_idx ++;
-            if(tok_idx >= tokens.size()){error("Expected an identifier after 'let' !!!"); return 0.0;}
+            if(tok_idx >= tokens.size()){error("Expected an identifier after 'let' !!!"); return null;}
             //Find identfier token:
             if(tokens.get(tok_idx).type == TokenType.IDENTIFIER){
                 Token identifier_token = tokens.get(tok_idx);
+                //Make sure it's not already declared:
+                if(variables.containsKey(identifier_token.word)){error(identifier_token.word + " Has already been declared before !"); return null;}
                 //Find 'equals' sign:
                 tok_idx ++;
                 if(tokens.get(tok_idx).type == TokenType.EQUALS){
@@ -138,14 +140,14 @@ class Language {
                 //We don't find equal sign:
                 else {
                     error("Expected '=' after identfier !!!");
-                    return 999999.0;
+                    return null;
                 }
             }
                 
             //We don't find an identfier which is an error:
             else {
                 error("Expected identfier after 'let' !!!");
-                return 9999999.0;
+                return null;
             }
         }
 
@@ -153,7 +155,7 @@ class Language {
         else if(tokens.get(tok_idx).type == TokenType.IDENTIFIER){
             Token identifier_token = tokens.get(tok_idx);
             //Check if variable has been declared before:
-            if(!variables.containsKey(identifier_token.word)){error(identifier_token.word + " must be declared with 'let' before using it !!!"); return 0.0;}
+            if(!variables.containsKey(identifier_token.word)){error(identifier_token.word + " must be declared with 'let' before using it !!!"); return null;}
             //Find 'equals' sign:
             tok_idx ++;
             if(tok_idx >= tokens.size()) return variables.get(identifier_token.word);
@@ -176,7 +178,7 @@ class Language {
         if(ast != null)
             return ast.visit();
         else
-            return 9999999.0;
+            return null;
         
     }
 
@@ -238,7 +240,7 @@ class Language {
 
         else {
             error(tokens.get(tok_idx).type +  " is not a number !!!");
-            return new NumberNode(null, 0.0);
+            return null;
         }
     }
 
@@ -307,19 +309,19 @@ enum TokenType{Double, PLUS, MINUS, MULTIPLY, DIVIDE, POWER, L_PAR, R_PAR, LET, 
 
 class Node {
     Token token;
-    double visit(){
-        return 999999999.0;
+    Double visit(){
+        return null;
     }
 }
 
 class NumberNode extends Node {
-    double value_;
-    NumberNode(Token token, double value_){
+    Double value_;
+    NumberNode(Token token, Double value_){
         this.token = token;
         this.value_ = value_;
     }
 
-    double visit(){
+    Double visit(){
         return this.value_;
     }
 
@@ -338,14 +340,15 @@ class BinOpNode extends Node {
         this.right_node = right_node;
     }
 
-    double visit(){
+    Double visit(){
+        if(left_node == null || right_node == null) return null;
         return switch (token.type) {
             case TokenType.PLUS -> left_node.visit() + right_node.visit();
             case TokenType.MINUS -> left_node.visit() - right_node.visit();
             case TokenType.MULTIPLY -> left_node.visit() * right_node.visit();
             case TokenType.DIVIDE -> left_node.visit() / right_node.visit();
             case TokenType.POWER -> Math.pow(left_node.visit(), right_node.visit());
-            default -> 0.0;
+            default -> null;
         };
     }
 
@@ -363,8 +366,8 @@ class UnaryOpNode extends Node {
         this.token = op_token;
         }
 
-    double visit(){
-        if (child_node == null) {Language.error("No number for the minus !!!"); return 0.0;}
+    Double visit(){
+        if (child_node == null) {Language.error("No number for the minus !!!"); return null;}
         return child_node.visit() * -1;
     }
 
@@ -383,10 +386,10 @@ class VarAssignmentNode extends Node {
         this.expresion = expresion;
     }
 
-    double visit(){
+    Double visit(){
         value_ = expresion.visit();
         Language.variables.put(identifier, value_);
-        return 0.0;
+        return null;
     }
 
     @Override
@@ -401,12 +404,12 @@ class VarAccessNode extends Node {
         this.identifier = identifier;
     }
 
-    double visit(){
+    Double visit(){
         if(identifier != null){
             double value_ = Language.variables.get(identifier);
             return value_;
         }
-        return 0.0;
+        return null;
 
     }
 

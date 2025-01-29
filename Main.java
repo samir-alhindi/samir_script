@@ -7,8 +7,9 @@ public class Main {
         while(true){
             System.out.print("> ");
             String input = scanner.nextLine();
-            double result = Language.run(input);
-            System.out.println(result);
+            Double result = Language.run(input);
+            if(result != null)
+                System.out.println(result);
         }
     }
 }
