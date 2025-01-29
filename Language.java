@@ -8,7 +8,7 @@ class Language {
     static ArrayList<Token> tokens = new ArrayList<>();
     static int tok_idx = 0;
 
-    static final String[] keywords = {"var",};
+    static final String[] keywords = {"let",};
 
     //// running ////
     static double run (String input){
@@ -102,7 +102,7 @@ class Language {
             Token token = new Token(null, null);
             if(is_keyword(word)){
                 switch (word) {
-                    case "var" -> token.type = TokenType.VAR;
+                    case "let" -> token.type = TokenType.LET;
                 }
             }
             else
@@ -123,8 +123,9 @@ class Language {
         Node ast;
         
         //Check if there's variable declaration and assignment: 
-        if(tokens.get(tok_idx).type == TokenType.VAR){
+        if(tokens.get(tok_idx).type == TokenType.LET){
             tok_idx ++;
+            if(tok_idx >= tokens.size()){error("Expected an identifier after 'let' !!!"); return 0.0;}
             //Find identfier token:
             if(tokens.get(tok_idx).type == TokenType.IDENTIFIER){
                 Token identifier_token = tokens.get(tok_idx);
@@ -143,7 +144,7 @@ class Language {
                 
             //We don't find an identfier which is an error:
             else {
-                error("Expected identfier after 'var' !!!");
+                error("Expected identfier after 'let' !!!");
                 return 9999999.0;
             }
         }
@@ -151,6 +152,8 @@ class Language {
         //Check if there's variable re-asignment:
         else if(tokens.get(tok_idx).type == TokenType.IDENTIFIER){
             Token identifier_token = tokens.get(tok_idx);
+            //Check if variable has been declared before:
+            if(!variables.containsKey(identifier_token.word)){error(identifier_token.word + " must be declared with 'let' before using it !!!"); return 0.0;}
             //Find 'equals' sign:
             tok_idx ++;
             if(tok_idx >= tokens.size()) return variables.get(identifier_token.word);
@@ -160,6 +163,7 @@ class Language {
             }
             //We don't find equal sign, We're just accsesing:
             else {
+                tok_idx --;
                 ast = expresion();
             }
         }
@@ -299,7 +303,7 @@ class Token {
     }
 }
 
-enum TokenType{Double, PLUS, MINUS, MULTIPLY, DIVIDE, POWER, L_PAR, R_PAR, VAR, IDENTIFIER, EQUALS}
+enum TokenType{Double, PLUS, MINUS, MULTIPLY, DIVIDE, POWER, L_PAR, R_PAR, LET, IDENTIFIER, EQUALS}
 
 class Node {
     Token token;
