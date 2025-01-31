@@ -1,3 +1,6 @@
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -13,6 +16,28 @@ class Language {
     //// running ////
     static Double run (String input){
 
+        //Check if we're running an external file:
+        if(input.length() >= 5){
+            if(input.substring(input.length() - 4, input.length()).equals(".txt")){
+                try {
+                    String code = "";
+                    FileReader reader = new FileReader(input);
+                    int data = reader.read();
+                    while (data != -1) {
+                        code += (char) data;
+                        data = reader.read();
+                    }
+                    return run(code);
+                }
+                catch (FileNotFoundException e) {
+                    error(input + " not found !!!"); return null;
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                }
+        }
+    }
+
         ///Tokenization///
         
         tokens.clear();
@@ -21,6 +46,9 @@ class Language {
         
         //Check if char is white space:
         if(input.charAt(i) == ' ') continue;
+
+        //Check if char is a semicolon (end of statement):
+        if(input.charAt(i) == ';') break;
         
         //Check if char is digit:
         else if(Character.isDigit(input.charAt(i))){
