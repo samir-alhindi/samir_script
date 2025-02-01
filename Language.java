@@ -14,7 +14,7 @@ class Language {
     static final String[] keywords = {"let",};
 
     //// running ////
-    static Double run (String input){
+    static void run (String input){
 
         //Check if we're running an external file:
         if(input.length() >= 5){
@@ -27,10 +27,22 @@ class Language {
                         code += (char) data;
                         data = reader.read();
                     }
-                    return run(code);
+                    ArrayList<String> statements = new ArrayList<>();
+                    String a_statement = "";
+                    for (int i = 0; i < code.length(); i++) {
+                        if(code.charAt(i) != ';'){
+                            a_statement += code.charAt(i);
+                        }
+                        else{
+                            run(a_statement);
+                            a_statement = "";
+                            i += 2;
+                        }
+                    }
+                    return;
                 }
                 catch (FileNotFoundException e) {
-                    error(input + " not found !!!"); return null;
+                    error(input + " not found !!!");
                 }
                 catch (IOException e) {
                     e.printStackTrace();
@@ -72,7 +84,7 @@ class Language {
                 //Error cases:
                 else if(input.charAt(i) == '.' && found_dot){
                     error("Number can't have more than 1 dot !!!");
-                    return null;
+                    
                 }
             }
             i--;
@@ -141,24 +153,24 @@ class Language {
 
         else {
             error(input.charAt(i) + " is Illegal char !");
-            return null;
+            
         }
 
         }
 
         ///Parsing///
         tok_idx = 0;
-        Node ast;
+        Node ast = new Node();
         
         //Check if there's variable declaration and assignment: 
         if(tokens.get(tok_idx).type == TokenType.LET){
             tok_idx ++;
-            if(tok_idx >= tokens.size()){error("Expected an identifier after 'let' !!!"); return null;}
+            if(tok_idx >= tokens.size()){error("Expected an identifier after 'let' !!!");}
             //Find identfier token:
             if(tokens.get(tok_idx).type == TokenType.IDENTIFIER){
                 Token identifier_token = tokens.get(tok_idx);
                 //Make sure it's not already declared:
-                if(variables.containsKey(identifier_token.word)){error(identifier_token.word + " Has already been declared before !"); return null;}
+                if(variables.containsKey(identifier_token.word)){error(identifier_token.word + " Has already been declared before !");}
                 //Find 'equals' sign:
                 tok_idx ++;
                 if(tokens.get(tok_idx).type == TokenType.EQUALS){
@@ -168,14 +180,12 @@ class Language {
                 //We don't find equal sign:
                 else {
                     error("Expected '=' after identfier !!!");
-                    return null;
                 }
             }
                 
             //We don't find an identfier which is an error:
             else {
                 error("Expected identfier after 'let' !!!");
-                return null;
             }
         }
 
@@ -183,10 +193,11 @@ class Language {
         else if(tokens.get(tok_idx).type == TokenType.IDENTIFIER){
             Token identifier_token = tokens.get(tok_idx);
             //Check if variable has been declared before:
-            if(!variables.containsKey(identifier_token.word)){error(identifier_token.word + " must be declared with 'let' before using it !!!"); return null;}
+            if(!variables.containsKey(identifier_token.word)){error(identifier_token.word + " must be declared with 'let' before using it !!!");}
             //Find 'equals' sign:
             tok_idx ++;
-            if(tok_idx >= tokens.size()) return variables.get(identifier_token.word);
+            //We reached the end of the statement so we just wanna print the variable:
+            if(tok_idx >= tokens.size()) {System.out.println(variables.get(identifier_token.word)); return;}
             if(tokens.get(tok_idx).type == TokenType.EQUALS){
                 tok_idx ++;
                 ast = new VarAssignmentNode(identifier_token.word, expresion());
@@ -204,10 +215,7 @@ class Language {
         
         ///Interpreting//
         if(ast != null)
-            return ast.visit();
-        else
-            return null;
-        
+            System.out.println(ast.visit());
     }
 
     static void error(String log){

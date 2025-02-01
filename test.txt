@@ -1,3 +1,5 @@
-let x = 10;
-let y = 20;
-x + y;
+let num_one = 1;
+let num_two = 2;
+let num_three = 3;
+num_one + num_two;
+num_three / num_one;
