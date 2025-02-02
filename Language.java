@@ -16,6 +16,9 @@ class Language {
     //// running ////
     static void run (String input){
 
+        //Check if input is nothing:
+        if(input.length() == 0) return;
+
         //Check if we're running an external file:
         if(input.length() >= 5){
             if(input.substring(input.length() - 4, input.length()).equals(".txt")){
@@ -27,7 +30,6 @@ class Language {
                         code += (char) data;
                         data = reader.read();
                     }
-                    ArrayList<String> statements = new ArrayList<>();
                     String a_statement = "";
                     for (int i = 0; i < code.length(); i++) {
                         if(code.charAt(i) != ';'){
@@ -36,7 +38,7 @@ class Language {
                         else{
                             run(a_statement);
                             a_statement = "";
-                            i += 2;
+                            //i += 2;
                         }
                     }
                     return;
@@ -151,10 +153,10 @@ class Language {
             
         }
 
-        else {
-            error(input.charAt(i) + " is Illegal char !");
+        //else {
+            //error(input.charAt(i) + " is Illegal char !");
             
-        }
+        //}
 
         }
 
@@ -214,8 +216,12 @@ class Language {
             ast = expresion();
         
         ///Interpreting//
-        if(ast != null)
-            System.out.println(ast.visit());
+        if(ast != null){
+            Double output = ast.visit();
+            if(output != null)
+                System.out.println(output);
+        }
+            
     }
 
     static void error(String log){
