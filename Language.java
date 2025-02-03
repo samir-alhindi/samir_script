@@ -11,7 +11,7 @@ class Language {
     static ArrayList<Token> tokens = new ArrayList<>();
     static int tok_idx = 0;
 
-    static final String[] keywords = {"let",};
+    static final String[] keywords = {"let", "and", "or",};
 
     //// running ////
     static void run (String input){
@@ -115,9 +115,63 @@ class Language {
             Token token = new Token(TokenType.POWER, 0);
             tokens.add(token);
         }
+
+        //check if char is equals sign:
         else if(input.charAt(i) == '='){
             Token token = new Token(TokenType.EQUALS, 0);
-            tokens.add(token);
+            i++;
+            if(i >= input.length()){error("Expected expression after '=' !!!"); return;}
+            if(input.charAt(i) == '='){
+                token.type = TokenType.DOUBLE_EQUAL;
+                tokens.add(token);
+            }
+            else{
+                i--;
+                tokens.add(token);
+            }
+            
+        }
+
+        //Check if char is not equals sign:
+        else if(input.charAt(i) == '!'){
+            i++;
+            if(i >= input.length()){error("Expected '=' after '!' !!!"); return;}
+            if(input.charAt(i) == '='){
+                Token token = new Token(TokenType.NOT_EQUAL, 0);
+                tokens.add(token);
+            }
+            else{
+                error("Expected '=' after '!' !!!"); return;
+            }
+        }
+        
+        //Check if char is greater than:
+        else if(input.charAt(i) == '>'){
+            Token token = new Token(TokenType.GREATER_THAN, 0);
+            i++;
+            if(i >= input.length()){error("Expected expression after '>' !!!"); return;}
+            if(input.charAt(i) == '='){
+                token.type = TokenType.GREATER_THAN_OR_EQUAL;
+                tokens.add(token);
+            }
+            else{
+                i--;
+                tokens.add(token);
+            }
+        }
+        //Check if char is less than:
+        else if(input.charAt(i) == '<'){
+            Token token = new Token(TokenType.LESS_THAN, 0);
+            i++;
+            if(i >= input.length()){error("Expected expression after '<' !!!"); return;}
+            if(input.charAt(i) == '='){
+                token.type = TokenType.LESS_THAN_OR_EQUAL;
+                tokens.add(token);
+            }
+            else{
+                i--;
+                tokens.add(token);
+            }
         }
 
         //Check if char is parentheses:
@@ -145,6 +199,8 @@ class Language {
             if(is_keyword(word)){
                 switch (word) {
                     case "let" -> token.type = TokenType.LET;
+                    case "and" -> token.type = TokenType.AND;
+                    case "or" -> token.type = TokenType.OR;
                 }
             }
             else
@@ -152,11 +208,6 @@ class Language {
             tokens.add(token);
             
         }
-
-        //else {
-            //error(input.charAt(i) + " is Illegal char !");
-            
-        //}
 
         }
 
@@ -177,7 +228,7 @@ class Language {
                 tok_idx ++;
                 if(tokens.get(tok_idx).type == TokenType.EQUALS){
                     tok_idx ++;
-                    ast = new VarAssignmentNode(identifier_token.word, expresion());
+                    ast = new VarAssignmentNode(identifier_token.word, boolean_expression());
                 }
                 //We don't find equal sign:
                 else {
@@ -202,19 +253,19 @@ class Language {
             if(tok_idx >= tokens.size()) {System.out.println(variables.get(identifier_token.word)); return;}
             if(tokens.get(tok_idx).type == TokenType.EQUALS){
                 tok_idx ++;
-                ast = new VarAssignmentNode(identifier_token.word, expresion());
+                ast = new VarAssignmentNode(identifier_token.word, boolean_expression());
             }
             //We don't find equal sign, We're just accsesing:
             else {
                 tok_idx --;
-                ast = expresion();
+                ast = boolean_expression();
             }
         }
 
         //No variable asignment:
         else 
-            ast = expresion();
-        
+            ast = boolean_expression();
+
         ///Interpreting//
         if(ast != null){
             Double output = ast.visit();
@@ -271,7 +322,7 @@ class Language {
         else if(tokens.get(tok_idx).type == TokenType.L_PAR){
             tok_idx ++;
             if(tok_idx >= tokens.size()){ error("parenthesis never closed !"); return null;}
-            Node expr_inside_parentheses = expresion();
+            Node expr_inside_parentheses = boolean_expression();
             if(tok_idx >= tokens.size()){ error("parenthesis never closed !"); return null;}
             if(tokens.get(tok_idx).type == TokenType.R_PAR){
                 return expr_inside_parentheses;}
@@ -303,7 +354,7 @@ class Language {
         return left;
     }
 
-    static Node expresion(){
+    static Node arithmetic_expresion(){
         Node left = term();
         if(tok_idx >= tokens.size()) return left;
 
@@ -312,6 +363,38 @@ class Language {
             tok_idx ++;
             if(tok_idx >= tokens.size()){ error("Invalid syntax !!!"); break;}
             Node right = term();
+            left = new BinOpNode(left, op_token, right);
+            if(tok_idx >= tokens.size()) return left;
+        }
+        return left;
+    }
+
+    static Node comparison_expression(){
+        Node left = arithmetic_expresion();
+        if(tok_idx >= tokens.size()) return left;
+
+        while (tokens.get(tok_idx).type == TokenType.GREATER_THAN || tokens.get(tok_idx).type == TokenType.LESS_THAN
+        || tokens.get(tok_idx).type == TokenType.GREATER_THAN_OR_EQUAL || tokens.get(tok_idx).type == TokenType.LESS_THAN_OR_EQUAL
+        ||tokens.get(tok_idx).type == TokenType.DOUBLE_EQUAL || tokens.get(tok_idx).type == TokenType.NOT_EQUAL) {
+            Token op_token = tokens.get(tok_idx);
+            tok_idx ++;
+            if(tok_idx >= tokens.size()){ error("Invalid syntax !!!"); break;}
+            Node right = arithmetic_expresion();
+            left = new BinOpNode(left, op_token, right);
+            if(tok_idx >= tokens.size()) return left;
+        }
+        return left;
+    }
+
+    static Node boolean_expression(){
+        Node left = comparison_expression();
+        if(tok_idx >= tokens.size()) return left;
+
+        while (tokens.get(tok_idx).type == TokenType.AND || tokens.get(tok_idx).type == TokenType.OR) {
+            Token op_token = tokens.get(tok_idx);
+            tok_idx ++;
+            if(tok_idx >= tokens.size()){ error("Invalid syntax !!!"); break;}
+            Node right = comparison_expression();
             left = new BinOpNode(left, op_token, right);
             if(tok_idx >= tokens.size()) return left;
         }
@@ -347,7 +430,9 @@ class Token {
     }
 }
 
-enum TokenType{Double, PLUS, MINUS, MULTIPLY, DIVIDE, POWER, L_PAR, R_PAR, LET, IDENTIFIER, EQUALS}
+enum TokenType{Double, PLUS, MINUS, MULTIPLY, DIVIDE, POWER, L_PAR, R_PAR, LET, IDENTIFIER,
+    EQUALS, AND, OR, NOT, DOUBLE_EQUAL, NOT_EQUAL, GREATER_THAN, LESS_THAN,
+    GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL,}
 
 class Node {
     Token token;
@@ -390,6 +475,14 @@ class BinOpNode extends Node {
             case TokenType.MULTIPLY -> left_node.visit() * right_node.visit();
             case TokenType.DIVIDE -> left_node.visit() / right_node.visit();
             case TokenType.POWER -> Math.pow(left_node.visit(), right_node.visit());
+            case TokenType.DOUBLE_EQUAL -> left_node.visit().equals(right_node.visit()) ? 1.0 : 0;
+            case TokenType.NOT_EQUAL -> left_node.visit().equals(right_node.visit()) ? 0 : 1.0;
+            case TokenType.GREATER_THAN -> left_node.visit() > right_node.visit() ? 1.0 : 0;
+            case TokenType.LESS_THAN -> left_node.visit() < right_node.visit() ? 1.0 : 0;
+            case TokenType.GREATER_THAN_OR_EQUAL -> left_node.visit() >= right_node.visit() ? 1.0 : 0;
+            case TokenType.LESS_THAN_OR_EQUAL -> left_node.visit() <= right_node.visit() ? 1.0 : 0;
+            case TokenType.AND -> (!left_node.visit().equals(0.0) && !right_node.visit().equals(0.0)) ? 1.0 : 0;
+            case TokenType.OR -> (!left_node.visit().equals(0.0) || !right_node.visit().equals(0.0)) ? 1.0 : 0;
             default -> null;
         };
     }

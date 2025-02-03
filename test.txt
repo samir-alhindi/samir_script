@@ -1,4 +1,5 @@
-let x = 10;
-let y = -1.25; let z = (5 ^ 2);
 
-x + y + z;
+let my_bool = 5 <= 6;
+let my_other_bool = 10 == 10 or 5 < 3;
+
+my_bool and my_other_bool;
