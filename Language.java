@@ -32,15 +32,16 @@ class Language {
                     }
                     String a_statement = "";
                     for (int i = 0; i < code.length(); i++) {
-                        if(code.charAt(i) != ';'){
+                        if(code.charAt(i) != '\n' && code.charAt(i) != '\r' && code.charAt(i) != ';'){
                             a_statement += code.charAt(i);
                         }
                         else{
                             run(a_statement);
                             a_statement = "";
-                            //i += 2;
                         }
                     }
+                    //Run the last statement:
+                    run(a_statement);
                     return;
                 }
                 catch (FileNotFoundException e) {
@@ -61,8 +62,11 @@ class Language {
         //Check if char is white space:
         if(input.charAt(i) == ' ') continue;
 
-        //Check if char is a semicolon (end of statement):
-        if(input.charAt(i) == ';') break;
+        //Check if char is a linebreak (end of statement):
+        if(input.charAt(i) == '\n' || input.charAt(i) == '\r' || input.charAt(i) == ';') break;
+
+        //Check if char is 
+        if(input.charAt(i) == '#') return;
         
         //Check if char is digit:
         else if(Character.isDigit(input.charAt(i))){
@@ -207,6 +211,11 @@ class Language {
                 token = new Token(TokenType.IDENTIFIER, word);
             tokens.add(token);
             
+        }
+
+        else{
+            error(input.charAt(i)+"Is Illegal char !!!");
+            return;
         }
 
         }

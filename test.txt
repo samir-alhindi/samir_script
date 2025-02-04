@@ -1,5 +1,7 @@
 
-let my_bool = 5 <= 6;
-let my_other_bool = 10 == 10 or 5 < 3;
+# Variable declaration:
+let x = 20; let y = -5
+let z = 1 + 1
 
-my_bool and my_other_bool;
+# Program entry point:
+x + y + z
