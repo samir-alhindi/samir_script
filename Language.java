@@ -11,10 +11,10 @@ class Language {
     static ArrayList<Token> tokens = new ArrayList<>();
     static int tok_idx = 0;
 
-    static final String[] keywords = {"let", "and", "or",};
+    static final String[] keywords = {"let", "and", "or", "if", "elif", "else", "endif"};
 
     //// running ////
-    static void run (String input){
+    static void run (String input, boolean multiline){
 
         //Check if input is nothing:
         if(input.length() == 0) return;
@@ -33,15 +33,42 @@ class Language {
                     String a_statement = "";
                     for (int i = 0; i < code.length(); i++) {
                         if(code.charAt(i) != '\n' && code.charAt(i) != '\r' && code.charAt(i) != ';'){
+                            //check if comment:
+                            if(code.charAt(i) == '#'){
+                                while (code.charAt(i) != '\n' && code.charAt(i) != '\r') {
+                                    i++;
+                                }
+                            }
                             a_statement += code.charAt(i);
+                            //Check if multiline statement (if, for...):
+                            if(a_statement.equals("if ")){
+                                String multiline_statement = "";
+                                i++;
+                                while (i < code.length()) {
+                                    a_statement += code.charAt(i);
+                                    if(code.charAt(i) == '\n' || code.charAt(i) == '\r' || code.charAt(i) == ';'){
+                                        multiline_statement += a_statement;
+                                        a_statement = "";
+                                    }
+                                    if(a_statement.equals("endif")){
+                                        multiline_statement += a_statement;
+                                        a_statement = "";
+                                        a_statement += multiline_statement;
+                                        break;
+                                }
+                                    i++;
+                                }
+                                run(a_statement, true);
+                                a_statement = "";
+                            }
                         }
                         else{
-                            run(a_statement);
+                            run(a_statement, false);
                             a_statement = "";
                         }
                     }
                     //Run the last statement:
-                    run(a_statement);
+                    run(a_statement, false);
                     return;
                 }
                 catch (FileNotFoundException e) {
@@ -63,9 +90,9 @@ class Language {
         if(input.charAt(i) == ' ') continue;
 
         //Check if char is a linebreak (end of statement):
-        if(input.charAt(i) == '\n' || input.charAt(i) == '\r' || input.charAt(i) == ';') break;
+        if(input.charAt(i) == '\n' || input.charAt(i) == '\r' || input.charAt(i) == ';') {if(!multiline) break; else continue;}
 
-        //Check if char is 
+        //Check if char is comment:
         if(input.charAt(i) == '#') return;
         
         //Check if char is digit:
@@ -187,6 +214,11 @@ class Language {
             Token token = new Token(TokenType.R_PAR, 0);
             tokens.add(token);
         }
+        //Check if char is colon:
+        else if (input.charAt(i) == ':'){
+            Token token = new Token(TokenType.COLON, 0);
+            tokens.add(token);
+        }
 
         //Check if char is identifier/keyword:
         else if(Character.isLetter(input.charAt(i)) || input.charAt(i) == '_'){
@@ -205,6 +237,10 @@ class Language {
                     case "let" -> token.type = TokenType.LET;
                     case "and" -> token.type = TokenType.AND;
                     case "or" -> token.type = TokenType.OR;
+                    case "if" -> token.type = TokenType.IF;
+                    case "else" -> token.type = TokenType.ELSE;
+                    case "elif" -> token.type = TokenType.ELIF;
+                    case "endif" -> token.type = TokenType.ENDIF;
                 }
             }
             else
@@ -255,7 +291,7 @@ class Language {
         else if(tokens.get(tok_idx).type == TokenType.IDENTIFIER){
             Token identifier_token = tokens.get(tok_idx);
             //Check if variable has been declared before:
-            if(!variables.containsKey(identifier_token.word)){error(identifier_token.word + " must be declared with 'let' before using it !!!");}
+            if(!variables.containsKey(identifier_token.word)){error(identifier_token.word + " must be declared with 'let' before using it !!!"); return;}
             //Find 'equals' sign:
             tok_idx ++;
             //We reached the end of the statement so we just wanna print the variable:
@@ -305,7 +341,7 @@ class Language {
             //Variable doesn't exist !
             else{
                 error("Variable: "+ tokens.get(tok_idx).word + " not declared !!!");
-                return new VarAccessNode(null);
+                return null;
             } 
         }
 
@@ -441,7 +477,7 @@ class Token {
 
 enum TokenType{Double, PLUS, MINUS, MULTIPLY, DIVIDE, POWER, L_PAR, R_PAR, LET, IDENTIFIER,
     EQUALS, AND, OR, NOT, DOUBLE_EQUAL, NOT_EQUAL, GREATER_THAN, LESS_THAN,
-    GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL,}
+    GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL, IF, ELSE, ELIF, ENDIF, COLON}
 
 class Node {
     Token token;
@@ -524,15 +560,16 @@ class UnaryOpNode extends Node {
 class VarAssignmentNode extends Node {
     String identifier;
     Node expresion;
-    double value_;
+    Double value_;
     VarAssignmentNode(String identifier, Node expresion){
         this.identifier = identifier;
         this.expresion = expresion;
     }
 
     Double visit(){
-        value_ = expresion.visit();
-        Language.variables.put(identifier, value_);
+        if (expresion != null){
+            value_ = expresion.visit();
+            Language.variables.put(identifier, value_);}
         return null;
     }
 

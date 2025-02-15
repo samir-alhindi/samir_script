@@ -1,7 +1,6 @@
 
-# Variable declaration:
-let x = 20; let y = -5
-let z = 1 + 1
+let x = 10; let y = 2 ^ (1 + 2 + 0)
 
-# Program entry point:
-x + y + z
+x;
+
+y

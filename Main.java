@@ -7,7 +7,7 @@ public class Main {
         while(true){
             System.out.print("> ");
             String input = scanner.nextLine();
-            Language.run(input);
+            Language.run(input, false);
         }
     }
 }
