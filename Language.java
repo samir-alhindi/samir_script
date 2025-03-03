@@ -14,7 +14,7 @@ class Language {
     static final String[] keywords = {"let", "and", "or", "if", "elif", "else", "endif"};
 
     //// running ////
-    static void run (String input, boolean multiline){
+    void run (String input, boolean multiline){
 
         //Check if input is nothing:
         if(input.length() == 0) return;
@@ -260,7 +260,7 @@ class Language {
         tok_idx = 0;
         Node ast = new Node();
         
-        //Check if there's variable declaration and assignment: 
+        //Check if there's variable declaration and assignment:
         if(tokens.get(tok_idx).type == TokenType.LET){
             tok_idx ++;
             if(tok_idx >= tokens.size()){error("Expected an identifier after 'let' !!!");}
@@ -325,7 +325,7 @@ class Language {
     }
 
     ///Helper parsing methods///
-    static Node factor(){
+    Node factor(){
         //Making number nodes:
         if(tokens.get(tok_idx).type == TokenType.Double){
             return new NumberNode(tokens.get(tok_idx), tokens.get(tok_idx).value);
@@ -382,7 +382,7 @@ class Language {
         }
     }
 
-    static Node term(){
+    Node term(){
         Node left = factor();
         tok_idx ++;
         if(tok_idx >= tokens.size()) return left;
@@ -399,7 +399,7 @@ class Language {
         return left;
     }
 
-    static Node arithmetic_expresion(){
+    Node arithmetic_expresion(){
         Node left = term();
         if(tok_idx >= tokens.size()) return left;
 
@@ -414,7 +414,7 @@ class Language {
         return left;
     }
 
-    static Node comparison_expression(){
+    Node comparison_expression(){
         Node left = arithmetic_expresion();
         if(tok_idx >= tokens.size()) return left;
 
@@ -431,7 +431,7 @@ class Language {
         return left;
     }
 
-    static Node boolean_expression(){
+    Node boolean_expression(){
         Node left = comparison_expression();
         if(tok_idx >= tokens.size()) return left;
 
@@ -447,7 +447,7 @@ class Language {
     }
 
     //Method to check if word is keyword:
-    static boolean is_keyword(String word){
+    boolean is_keyword(String word){
         for (int i = 0; i < keywords.length; i++) 
             if(keywords[i] .equals(word)) return true;
         return false;

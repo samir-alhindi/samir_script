@@ -1,6 +1,5 @@
+let x = 5 ^ 2
+let y = (1 + 2) * 2
+let boolean = x >= 25 
 
-let x = 10; let y = 2 ^ (1 + 2 + 0)
-
-x;
-
-y
+x; y; boolean;
