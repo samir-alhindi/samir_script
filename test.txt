@@ -1,5 +1,7 @@
-let x = 5 ^ 2
-let y = (1 + 2) * 2
-let boolean = x >= 25 
 
-x; y; boolean;
+let my_var = ---2 + 1
+
+let my_bool = 1 < 2 and 5 + 5 == 10
+
+my_var
+my_bool

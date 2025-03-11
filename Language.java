@@ -355,8 +355,12 @@ class Language {
                 tok_idx ++;
                 if(tok_idx >= tokens.size()){ error("Invalid syntax !!!"); break;}
                 Node child_node = factor();
-                tok_idx ++; // Should i increment here ? Yes.
                 unary_op = new UnaryOpNode(child_node, op_Token);
+                if(child_node.token.type == TokenType.Double){
+                    tok_idx ++;
+                    break;
+                }
+                tok_idx ++; // Should i increment here ? Yes.
                 if(tok_idx >= tokens.size()) return unary_op;
             }
             tok_idx--;
