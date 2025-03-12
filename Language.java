@@ -348,7 +348,7 @@ class Language {
         //Making unary opperator nodes:
         else if(tokens.get(tok_idx).type == TokenType.MINUS){
 
-            UnaryOpNode unary_op = new UnaryOpNode(null, null);
+            UnaryOpNode unary_op = null;
 
             while (tokens.get(tok_idx).type == TokenType.MINUS) {
                 Token op_Token = tokens.get(tok_idx);
@@ -356,6 +356,10 @@ class Language {
                 if(tok_idx >= tokens.size()){ error("Invalid syntax !!!"); break;}
                 Node child_node = factor();
                 unary_op = new UnaryOpNode(child_node, op_Token);
+                if (child_node == null){ // Check if the input is "--"
+                    error("Expected a number after \"-\" !!!");
+                    return null;
+                }
                 if(child_node.token.type == TokenType.Double){
                     tok_idx ++;
                     break;
@@ -410,7 +414,7 @@ class Language {
         while (tokens.get(tok_idx).type == TokenType.PLUS || tokens.get(tok_idx).type == TokenType.MINUS) {
             Token op_token = tokens.get(tok_idx);
             tok_idx ++;
-            if(tok_idx >= tokens.size()){ error("Invalid syntax !!!"); break;}
+            if(tok_idx >= tokens.size()){ error("Invalid syntax !!!"); return null;}
             Node right = term();
             left = new BinOpNode(left, op_token, right);
             if(tok_idx >= tokens.size()) return left;
