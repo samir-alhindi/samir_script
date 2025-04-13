@@ -274,7 +274,6 @@ class Language {
 
         }
 
-        System.out.println(tokens);
 
         ///Parsing///
         tok_idx = 0;
@@ -343,7 +342,6 @@ class Language {
                     ArrayList<Node> statements_in_body = new ArrayList<>();
                     while (tokens.get(tok_idx).type != TokenType.ELIF && tokens.get(tok_idx).type != TokenType.ENDIF) {
                         statements_in_body.add(boolean_expression());
-                        System.out.println(tokens.get(tok_idx)); // Debugging.
                     }
                     // Create our 1st branch:
                     IfBranch branch = new IfBranch(statements_in_body);
