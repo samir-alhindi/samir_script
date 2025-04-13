@@ -1,6 +1,9 @@
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -15,8 +18,59 @@ class Language {
 
     //// running ////
    
-    void file(String file_name){
-        System.out.println(file_name);
+    void file(String file_path){
+        try {
+            FileReader reader = new FileReader(file_path);
+            byte[] bytes = Files.readAllBytes(Paths.get(file_path));
+            String source = new String(bytes, Charset.defaultCharset());
+            
+            String a_statement = "";
+            for (int i = 0; i < source.length(); i++) {
+                if(source.charAt(i) != '\n' && source.charAt(i) != '\r' && source.charAt(i) != ';'){
+                    //check if comment:
+                    if(source.charAt(i) == '#'){
+                        while (source.charAt(i) != '\n' && source.charAt(i) != '\r') {
+                            i++;
+                        }
+                    }
+                    a_statement += source.charAt(i);
+                    //Check if multiline statement (if, for...):
+                    if(a_statement.equals("if ")){
+                        String multiline_statement = "";
+                        i++;
+                        while (i < source.length()) {
+                            a_statement += source.charAt(i);
+                            if(source.charAt(i) == '\n' || source.charAt(i) == '\r' || source.charAt(i) == ';'){
+                                multiline_statement += a_statement;
+                                a_statement = "";
+                            }
+                            if(a_statement.equals("endif")){
+                                multiline_statement += a_statement;
+                                a_statement = "";
+                                a_statement += multiline_statement;
+                                break;
+                        }
+                            i++;
+                        }
+                        repl(a_statement, true);
+                        a_statement = "";
+                    }
+                }
+                else{
+                    repl(a_statement, false);
+                    a_statement = "";
+                }
+            }
+            //Run the last statement:
+            repl(a_statement, false);
+            return;
+        }
+        catch (FileNotFoundException e) {
+            error(file_path + " not found !!!");
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     void repl (String input, boolean multiline){
@@ -24,67 +78,6 @@ class Language {
         //Check if input is nothing:
         if(input.length() == 0)
             return;
-
-        //Check if we're running an external file:
-        if(input.length() >= 5){
-            if(input.substring(input.length() - 4, input.length()).equals(".txt")){
-                try {
-                    String code = "";
-                    FileReader reader = new FileReader(input);
-                    int data = reader.read();
-                    while (data != -1) {
-                        code += (char) data;
-                        data = reader.read();
-                    }
-                    String a_statement = "";
-                    for (int i = 0; i < code.length(); i++) {
-                        if(code.charAt(i) != '\n' && code.charAt(i) != '\r' && code.charAt(i) != ';'){
-                            //check if comment:
-                            if(code.charAt(i) == '#'){
-                                while (code.charAt(i) != '\n' && code.charAt(i) != '\r') {
-                                    i++;
-                                }
-                            }
-                            a_statement += code.charAt(i);
-                            //Check if multiline statement (if, for...):
-                            if(a_statement.equals("if ")){
-                                String multiline_statement = "";
-                                i++;
-                                while (i < code.length()) {
-                                    a_statement += code.charAt(i);
-                                    if(code.charAt(i) == '\n' || code.charAt(i) == '\r' || code.charAt(i) == ';'){
-                                        multiline_statement += a_statement;
-                                        a_statement = "";
-                                    }
-                                    if(a_statement.equals("endif")){
-                                        multiline_statement += a_statement;
-                                        a_statement = "";
-                                        a_statement += multiline_statement;
-                                        break;
-                                }
-                                    i++;
-                                }
-                                repl(a_statement, true);
-                                a_statement = "";
-                            }
-                        }
-                        else{
-                            repl(a_statement, false);
-                            a_statement = "";
-                        }
-                    }
-                    //Run the last statement:
-                    repl(a_statement, false);
-                    return;
-                }
-                catch (FileNotFoundException e) {
-                    error(input + " not found !!!");
-                }
-                catch (IOException e) {
-                    e.printStackTrace();
-                }
-        }
-    }
 
         ///Tokenization///
         

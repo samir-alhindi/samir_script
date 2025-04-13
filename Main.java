@@ -6,6 +6,9 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         Language lang = new Language();
 
+        //Testing
+        lang.file("test.smr");
+
         if(args.length > 1){
             System.exit(64);
         }

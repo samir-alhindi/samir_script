@@ -1,2 +1,6 @@
 
 
+let x = 15;
+let y = x + 1
+
+x - y
