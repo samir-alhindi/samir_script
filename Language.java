@@ -17,7 +17,8 @@ class Language {
     void run (String input, boolean multiline){
 
         //Check if input is nothing:
-        if(input.length() == 0) return;
+        if(input.length() == 0)
+            return;
 
         //Check if we're running an external file:
         if(input.length() >= 5){
@@ -86,43 +87,51 @@ class Language {
         
         for (int i = 0; i < input.length(); i++) {
         
-        //Check if char is white space:
-        if(input.charAt(i) == ' ') continue;
+            //Check if char is white space:
+            if(input.charAt(i) == ' ')
+                continue;
 
-        //Check if char is a linebreak (end of statement):
-        if(input.charAt(i) == '\n' || input.charAt(i) == '\r' || input.charAt(i) == ';') {if(!multiline) break; else continue;}
+            //Check if char is a linebreak (end of statement):
+            if(input.charAt(i) == '\n' || input.charAt(i) == '\r' || input.charAt(i) == ';'){
+                if(!multiline)
+                    break;
+                else
+                    continue;
+                }
 
-        //Check if char is comment:
-        if(input.charAt(i) == '#') return;
+            //Check if char is comment:
+            if(input.charAt(i) == '#')
+                return;
         
-        //Check if char is digit:
-        else if(Character.isDigit(input.charAt(i))){
+            //Check if char is digit:
+            else if(Character.isDigit(input.charAt(i))){
 
-            //Creating Double token:
-            String num_str = "";
-            boolean found_dot = false;
+                //Creating Double token:
+                String num_str = "";
+                boolean found_dot = false;
             
-            while (Character.isDigit(input.charAt(i)) || input.charAt(i) == '.') {
-                if(Character.isDigit(input.charAt(i))){
-                    num_str += input.charAt(i);
-                    i++;
-                    if(i >= input.length()) break;
+                while (Character.isDigit(input.charAt(i)) || input.charAt(i) == '.') {
+                    if(Character.isDigit(input.charAt(i))){
+                        num_str += input.charAt(i);
+                        i++;
+                        if(i >= input.length())
+                            break;
+                    }
+                    else if(input.charAt(i) == '.' && !found_dot){
+                        found_dot = true;
+                        num_str += input.charAt(i);
+                        i++;
+                        if(i >= input.length()) break;
+                    }
+                    //Error cases:
+                    else if(input.charAt(i) == '.' && found_dot){
+                        error("Number can't have more than 1 dot !!!");
+                        
+                    }
                 }
-                else if(input.charAt(i) == '.' && !found_dot){
-                    found_dot = true;
-                    num_str += input.charAt(i);
-                    i++;
-                    if(i >= input.length()) break;
-                }
-                //Error cases:
-                else if(input.charAt(i) == '.' && found_dot){
-                    error("Number can't have more than 1 dot !!!");
-                    
-                }
-            }
-            i--;
-            Token token = new Token(TokenType.Double, Double.parseDouble(num_str));
-            tokens.add(token);
+                i--;
+                Token token = new Token(TokenType.Double, Double.parseDouble(num_str));
+                tokens.add(token);
         }
         
         //Check if char is opperator:
@@ -151,7 +160,8 @@ class Language {
         else if(input.charAt(i) == '='){
             Token token = new Token(TokenType.EQUALS, 0);
             i++;
-            if(i >= input.length()){error("Expected expression after '=' !!!"); return;}
+            if(i >= input.length()){
+                error("Expected expression after '=' !!!"); return;}
             if(input.charAt(i) == '='){
                 token.type = TokenType.DOUBLE_EQUAL;
                 tokens.add(token);
@@ -166,13 +176,16 @@ class Language {
         //Check if char is not equals sign:
         else if(input.charAt(i) == '!'){
             i++;
-            if(i >= input.length()){error("Expected '=' after '!' !!!"); return;}
+            if(i >= input.length()){error("Expected '=' after '!' !!!");
+                return;
+        }
             if(input.charAt(i) == '='){
                 Token token = new Token(TokenType.NOT_EQUAL, 0);
                 tokens.add(token);
             }
             else{
-                error("Expected '=' after '!' !!!"); return;
+                error("Expected '=' after '!' !!!");
+                return;
             }
         }
         
@@ -256,6 +269,8 @@ class Language {
 
         }
 
+        System.out.println(tokens);
+
         ///Parsing///
         tok_idx = 0;
         Node ast = new Node();
@@ -307,7 +322,40 @@ class Language {
             }
         }
 
-        //No variable asignment:
+        // Check if there's an if statement:
+        if(tokens.get(tok_idx).type == TokenType.IF){
+            tok_idx ++;
+            // Create and store our "if" condition:
+            Node condition = boolean_expression();
+            // Check if there's a colon ":":
+            if(tokens.get(tok_idx).type == TokenType.COLON){
+                tok_idx ++;
+                // Colon found, Now we create all our if branches:
+                ArrayList<IfBranch> branchs = new ArrayList<>();
+                // Keep creating branches until we're done:
+                while (tokens.get(tok_idx).type != TokenType.ENDIF) {
+                    // Create list for the statements in this branch:
+                    ArrayList<Node> statements_in_body = new ArrayList<>();
+                    while (tokens.get(tok_idx).type != TokenType.ELIF && tokens.get(tok_idx).type != TokenType.ENDIF) {
+                        statements_in_body.add(boolean_expression());
+                        System.out.println(tokens.get(tok_idx)); // Debugging.
+                    }
+                    // Create our 1st branch:
+                    IfBranch branch = new IfBranch(statements_in_body);
+                    // Add this branch
+                    branchs.add(branch);
+            }
+
+                
+            }
+            // No colon, Error:
+            else{
+
+            }
+
+        }
+
+        
         else 
             ast = boolean_expression();
 
@@ -385,6 +433,7 @@ class Language {
         }
 
         else {
+            Token tok = tokens.get(tok_idx); // Debugging.
             error(tokens.get(tok_idx).type +  " is not a number !!!");
             return null;
         }
@@ -605,5 +654,26 @@ class VarAccessNode extends Node {
     @Override
     public String toString() {
         return "(" + identifier + " : " + Language.variables.get(identifier) + ")";
+    }    
+}
+
+class IfBranch extends Node {
+    Node[] statements;
+    IfBranch(ArrayList<Node> statements){
+        this.statements = new Node[statements.size()];
+        for(int i = 0; i < statements.size(); i++)
+            this.statements[i] = statements.get(i);
+    }
+
+    
+}
+
+class EntireIfStatement extends Node {
+    IfBranch[] branchs;
+    EntireIfStatement(ArrayList<IfBranch> branchs){
+        this.branchs = new IfBranch[branchs.size()];
+        for (int i = 0; i < branchs.size(); i++) 
+            this.branchs[i] = branchs.get(i);
+        
     }
 }
