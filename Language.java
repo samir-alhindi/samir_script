@@ -14,7 +14,12 @@ class Language {
     static final String[] keywords = {"let", "and", "or", "if", "elif", "else", "endif"};
 
     //// running ////
-    void run (String input, boolean multiline){
+   
+    void file(String file_name){
+        System.out.println(file_name);
+    }
+
+    void repl (String input, boolean multiline){
 
         //Check if input is nothing:
         if(input.length() == 0)
@@ -59,17 +64,17 @@ class Language {
                                 }
                                     i++;
                                 }
-                                run(a_statement, true);
+                                repl(a_statement, true);
                                 a_statement = "";
                             }
                         }
                         else{
-                            run(a_statement, false);
+                            repl(a_statement, false);
                             a_statement = "";
                         }
                     }
                     //Run the last statement:
-                    run(a_statement, false);
+                    repl(a_statement, false);
                     return;
                 }
                 catch (FileNotFoundException e) {
@@ -323,7 +328,7 @@ class Language {
         }
 
         // Check if there's an if statement:
-        if(tokens.get(tok_idx).type == TokenType.IF){
+        else if(tokens.get(tok_idx).type == TokenType.IF){
             tok_idx ++;
             // Create and store our "if" condition:
             Node condition = boolean_expression();
