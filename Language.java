@@ -9,12 +9,24 @@ import java.util.HashMap;
 
 class Language {
 
+    static String source;
     static HashMap<String, Double> variables = new HashMap<>();
+
+    static int pos = 0;
+    static char current;
 
     static ArrayList<Token> tokens = new ArrayList<>();
     static int tok_idx = 0;
 
     static final String[] keywords = {"let", "and", "or", "if", "elif", "else", "endif"};
+
+    Language(){
+
+    }
+
+    Language(String source_code){
+        Language.source = source_code;
+    }
 
     //// running ////
    
@@ -22,227 +34,174 @@ class Language {
         try {
             FileReader reader = new FileReader(file_path);
             byte[] bytes = Files.readAllBytes(Paths.get(file_path));
-            String source = new String(bytes, Charset.defaultCharset());
-            
-            String a_statement = "";
-            for (int i = 0; i < source.length(); i++) {
-                if(source.charAt(i) != '\n' && source.charAt(i) != '\r' && source.charAt(i) != ';'){
-                    //check if comment:
-                    if(source.charAt(i) == '#'){
-                        while (source.charAt(i) != '\n' && source.charAt(i) != '\r') {
-                            i++;
-                        }
-                    }
-                    a_statement += source.charAt(i);
-                    //Check if multiline statement (if, for...):
-                    if(a_statement.equals("if ")){
-                        String multiline_statement = "";
-                        i++;
-                        while (i < source.length()) {
-                            a_statement += source.charAt(i);
-                            if(source.charAt(i) == '\n' || source.charAt(i) == '\r' || source.charAt(i) == ';'){
-                                multiline_statement += a_statement;
-                                a_statement = "";
-                            }
-                            if(a_statement.equals("endif")){
-                                multiline_statement += a_statement;
-                                a_statement = "";
-                                a_statement += multiline_statement;
-                                break;
-                        }
-                            i++;
-                        }
-                        repl(a_statement, true);
-                        a_statement = "";
-                    }
-                }
-                else{
-                    repl(a_statement, false);
-                    a_statement = "";
-                }
-            }
-            //Run the last statement:
-            repl(a_statement, false);
-            return;
+            source = new String(bytes, Charset.defaultCharset());
+            run();
         }
-        catch (FileNotFoundException e) {
-            error(file_path + " not found !!!");
+        catch(FileNotFoundException e){
+
         }
-        catch (IOException e) {
-            e.printStackTrace();
+        catch(IOException e){
+
         }
+        
     }
 
-    void repl (String input, boolean multiline){
+    void run (){
 
         //Check if input is nothing:
-        if(input.length() == 0)
+        if(source.length() == 0)
             return;
 
         ///Tokenization///
-        
-        tokens.clear();
-        
-        for (int i = 0; i < input.length(); i++) {
-        
-            //Check if char is white space:
-            if(input.charAt(i) == ' ')
-                continue;
 
-            //Check if char is a linebreak (end of statement):
-            if(input.charAt(i) == '\n' || input.charAt(i) == '\r' || input.charAt(i) == ';'){
-                if(!multiline)
-                    break;
-                else
-                    continue;
-                }
+        tokens.clear();
+        current = source.charAt(0);
+
+        while (current != '\0') {
+
+            //Check if char is space or tab or newline:
+            if(isNewlineChar(current) || current == ' ' || current == '\t')
+                advance();
+
+            //Check if char is a semicolon (end of statement):
+            else if(current == ';'){
+                addToken(TokenType.EOS);
+                advance();
+            }
 
             //Check if char is comment:
-            if(input.charAt(i) == '#')
-                return;
+            else if(current == '#'){
+                while ( ! isNewlineChar(current)) {
+                    advance();
+                }
+            }
+                
         
             //Check if char is digit:
-            else if(Character.isDigit(input.charAt(i))){
+            else if(Character.isDigit(current)){
 
                 //Creating Double token:
                 String num_str = "";
                 boolean found_dot = false;
             
-                while (Character.isDigit(input.charAt(i)) || input.charAt(i) == '.') {
-                    if(Character.isDigit(input.charAt(i))){
-                        num_str += input.charAt(i);
-                        i++;
-                        if(i >= input.length())
-                            break;
+                while (Character.isDigit(current) || current == '.') {
+                    if(Character.isDigit(current)){
+                        num_str += current;
+                        advance();
                     }
-                    else if(input.charAt(i) == '.' && !found_dot){
+                    else if(current == '.' && ! found_dot){
                         found_dot = true;
-                        num_str += input.charAt(i);
-                        i++;
-                        if(i >= input.length()) break;
+                        num_str += current;
+                        advance();
                     }
                     //Error cases:
-                    else if(input.charAt(i) == '.' && found_dot){
+                    else if(current == '.' && found_dot){
                         error("Number can't have more than 1 dot !!!");
-                        
+                        return;
                     }
                 }
-                i--;
-                Token token = new Token(TokenType.Double, Double.parseDouble(num_str));
-                tokens.add(token);
+                Double num_val = Double.valueOf(num_str);
+                addToken(TokenType.Double, num_val);
         }
         
-        //Check if char is opperator:
-        else if(input.charAt(i) == '+'){
-            Token token = new Token(TokenType.PLUS, 0);
-            tokens.add(token);
-        }
-        else if(input.charAt(i) == '-'){
-            Token token = new Token(TokenType.MINUS, 0);
-            tokens.add(token);
-        }
-        else if(input.charAt(i) == '*'){
-            Token token = new Token(TokenType.MULTIPLY, 0);
-            tokens.add(token);
-        }
-        else if(input.charAt(i) == '/'){
-            Token token = new Token(TokenType.DIVIDE, 0);
-            tokens.add(token);
-        }
-        else if(input.charAt(i) == '^'){
-            Token token = new Token(TokenType.POWER, 0);
-            tokens.add(token);
-        }
+            //Check if char is opperator:
+
+            else if(current == '+'){
+                addToken(TokenType.PLUS);
+                advance();}
+            else if(current == '-'){
+                addToken(TokenType.MINUS);
+                advance();}
+            else if(current == '*'){
+                addToken(TokenType.MULTIPLY);
+                advance();}
+            else if(current == '/'){
+                addToken(TokenType.DIVIDE);
+                advance();}
+            else if(current == '^'){
+                addToken(TokenType.POWER);
+                advance();}
 
         //check if char is equals sign:
-        else if(input.charAt(i) == '='){
-            Token token = new Token(TokenType.EQUALS, 0);
-            i++;
-            if(i >= input.length()){
-                error("Expected expression after '=' !!!"); return;}
-            if(input.charAt(i) == '='){
-                token.type = TokenType.DOUBLE_EQUAL;
-                tokens.add(token);
+        else if(current == '='){
+            //Check if '==':
+            if(currentFollowedBy('=')){
+                addToken(TokenType.DOUBLE_EQUAL);
+                advanceTwo();
             }
             else{
-                i--;
-                tokens.add(token);
+                addToken(TokenType.EQUALS);
+                advance();
             }
-            
         }
 
-        //Check if char is not equals sign:
-        else if(input.charAt(i) == '!'){
-            i++;
-            if(i >= input.length()){error("Expected '=' after '!' !!!");
-                return;
-        }
-            if(input.charAt(i) == '='){
-                Token token = new Token(TokenType.NOT_EQUAL, 0);
-                tokens.add(token);
+        //Check if char is '!' equals sign:
+        else if(current == '!'){
+            if(currentFollowedBy('!')){
+                addToken(TokenType.NOT_EQUAL);
+                advanceTwo();
             }
             else{
-                error("Expected '=' after '!' !!!");
-                return;
+                addToken(TokenType.NOT);
+                advance();
             }
         }
         
-        //Check if char is greater than:
-        else if(input.charAt(i) == '>'){
-            Token token = new Token(TokenType.GREATER_THAN, 0);
-            i++;
-            if(i >= input.length()){error("Expected expression after '>' !!!"); return;}
-            if(input.charAt(i) == '='){
-                token.type = TokenType.GREATER_THAN_OR_EQUAL;
-                tokens.add(token);
+        //Check if char is '>' than:
+        else if(current == '>'){
+            if(currentFollowedBy('=')){
+                addToken(TokenType.GREATER_THAN_OR_EQUAL);
+                advanceTwo();
             }
             else{
-                i--;
-                tokens.add(token);
+                addToken(TokenType.GREATER_THAN);
+                advance();
             }
         }
-        //Check if char is less than:
-        else if(input.charAt(i) == '<'){
-            Token token = new Token(TokenType.LESS_THAN, 0);
-            i++;
-            if(i >= input.length()){error("Expected expression after '<' !!!"); return;}
-            if(input.charAt(i) == '='){
-                token.type = TokenType.LESS_THAN_OR_EQUAL;
-                tokens.add(token);
+
+        //Check if char is '<' than:
+        else if(current == '<'){
+            if(currentFollowedBy('=')){
+                addToken(TokenType.LESS_THAN_OR_EQUAL);
+                advanceTwo();
             }
             else{
-                i--;
-                tokens.add(token);
+                addToken(TokenType.LESS_THAN);
+                advance();
             }
         }
 
         //Check if char is parentheses:
-        else if (input.charAt(i) == '('){
-            Token token = new Token(TokenType.L_PAR, 0);
-            tokens.add(token);
+        else if (current == '('){
+            addToken(TokenType.L_PAR);
+            advance();
         }
-        else if (input.charAt(i) == ')'){
-            Token token = new Token(TokenType.R_PAR, 0);
-            tokens.add(token);
+        else if (current == ')'){
+            addToken(TokenType.R_PAR);
+            advance();
         }
-        //Check if char is colon:
-        else if (input.charAt(i) == ':'){
-            Token token = new Token(TokenType.COLON, 0);
-            tokens.add(token);
+
+        //Check if char is curly braces:
+        else if (current == '{'){
+            addToken(TokenType.L_CUR);
+            advance();
+        }
+        else if (current == '}'){
+            addToken(TokenType.R_CUR);
+            advance();
         }
 
         //Check if char is identifier/keyword:
-        else if(Character.isLetter(input.charAt(i)) || input.charAt(i) == '_'){
+        else if(Character.isLetter(current) || current == '_'){
             String word = "";
         
-            while (Character.isLetter(input.charAt(i)) || input.charAt(i) == '_'){
-                word += input.charAt(i);
-                i++;
-                if(i >= input.length()) break;
+            while (Character.isLetter(current) || current == '_' || Character.isDigit(current)){
+                word += current;
+                advance();
             }
 
             //Check if word is keyword and tokenize it:
-            Token token = new Token(null, null);
+            Token token = new Token(null);
             if(is_keyword(word)){
                 switch (word) {
                     case "let" -> token.type = TokenType.LET;
@@ -251,21 +210,26 @@ class Language {
                     case "if" -> token.type = TokenType.IF;
                     case "else" -> token.type = TokenType.ELSE;
                     case "elif" -> token.type = TokenType.ELIF;
-                    case "endif" -> token.type = TokenType.ENDIF;
+                    case "not" -> token.type = TokenType.NOT;
+                    case "func" -> token.type = TokenType.FUNC;
                 }
+                tokens.add(token);
             }
             else
-                token = new Token(TokenType.IDENTIFIER, word);
-            tokens.add(token);
-            
+                addToken(TokenType.IDENTIFIER, word);
         }
 
         else{
-            error(input.charAt(i)+"Is Illegal char !!!");
+            error(current + "Is Illegal char !!!");
             return;
         }
 
         }
+
+        // End of file token:
+        addToken(TokenType.EOF);
+
+        System.out.println(tokens);
 
 
         ///Parsing///
@@ -280,12 +244,12 @@ class Language {
             if(tokens.get(tok_idx).type == TokenType.IDENTIFIER){
                 Token identifier_token = tokens.get(tok_idx);
                 //Make sure it's not already declared:
-                if(variables.containsKey(identifier_token.word)){error(identifier_token.word + " Has already been declared before !");}
+                if(variables.containsKey(identifier_token.value)){error(identifier_token.value + " Has already been declared before !");}
                 //Find 'equals' sign:
                 tok_idx ++;
                 if(tokens.get(tok_idx).type == TokenType.EQUALS){
                     tok_idx ++;
-                    ast = new VarAssignmentNode(identifier_token.word, boolean_expression());
+                    ast = new VarAssignmentNode(identifier_token.value.toString(), boolean_expression());
                 }
                 //We don't find equal sign:
                 else {
@@ -303,14 +267,14 @@ class Language {
         else if(tokens.get(tok_idx).type == TokenType.IDENTIFIER){
             Token identifier_token = tokens.get(tok_idx);
             //Check if variable has been declared before:
-            if(!variables.containsKey(identifier_token.word)){error(identifier_token.word + " must be declared with 'let' before using it !!!"); return;}
+            if(!variables.containsKey(identifier_token.value)){error(identifier_token.value + " must be declared with 'let' before using it !!!"); return;}
             //Find 'equals' sign:
             tok_idx ++;
             //We reached the end of the statement so we just wanna print the variable:
-            if(tok_idx >= tokens.size()) {System.out.println(variables.get(identifier_token.word)); return;}
+            if(tok_idx >= tokens.size()) {System.out.println(variables.get(identifier_token.value)); return;}
             if(tokens.get(tok_idx).type == TokenType.EQUALS){
                 tok_idx ++;
-                ast = new VarAssignmentNode(identifier_token.word, boolean_expression());
+                ast = new VarAssignmentNode(identifier_token.value.toString(), boolean_expression());
             }
             //We don't find equal sign, We're just accsesing:
             else {
@@ -325,15 +289,15 @@ class Language {
             // Create and store our "if" condition:
             Node condition = boolean_expression();
             // Check if there's a colon ":":
-            if(tokens.get(tok_idx).type == TokenType.COLON){
+            if(tokens.get(tok_idx).type == TokenType.EOS){
                 tok_idx ++;
                 // Colon found, Now we create all our if branches:
                 ArrayList<IfBranch> branchs = new ArrayList<>();
                 // Keep creating branches until we're done:
-                while (tokens.get(tok_idx).type != TokenType.ENDIF) {
+                while (tokens.get(tok_idx).type != TokenType.IF) {
                     // Create list for the statements in this branch:
                     ArrayList<Node> statements_in_body = new ArrayList<>();
-                    while (tokens.get(tok_idx).type != TokenType.ELIF && tokens.get(tok_idx).type != TokenType.ENDIF) {
+                    while (tokens.get(tok_idx).type != TokenType.ELIF && tokens.get(tok_idx).type != TokenType.IF) {
                         statements_in_body.add(boolean_expression());
                     }
                     // Create our 1st branch:
@@ -368,23 +332,75 @@ class Language {
         System.out.println("Error: " + log);
     }
 
+    //Helper lexing methods:
+
+    void addToken(TokenType tokenType){
+        Token token = new Token(tokenType);
+        tokens.add(token);
+    }
+
+    void addToken(TokenType tokenType, Object value){
+        Token token = new Token(tokenType, value);
+        tokens.add(token);
+    }
+
+    void advance(){
+        // Check if reached end of line:
+        if (pos + 1 >= source.length())
+            current = '\0';
+        else {
+            pos += 1;
+            current = source.charAt(pos);
+        }
+    }
+
+    void advanceTwo(){
+        // Check if reached end of line:
+        if (pos + 2 >= source.length())
+            current = '\0';
+        else {
+            pos += 2;
+            current = source.charAt(pos);
+        }
+    }
+
+    boolean isNewlineChar(char c){
+        switch(c){
+            case '\r' : return true;
+            case '\n' : return true;
+            default : return false;
+        }
+    }
+
+    char peekNext(){
+        if(pos + 1 >= source.length())
+            return '\0';
+        return source.charAt(pos + 1);
+    }
+
+    boolean currentFollowedBy(char c){
+        if(peekNext() == c)
+            return true;
+        return false;
+    }
+
     ///Helper parsing methods///
     Node factor(){
         //Making number nodes:
         if(tokens.get(tok_idx).type == TokenType.Double){
-            return new NumberNode(tokens.get(tok_idx), tokens.get(tok_idx).value);
+            return new NumberNode(tokens.get(tok_idx), new Double(tokens.get(tok_idx).value.toString()));
         }
 
         //Making variable access nodes:
         else if(tokens.get(tok_idx).type == TokenType.IDENTIFIER){
             Token identfier_token = tokens.get(tok_idx);
             //Check if variable has been declared and can be accessed:
-            if(variables.containsKey(identfier_token.word)){
-                return new VarAccessNode(identfier_token.word);
+            if(variables.containsKey(identfier_token.value)){
+                return new VarAccessNode(identfier_token.value.toString());
             }
             //Variable doesn't exist !
             else{
-                error("Variable: "+ tokens.get(tok_idx).word + " not declared !!!");
+                error("Variable: "+ tokens.get(tok_idx).value + " not declared !!!");
                 return null;
             } 
         }
@@ -510,27 +526,46 @@ class Language {
 
 class Token {
     TokenType type;
-    double value;
-    String word = "";
-    Token(TokenType type, double value){
+    Object value;
+    Token(TokenType type, Object value){
         this.type = type;
         this.value = value;
     }
-    //Constructer for identifiers:
-    Token(TokenType type, String word){
+    //Constructer for things without values:
+    Token(TokenType type){
         this.type = type;
-        this.word = word;
     }
 
     @Override
     public String toString() {
-        return  "[" + type + " : " + value + " : " + word + "]";
+        return  "[" + type + " : " + value + " : " + value + "]";
     }
 }
 
-enum TokenType{Double, PLUS, MINUS, MULTIPLY, DIVIDE, POWER, L_PAR, R_PAR, LET, IDENTIFIER,
-    EQUALS, AND, OR, NOT, DOUBLE_EQUAL, NOT_EQUAL, GREATER_THAN, LESS_THAN,
-    GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL, IF, ELSE, ELIF, ENDIF, COLON}
+enum TokenType{
+
+    // Data types:
+    Double, STRING,
+
+    // Numeric opperators:
+    PLUS, MINUS, MULTIPLY, DIVIDE, POWER,
+
+    // Boolean opperators:
+    AND, OR, NOT, 
+
+    // Relational opperators:
+    DOUBLE_EQUAL, NOT_EQUAL, GREATER_THAN, LESS_THAN,
+    GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL, 
+
+    // Grouping:
+    L_PAR, R_PAR, L_CUR, R_CUR,
+    
+    // Keywords:
+    LET, IF, ELSE, ELIF, FUNC, WHILE,
+
+    // Other:
+    IDENTIFIER, EQUALS, EOS, EOF, COMMA
+    }
 
 class Node {
     Token token;

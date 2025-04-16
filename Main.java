@@ -9,19 +9,24 @@ public class Main {
         //Testing
         lang.file("test.smr");
 
+        /*
+
         if(args.length > 1){
             System.exit(64);
         }
         else if(args.length == 1){
             String file_name = args[0];
+            lang = new Language();
             lang.file(file_name);
         }
         else{
             while(true){
                 System.out.print("> ");
                 String input = scanner.nextLine();
-                lang.repl(input, false);
+                lang = new Language(input);
+                lang.run();
             }
         }
+            */
     }
 }
