@@ -1,7 +1,5 @@
 import java.util.ArrayList;
 
-//// Lexer class ////
-
 public class Lexer {
 
     static String source;
@@ -12,16 +10,12 @@ public class Lexer {
 
     Lexer(String source){
         Lexer.source = source;
-        lex();
     }
 
-    void lex (){
+    ArrayList<Token> lex (){
 
-        //Check if input is nothing:
         if(source.length() == 0)
-            return;
-
-        ///Tokenization///
+            Language.error("empty file !");
 
         tokens.clear();
         current = source.charAt(0);
@@ -64,10 +58,9 @@ public class Lexer {
                         advance();
                     }
                     //Error cases:
-                    else if(current == '.' && found_dot){
+                    else if(current == '.' && found_dot)
                         Language.error("Number can't have more than 1 dot !!!");
-                        return;
-                    }
+                    
                 }
                 Double num_val = Double.valueOf(num_str);
                 addToken(TokenType.Double, num_val);
@@ -188,32 +181,34 @@ public class Lexer {
                 addToken(TokenType.IDENTIFIER, word);
         }
 
-        else{
+        else
             Language.error(current + "Is Illegal char !!!");
-            return;
-        }
 
         }
 
         // End of file token:
         addToken(TokenType.EOF);
 
-        System.out.println(tokens);
+        System.out.println(tokens); // Debugging.
+
+        return tokens;
+
+        
     }
 
     //Helper lexing methods:
 
-    void addToken(TokenType tokenType){
+    private void addToken(TokenType tokenType){
         Token token = new Token(tokenType);
         tokens.add(token);
     }
 
-    void addToken(TokenType tokenType, Object value){
+    private void addToken(TokenType tokenType, Object value){
         Token token = new Token(tokenType, value);
         tokens.add(token);
     }
 
-    void advance(){
+    private void advance(){
         // Check if reached end of line:
         if (pos + 1 >= source.length())
             current = '\0';
@@ -223,7 +218,7 @@ public class Lexer {
         }
     }
 
-    void advanceTwo(){
+    private void advanceTwo(){
         // Check if reached end of line:
         if (pos + 2 >= source.length())
             current = '\0';
@@ -233,7 +228,7 @@ public class Lexer {
         }
     }
 
-    boolean isNewlineChar(char c){
+    private boolean isNewlineChar(char c){
         switch(c){
             case '\r' : return true;
             case '\n' : return true;
@@ -241,25 +236,23 @@ public class Lexer {
         }
     }
 
-    char peekNext(){
+    private char peekNext(){
         if(pos + 1 >= source.length())
             return '\0';
         return source.charAt(pos + 1);
     }
 
-    boolean currentFollowedBy(char c){
+    private boolean currentFollowedBy(char c){
         if(peekNext() == c)
             return true;
         return false;
         }
 
     //Method to check if word is keyword:
-    boolean is_keyword(String word){
+    private boolean is_keyword(String word){
         for (int i = 0; i < keywords.length; i++) 
             if(keywords[i] .equals(word)) return true;
         return false;
         
     }
 }
-
-        
