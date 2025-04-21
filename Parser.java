@@ -36,7 +36,7 @@ public class Parser{
     Stmt printStatement(){
         Expre value = expression();
         if( ! current.type.equals(TokenType.EOS))
-            Language.error("Expected closing ';' to end statement");
+            Language.error("Expected closing ';' to end statement", current.line);
         advance();
         return new Print(value);
         
@@ -45,7 +45,7 @@ public class Parser{
     Stmt expresionStatement(){
         Expre expre = expression();
         if( ! current.type.equals(TokenType.EOS))
-            Language.error("Expected closing ';' to end statement");
+            Language.error("Expected closing ';' to end statement", current.line);
         advance();
         return new ExpressionStmt(expre);
     }
@@ -144,12 +144,12 @@ public class Parser{
             advance();
             Expre expre = expression();
             if( ! current.type.equals(TokenType.R_PAR))
-                Language.error("Expected closing ')' !");
+                Language.error("Expected closing ')' !", current.line);
             advance();
             return new GroupingExpre(expre);
         }
 
-        Language.error("Invalid syntax !");
+        Language.error("Invalid syntax !", current.line);
         return null;
     }
 
@@ -157,7 +157,7 @@ public class Parser{
     void advance(){
         TokenType type = current.type;
         if(type.equals(TokenType.EOF))
-            Language.error("cannot advance anymore, already reached EOF !");
+            Language.error("cannot advance anymore, already reached EOF !", current.line);
         pos += 1;
         current = tokens.get(pos);
     }

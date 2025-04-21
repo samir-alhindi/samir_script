@@ -4,6 +4,7 @@ public class Lexer {
 
     static String source;
     static int pos = 0;
+    static int line = 0;
     static char current;
     static ArrayList<Token> tokens = new ArrayList<>();
 
@@ -18,17 +19,23 @@ public class Lexer {
     ArrayList<Token> lex (){
 
         if(source.length() == 0)
-            Language.error("empty file !");
+            Language.error("empty file !", 0);
 
         tokens.clear();
         current = source.charAt(0);
 
         while (current != '\0') {
 
-            //Check if char is space or tab or newline:
-            if(isNewlineChar(current) || current == ' ' || current == '\t')
+            //Check if char is space or tab or 'CR' (carriage return):
+            if(current == ' ' || current == '\t' || current == '\r')
                 advance();
-
+            
+            //Increase line counter if we hit a newline char:
+            else if(isNewlineChar(current)){
+                line += 1;
+                advance();
+            }
+            
             //Check if char is a semicolon (end of statement):
             else if(current == ';'){
                 addToken(TokenType.EOS);
@@ -62,7 +69,7 @@ public class Lexer {
                     }
                     //Error cases:
                     else if(current == '.' && found_dot)
-                        Language.error("Number can't have more than 1 dot !!!");
+                        Language.error("Number can't have more than 1 dot !!!", line);
                     
                 }
                 Double num_val = Double.valueOf(num_str);
@@ -71,13 +78,16 @@ public class Lexer {
 
             else if(current == '"'){
                 String string = "";
+                int stringStart = line;
                 advance();
                 while (current != '"' && current != '\0') {
                     string += current;
+                    if(isNewlineChar(current))
+                        line += 1;
                     advance();
                 }
                 if(current == '\0')
-                    Language.error("unterminated string");
+                    Language.error("unterminated string", stringStart);
                 addToken(TokenType.STRING, string);
                 advance();
             }
@@ -179,7 +189,7 @@ public class Lexer {
             }
 
             //Check if word is keyword and tokenize it:
-            Token token = new Token(null);
+            Token token = new Token(null, line);
             if(is_keyword(word)){
                 switch (word) {
                     case "let" -> token.type = TokenType.LET;
@@ -202,14 +212,12 @@ public class Lexer {
         }
 
         else
-            Language.error(current + "Is Illegal char !!!");
+            Language.error(current + "Is Illegal char !!!", line);
 
         }
 
         // End of file token:
         addToken(TokenType.EOF);
-
-        System.out.println(tokens); // Debugging.
 
         return tokens;
 
@@ -219,12 +227,12 @@ public class Lexer {
     //Helper lexing methods:
 
     private void addToken(TokenType tokenType){
-        Token token = new Token(tokenType);
+        Token token = new Token(tokenType, line);
         tokens.add(token);
     }
 
     private void addToken(TokenType tokenType, Object value){
-        Token token = new Token(tokenType, value);
+        Token token = new Token(tokenType, value, line);
         tokens.add(token);
     }
 
@@ -249,11 +257,7 @@ public class Lexer {
     }
 
     private boolean isNewlineChar(char c){
-        switch(c){
-            case '\r' : return true;
-            case '\n' : return true;
-            default : return false;
-        }
+        return c == '\n';
     }
 
     private char peekNext(){

@@ -61,24 +61,26 @@ class Language {
         return object.toString();
       }
 
-    static void error(String log){
-        System.out.println("Error: " + log);
+    static void error(String log, int line){
+        System.out.printf("Error at line %d: %s", line + 1, log);
         System.exit(1);
     }
             
     }
 
-
 class Token {
     TokenType type;
     Object value;
-    Token(TokenType type, Object value){
+    int line;
+    Token(TokenType type, Object value, int line){
         this.type = type;
         this.value = value;
+        this.line = line;
     }
     //Constructer for things without values:
-    Token(TokenType type){
+    Token(TokenType type, int line){
         this.type = type;
+        this.line = line;
     }
 
     @Override
@@ -209,7 +211,7 @@ class BinOpExpre extends Expre {
                 return (String) left + (String) right;
             }
             else{
-                Language.error("'+' operands must both be strings or numbers");
+                Language.error("'+' operands must both be strings or numbers", token.line);
             }
         }
 
@@ -226,7 +228,7 @@ class BinOpExpre extends Expre {
 
     private void checkNumberOperands(Object left, Object right){
         if(left instanceof Double && right instanceof Double) return;
-        Language.error("both operands must be numbers");
+        Language.error("both operands must be numbers", token.line);
     }
 
 }
@@ -264,12 +266,12 @@ class UnaryOpExpre extends Expre {
 
     private void checkNumberOperand(Object child){
         if(child instanceof Double) return;
-        Language.error("operand must be a number");
+        Language.error("operand must be a number", token.line);
     }
 
     private void checkBooleanoperand(Object child){
         if(child instanceof Boolean) return;
-        Language.error("operand must be a boolean");
+        Language.error("operand must be a boolean", token.line);
     }
 
 
