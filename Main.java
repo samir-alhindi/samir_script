@@ -31,6 +31,12 @@ class Language {
             Lexer lexer = new Lexer(source);
             ArrayList<Token> tokens = lexer.lex();
             Parser parser = new Parser(tokens);
+            Expre ast = parser.parse();
+            Object output = ast.visit();
+            System.out.println(ast);
+            System.out.println(stringify(output));
+
+            reader.close();
         
         }
         catch(FileNotFoundException e){
@@ -39,6 +45,20 @@ class Language {
         }
         
     }
+
+    private String stringify(Object object) {
+        if (object == null) return "nil";
+    
+        if (object instanceof Double) {
+          String text = object.toString();
+          if (text.endsWith(".0")) {
+            text = text.substring(0, text.length() - 2);
+          }
+          return text;
+        }
+    
+        return object.toString();
+      }
 
     static void error(String log){
         System.out.println("Error: " + log);
@@ -68,8 +88,8 @@ class Token {
 
 enum TokenType{
 
-    // Data types:
-    Double, STRING,
+    // Primary literals:
+    Double, STRING, TRUE, FALSE, NIL,
 
     // Numeric opperators:
     PLUS, MINUS, MULTIPLY, DIVIDE, POWER,
@@ -91,57 +111,111 @@ enum TokenType{
     IDENTIFIER, EQUALS, EOS, EOF, COMMA
     }
 
-class Node {
+abstract class Expre {
     Token token;
-    Double visit(){
-        return null;
+
+    abstract Object visit();
+    
+    boolean tokenIs(TokenType type){
+        return token.type.equals(type);
     }
+
 }
 
-class NumberNode extends Node {
-    Double value_;
-    NumberNode(Token token, Double value_){
+class LiteralExpre extends Expre {
+    Object literal;
+    LiteralExpre(Token token, Object literal){
         this.token = token;
-        this.value_ = value_;
+        this.literal = literal;
     }
 
-    Double visit(){
-        return this.value_;
+    @Override
+    Object visit() {
+        return literal;
     }
 
     @Override
     public String toString() {
-        return ""+value_+"";
+        if(literal == null) return "nil";
+        return literal.toString();
+        }
     }
-}
 
-class BinOpNode extends Node {
-    Node left_node;
-    Node right_node;
-    BinOpNode(Node left_node, Token op_token, Node right_node){
+class BinOpExpre extends Expre {
+    Expre left_node;
+    Expre right_node;
+
+    BinOpExpre(Expre left_node, Token op_token, Expre right_node){
         this.left_node = left_node;
         this.token = op_token;
         this.right_node = right_node;
     }
 
-    Double visit(){
-        if(left_node == null || right_node == null) return null;
-        return switch (token.type) {
-            case TokenType.PLUS -> left_node.visit() + right_node.visit();
-            case TokenType.MINUS -> left_node.visit() - right_node.visit();
-            case TokenType.MULTIPLY -> left_node.visit() * right_node.visit();
-            case TokenType.DIVIDE -> left_node.visit() / right_node.visit();
-            case TokenType.POWER -> Math.pow(left_node.visit(), right_node.visit());
-            case TokenType.DOUBLE_EQUAL -> left_node.visit().equals(right_node.visit()) ? 1.0 : 0;
-            case TokenType.NOT_EQUAL -> left_node.visit().equals(right_node.visit()) ? 0 : 1.0;
-            case TokenType.GREATER_THAN -> left_node.visit() > right_node.visit() ? 1.0 : 0;
-            case TokenType.LESS_THAN -> left_node.visit() < right_node.visit() ? 1.0 : 0;
-            case TokenType.GREATER_THAN_OR_EQUAL -> left_node.visit() >= right_node.visit() ? 1.0 : 0;
-            case TokenType.LESS_THAN_OR_EQUAL -> left_node.visit() <= right_node.visit() ? 1.0 : 0;
-            case TokenType.AND -> (!left_node.visit().equals(0.0) && !right_node.visit().equals(0.0)) ? 1.0 : 0;
-            case TokenType.OR -> (!left_node.visit().equals(0.0) || !right_node.visit().equals(0.0)) ? 1.0 : 0;
-            default -> null;
-        };
+    @Override
+    Object visit(){
+
+        Object left = left_node.visit();
+        Object right = right_node.visit();
+
+        if(tokenIs(TokenType.MINUS)){
+            checkNumberOperands(left, right);
+            return (double) left - (double) right;
+        }
+
+        else if(tokenIs(TokenType.MULTIPLY)){
+            checkNumberOperands(left, right);
+            return (double) left * (double) right;
+        }
+
+        else if(tokenIs(TokenType.DIVIDE)){
+            checkNumberOperands(left, right);
+            return (double) left / (double) right;
+        }
+
+        else if(tokenIs(TokenType.GREATER_THAN)){
+            checkNumberOperands(left, right);
+            return (double) left > (double) right;
+        }
+
+        else if(tokenIs(TokenType.GREATER_THAN_OR_EQUAL)){
+            checkNumberOperands(left, right);
+            return (double) left >= (double) right;
+        }
+
+        else if(tokenIs(TokenType.LESS_THAN)){
+            checkNumberOperands(left, right);
+            return (double) left < (double) right;
+        }
+
+        else if(tokenIs(TokenType.LESS_THAN_OR_EQUAL)){
+            checkNumberOperands(left, right);
+            return (double) left <= (double) right;
+        }
+
+        else if(tokenIs(TokenType.DOUBLE_EQUAL)){
+            return left.equals(right);
+        }
+
+        else if(tokenIs(TokenType.NOT_EQUAL)){
+            return ! left.equals(right);
+        }
+
+        else if(tokenIs(TokenType.PLUS)){
+            if(left instanceof Double && right instanceof Double){
+                return (double) left + (double) right;
+            }
+            else if(left instanceof String && right instanceof String){
+                return (String) left + (String) right;
+            }
+            else{
+                Language.error("'+' operands must both be strings or numbers");
+            }
+        }
+
+        // Unreachable code:
+        return null;
+
+
     }
 
     @Override
@@ -149,86 +223,70 @@ class BinOpNode extends Node {
         return "(" + left_node + ", " + token.type + ", " + right_node + ")";
     }
 
+    private void checkNumberOperands(Object left, Object right){
+        if(left instanceof Double && right instanceof Double) return;
+        Language.error("both operands must be numbers");
+    }
+
 }
 
-class UnaryOpNode extends Node {
-    Node child_node;
-    UnaryOpNode(Node child_node, Token op_token){
+class UnaryOpExpre extends Expre {
+    Expre child_node;
+    UnaryOpExpre(Expre child_node, Token op_token){
         this.child_node = child_node;
         this.token = op_token;
         }
 
-    Double visit(){
-        if (child_node == null) {Language.error("No number for the minus !!!"); return null;}
-        return child_node.visit() * -1;
-    }
 
     @Override
     public String toString() {
-        return "(" + child_node + ", " + token.type + ")";
+        return "(" + token.type  + ", " + child_node + ")";
         }
-    }
 
-class VarAssignmentNode extends Node {
-    String identifier;
-    Node expresion;
-    Double value_;
-    VarAssignmentNode(String identifier, Node expresion){
-        this.identifier = identifier;
-        this.expresion = expresion;
-    }
 
-    Double visit(){
-        if (expresion != null){
-            value_ = expresion.visit();
-            Language.variables.put(identifier, value_);}
+    @Override
+    Object visit() {
+        Object right = child_node.visit();
+
+        if(tokenIs(TokenType.MINUS)){
+            checkNumberOperand(right);
+            return -(double) right;
+        }
+        else if(tokenIs(TokenType.NOT)){
+            checkBooleanoperand(right);
+            return ! (boolean) right;
+        }
+
+        // Unreachable:
         return null;
     }
 
-    @Override
-    public String toString() {
-        return "(" + identifier + " = " + expresion + ")";
-    }
-}
-
-class VarAccessNode extends Node {
-    String identifier;
-    VarAccessNode(String identifier){
-        this.identifier = identifier;
+    private void checkNumberOperand(Object child){
+        if(child instanceof Double) return;
+        Language.error("operand must be a number");
     }
 
-    Double visit(){
-        if(identifier != null){
-            double value_ = Language.variables.get(identifier);
-            return value_;
+    private void checkBooleanoperand(Object child){
+        if(child instanceof Boolean) return;
+        Language.error("operand must be a boolean");
+    }
+
+
+    }
+
+    class GroupingExpre extends Expre {
+        Expre child_node;
+        GroupingExpre(Expre node){
+            this.child_node = node;
         }
-        return null;
 
-    }
+        @Override
+        public String toString() {
+            return "[" + child_node + "]";
+            }
 
-    @Override
-    public String toString() {
-        return "(" + identifier + " : " + Language.variables.get(identifier) + ")";
-    }    
-}
-
-class IfBranch extends Node {
-    Node[] statements;
-    IfBranch(ArrayList<Node> statements){
-        this.statements = new Node[statements.size()];
-        for(int i = 0; i < statements.size(); i++)
-            this.statements[i] = statements.get(i);
-    }
-
-    
-}
-
-class EntireIfStatement extends Node {
-    IfBranch[] branchs;
-    EntireIfStatement(ArrayList<IfBranch> branchs){
-        this.branchs = new IfBranch[branchs.size()];
-        for (int i = 0; i < branchs.size(); i++) 
-            this.branchs[i] = branchs.get(i);
-        
-    }
-}
+        @Override
+        Object visit() {
+            return child_node.visit();
+        }
+        }

@@ -6,7 +6,10 @@ public class Lexer {
     static int pos = 0;
     static char current;
     static ArrayList<Token> tokens = new ArrayList<>();
-    static final String[] keywords = {"let", "and", "or", "not", "if", "elif", "else", "endif"};
+
+    // NOTE: true and false aren't keywords but rather boolean literals, nil is just null:
+    // I put them with the keywords to make things easier:
+    static final String[] keywords = {"let", "and", "or", "not", "if", "elif", "else", "endif", "false", "true", "nil"};
 
     Lexer(String source){
         Lexer.source = source;
@@ -65,6 +68,19 @@ public class Lexer {
                 Double num_val = Double.valueOf(num_str);
                 addToken(TokenType.Double, num_val);
         }
+
+            else if(current == '"'){
+                String string = "";
+                advance();
+                while (current != '"' && current != '\0') {
+                    string += current;
+                    advance();
+                }
+                if(current == '\0')
+                    Language.error("unterminated string");
+                addToken(TokenType.STRING, string);
+                advance();
+            }
         
             //Check if char is opperator:
 
@@ -99,7 +115,7 @@ public class Lexer {
 
         //Check if char is '!' equals sign:
         else if(current == '!'){
-            if(currentFollowedBy('!')){
+            if(currentFollowedBy('=')){
                 addToken(TokenType.NOT_EQUAL);
                 advanceTwo();
             }
@@ -174,6 +190,9 @@ public class Lexer {
                     case "elif" -> token.type = TokenType.ELIF;
                     case "not" -> token.type = TokenType.NOT;
                     case "func" -> token.type = TokenType.FUNC;
+                    case "true" -> token.type = TokenType.TRUE;
+                    case "false" -> token.type = TokenType.FALSE;
+                    case "nil" -> token.type = TokenType.NIL;
                 }
                 tokens.add(token);
             }
