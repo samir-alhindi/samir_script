@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.List;
 
 public class Parser{
     static int pos = 0;
@@ -9,14 +10,45 @@ public class Parser{
         Parser.tokens = tokens;
     }
 
-    Expre parse(){
+    List<Stmt> parse(){
         pos = 0;
         current = tokens.get(0);
-        return expression();
+        List<Stmt> statements = new ArrayList<>();
+        while( ! currentIs(TokenType.EOF)){
+            statements.add(statement());
+        }
+
+        return statements;
     }
 
 
     ///Helper parsing methods///
+    
+    Stmt statement(){
+        if(currentIs(TokenType.PRINT)){
+            advance();
+            return printStatement();
+        } 
+
+        return expresionStatement();
+    }
+
+    Stmt printStatement(){
+        Expre value = expression();
+        if( ! current.type.equals(TokenType.EOS))
+            Language.error("Expected closing ';' to end statement");
+        advance();
+        return new Print(value);
+        
+    }
+
+    Stmt expresionStatement(){
+        Expre expre = expression();
+        if( ! current.type.equals(TokenType.EOS))
+            Language.error("Expected closing ';' to end statement");
+        advance();
+        return new ExpressionStmt(expre);
+    }
     
     
     Expre expression(){

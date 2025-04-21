@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 
 public class Main {
@@ -31,10 +32,10 @@ class Language {
             Lexer lexer = new Lexer(source);
             ArrayList<Token> tokens = lexer.lex();
             Parser parser = new Parser(tokens);
-            Expre ast = parser.parse();
-            Object output = ast.visit();
-            System.out.println(ast);
-            System.out.println(stringify(output));
+            List<Stmt> program = parser.parse();
+            for (Stmt stmt : program) {
+                stmt.visit();
+            }
 
             reader.close();
         
@@ -46,7 +47,7 @@ class Language {
         
     }
 
-    private String stringify(Object object) {
+    static String stringify(Object object) {
         if (object == null) return "nil";
     
         if (object instanceof Double) {
@@ -104,8 +105,8 @@ enum TokenType{
     // Grouping:
     L_PAR, R_PAR, L_CUR, R_CUR,
     
-    // Keywords:
-    LET, IF, ELSE, ELIF, FUNC, WHILE,
+    // statements:
+    LET, IF, ELSE, ELIF, FUNC, WHILE, PRINT,
 
     // Other:
     IDENTIFIER, EQUALS, EOS, EOF, COMMA
@@ -290,3 +291,34 @@ class UnaryOpExpre extends Expre {
             return child_node.visit();
         }
         }
+
+abstract class Stmt {
+    abstract Object visit();
+
+}
+
+class ExpressionStmt extends Stmt {
+    Expre expresion;
+    ExpressionStmt(Expre expresion){
+        this.expresion = expresion;
+    }
+    Void visit(){
+        expresion.visit();
+        return null;
+    }
+
+}
+
+class Print extends Stmt {
+    Expre expresion;
+    Print(Expre expresion){
+        this.expresion = expresion;
+    }
+
+    Void visit(){
+        Object value = expresion.visit();
+        System.out.println(Language.stringify(value));
+        return null;
+    }
+
+}
