@@ -22,7 +22,7 @@ public class Main {
 
 class Language {
 
-    static HashMap<String, Double> variables = new HashMap<>();
+    static Environment environment = new Environment();
 
     void run(String file_path){
         try {
@@ -68,6 +68,35 @@ class Language {
             
     }
 
+class Environment {
+
+    HashMap <String, Object> variables = new HashMap<>();
+    Environment outer;
+
+    Environment(){
+        outer = null;
+    }
+
+    Environment(Environment outerEnvironment){
+        this.outer = outerEnvironment;
+    }
+
+    void define(Token identifier, Object varValue){
+        if(variables.containsKey(identifier.value))
+            Language.error("variable '" + identifier.value + "' has already been defined", identifier.line);
+        variables.put(identifier.value.toString(), varValue);
+    }
+
+    Object get(Token identifier){
+        if(variables.containsKey(identifier.value.toString()))
+            return variables.get(identifier.value.toString());
+        
+        Language.error("variable '" + identifier.value + "' has NOT been defined", identifier.line);
+        return null;
+    }
+
+}
+
 class Token {
     TokenType type;
     Object value;
@@ -108,7 +137,7 @@ enum TokenType{
     L_PAR, R_PAR, L_CUR, R_CUR,
     
     // statements:
-    LET, IF, ELSE, ELIF, FUNC, WHILE, PRINT,
+    VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT,
 
     // Other:
     IDENTIFIER, EQUALS, EOS, EOF, COMMA
@@ -294,6 +323,17 @@ class UnaryOpExpre extends Expre {
         }
         }
 
+class VarAccess extends Expre {
+    VarAccess(Token token){
+        this.token = token;
+    }
+
+    @Override
+    Object visit() {
+        return Language.environment.get(token);
+    }
+}
+
 abstract class Stmt {
     abstract Object visit();
 
@@ -324,3 +364,20 @@ class Print extends Stmt {
     }
 
 }
+
+class VarDeclare extends Stmt {
+    Token name;
+    Expre initializer;
+
+    VarDeclare(Token name, Expre initializer){
+        this.name = name;
+        this.initializer = initializer;
+    }
+
+    @Override
+    Void visit() {
+        Language.environment.define(name, initializer.visit());
+        return null;
+    }
+
+} 

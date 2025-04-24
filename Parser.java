@@ -15,7 +15,7 @@ public class Parser{
         current = tokens.get(0);
         List<Stmt> statements = new ArrayList<>();
         while( ! currentIs(TokenType.EOF)){
-            statements.add(statement());
+            statements.add(declaration());
         }
 
         return statements;
@@ -23,6 +23,37 @@ public class Parser{
 
 
     ///Helper parsing methods///
+    
+    Stmt declaration(){
+        if(currentIs(TokenType.VAR)){
+            advance();
+            return varDeclaration();
+        }
+            
+
+        return statement();
+    }
+
+    Stmt varDeclaration(){
+        if( ! currentIs(TokenType.IDENTIFIER))
+            Language.error("expected identifier after var keyword", current.line);
+        Token name = current;
+        advance();
+
+        // Optional varibale initializer:
+        Expre initializer = null;
+        if(currentIs(TokenType.EQUALS)){
+            advance();
+            initializer = expression();
+        }
+
+        if( ! currentIs(TokenType.EOS))
+            Language.error("expected ';' after end of statement", current.line);
+        advance();
+
+        return new VarDeclare(name, initializer);
+        
+    }
     
     Stmt statement(){
         if(currentIs(TokenType.PRINT)){
@@ -139,6 +170,10 @@ public class Parser{
             return new LiteralExpre(tok, tok.value);
         }
             
+        else if(currentIs(TokenType.IDENTIFIER)){
+            advance();
+            return new VarAccess(tok);
+        }
         
         else if(curType.equals(TokenType.L_PAR)){
             advance();

@@ -1,3 +1,5 @@
 
 
-print 300 + (5);
+var x;
+x;
+print x;
