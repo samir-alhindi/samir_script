@@ -15,7 +15,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("test.smr");
+        lang.run("demo.smr");
 
     }
 }
@@ -376,7 +376,10 @@ class VarDeclare extends Stmt {
 
     @Override
     Void visit() {
-        Language.environment.define(name, initializer.visit());
+        Object value = null;
+        if(initializer != null)
+            value = initializer.visit();
+        Language.environment.define(name, value);
         return null;
     }
 
