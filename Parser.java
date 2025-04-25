@@ -37,7 +37,7 @@ public class Parser{
     Stmt varDeclaration(){
         if( ! currentIs(TokenType.IDENTIFIER))
             Language.error("expected identifier after var keyword", current.line);
-        Token name = current;
+        Token varName = current;
         advance();
 
         // Optional varibale initializer:
@@ -51,7 +51,7 @@ public class Parser{
             Language.error("expected ';' after end of statement", current.line);
         advance();
 
-        return new VarDeclare(name, initializer);
+        return new VarDeclare(varName, initializer);
         
     }
     
@@ -59,9 +59,29 @@ public class Parser{
         if(currentIs(TokenType.PRINT)){
             advance();
             return printStatement();
-        } 
+        }
+
+        else if (currentIs(TokenType.L_CUR)){
+            advance();
+            return new Block(block());
+        }
 
         return expresionStatement();
+    }
+
+    List<Stmt> block(){
+        List<Stmt> statements = new ArrayList<>();
+
+        while( ! currentIs(TokenType.R_CUR))
+            statements.add(declaration());
+        
+        if( ! currentIs(TokenType.R_CUR))
+            Language.error("Expected '}' after block.", current.line);
+        
+        advance();
+
+        return statements;
+
     }
 
     Stmt printStatement(){
@@ -83,7 +103,27 @@ public class Parser{
     
     
     Expre expression(){
-        return equality();
+        return assignment();
+    }
+
+    Expre assignment(){
+        Expre expre = equality();
+
+        if(currentIs(TokenType.EQUALS)){
+            Token equals = current;
+            advance();
+            Expre newValue = assignment();
+
+            if(expre instanceof Variable){
+                Token varName = ( (Variable) expre ).token;
+                return new AssignExpre(varName, newValue);
+            }
+
+            Language.error("Invalid assignment target", equals.line);
+
+        }
+
+        return expre;
     }
 
     Expre equality(){
@@ -172,7 +212,7 @@ public class Parser{
             
         else if(currentIs(TokenType.IDENTIFIER)){
             advance();
-            return new VarAccess(tok);
+            return new Variable(tok);
         }
         
         else if(curType.equals(TokenType.L_PAR)){

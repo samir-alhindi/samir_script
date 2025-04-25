@@ -15,7 +15,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("demo.smr");
+        lang.run("blocks.smr");
 
     }
 }
@@ -87,9 +87,28 @@ class Environment {
         variables.put(identifier.value.toString(), varValue);
     }
 
+    void assign(Token name, Object value){
+        if(variables.containsKey(name.value)){
+            variables.put(name.value.toString(), value);
+            return;
+        }
+
+        if(outer != null){
+            outer.assign(name, value);
+            return;
+        }
+
+
+        Language.error( "Undefined variable '" + name.value.toString() + "'", name.line);
+    }
+
     Object get(Token identifier){
-        if(variables.containsKey(identifier.value.toString()))
-            return variables.get(identifier.value.toString());
+        String varName = identifier.value.toString();
+        if(variables.containsKey(varName))
+            return variables.get(varName);
+        
+        if(outer != null)
+            return outer.get(identifier);
         
         Language.error("variable '" + identifier.value + "' has NOT been defined", identifier.line);
         return null;
@@ -323,14 +342,28 @@ class UnaryOpExpre extends Expre {
         }
         }
 
-class VarAccess extends Expre {
-    VarAccess(Token token){
+class Variable extends Expre {
+    Variable(Token token){
         this.token = token;
     }
 
     @Override
     Object visit() {
         return Language.environment.get(token);
+    }
+}
+
+class AssignExpre extends Expre {
+    Expre value;
+    AssignExpre(Token name, Expre value){
+        this.token = name;
+        this.value = value;
+    }
+    @Override
+    Object visit() {
+        Object val = value.visit();
+        Language.environment.assign(token, val);
+        return val;
     }
 }
 
@@ -366,11 +399,11 @@ class Print extends Stmt {
 }
 
 class VarDeclare extends Stmt {
-    Token name;
+    Token varName;
     Expre initializer;
 
-    VarDeclare(Token name, Expre initializer){
-        this.name = name;
+    VarDeclare(Token varName, Expre initializer){
+        this.varName = varName;
         this.initializer = initializer;
     }
 
@@ -379,8 +412,28 @@ class VarDeclare extends Stmt {
         Object value = null;
         if(initializer != null)
             value = initializer.visit();
-        Language.environment.define(name, value);
+        Language.environment.define(varName, value);
         return null;
     }
 
-} 
+}
+
+class Block extends Stmt {
+    List<Stmt> statements;
+    Block(List<Stmt> statements){
+        this.statements = statements;
+    }
+
+    @Override
+    Void visit() {
+        Environment previous = Language.environment;
+        Language.environment = new Environment(previous);
+
+        for (Stmt stmt : statements) 
+            stmt.visit();
+        
+        Language.environment = previous;
+        
+        return null;
+    }
+}

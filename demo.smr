@@ -13,7 +13,12 @@ var my_bool = true;
 var my_other_bool = not false;
 var my_other_other_bool = ! (5 < 4); # '!' and 'not' are both valid.
 
+# nil
+var initialize_me; # value is 'nil'.
+var my_nil = nil; # valid.
+
 # Statements:
 
 print num; print my_string;
 print my_bool; print my_other_other_bool;
+print initialize_me;
