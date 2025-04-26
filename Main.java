@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Scanner;
 
 
 public class Main {
@@ -15,7 +16,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("blocks.smr");
+        lang.run("programs\\degree_conversion.smr");
 
     }
 }
@@ -156,10 +157,13 @@ enum TokenType{
     L_PAR, R_PAR, L_CUR, R_CUR,
     
     // statements:
-    VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT,
+    VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN,
+
+    // Input expressions:
+    INPUT_STR, INPUT_NUM,
 
     // Other:
-    IDENTIFIER, EQUALS, EOS, EOF, COMMA
+    IDENTIFIER, EQUALS, EOS, EOF, COMMA,
     }
 
 abstract class Expre {
@@ -367,6 +371,24 @@ class AssignExpre extends Expre {
     }
 }
 
+class Input extends Expre {
+
+    Input(Token inputType){
+        this.token = inputType;
+    }
+
+    @Override
+    Object visit() {
+        Scanner scanner = new Scanner(System.in);
+        Object input = null;
+        if(tokenIs(TokenType.INPUT_NUM))
+            input = scanner.nextDouble();
+        else if(tokenIs(TokenType.INPUT_STR))
+            input = scanner.next();
+        return input;
+    }
+}
+
 abstract class Stmt {
     abstract Object visit();
 
@@ -386,13 +408,18 @@ class ExpressionStmt extends Stmt {
 
 class Print extends Stmt {
     Expre expresion;
-    Print(Expre expresion){
+    Token printType;
+    Print(Expre expresion, Token printType){
         this.expresion = expresion;
+        this.printType = printType;
     }
 
     Void visit(){
         Object value = expresion.visit();
-        System.out.println(Language.stringify(value));
+        if(printType.type.equals(TokenType.PRINT_LN))
+            System.out.println(Language.stringify(value));
+        else if(printType.type.equals(TokenType.PRINT))
+            System.out.print(Language.stringify(value));
         return null;
     }
 

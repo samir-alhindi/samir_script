@@ -1,0 +1,8 @@
+
+
+print "Please a degree in celsius: ";
+var degree_c = inputNum;
+
+var degree_f = (degree_c * (9 / 5)) + 32;
+
+print degree_f; print " fahrenheit.";

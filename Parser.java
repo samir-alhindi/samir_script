@@ -56,8 +56,7 @@ public class Parser{
     }
     
     Stmt statement(){
-        if(currentIs(TokenType.PRINT)){
-            advance();
+        if(currentIs(TokenType.PRINT, TokenType.PRINT_LN)){
             return printStatement();
         }
 
@@ -85,11 +84,13 @@ public class Parser{
     }
 
     Stmt printStatement(){
+        Token print_type = current;
+        advance();
         Expre value = expression();
         if( ! current.type.equals(TokenType.EOS))
             Language.error("Expected closing ';' to end statement", current.line);
         advance();
-        return new Print(value);
+        return new Print(value, print_type);
         
     }
 
@@ -213,6 +214,11 @@ public class Parser{
         else if(currentIs(TokenType.IDENTIFIER)){
             advance();
             return new Variable(tok);
+        }
+
+        else if(currentIs(TokenType.INPUT_NUM, TokenType.INPUT_STR)){
+            advance();
+            return new Input(tok);
         }
         
         else if(curType.equals(TokenType.L_PAR)){

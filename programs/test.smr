@@ -1,0 +1,9 @@
+
+print "input x";
+var x = inputStr;
+
+print "input y";
+var y = inputStr;
+
+print "input z";
+var z = inputStr;

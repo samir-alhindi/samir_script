@@ -10,7 +10,8 @@ statement      → exprStmt;
                | block ;
 
 exprStmt       → expression ";" ;
-printStmt      → "print" expression ";" ;
+printStmt      → "print" expression ";"
+               | "println" expression ";" ;
 block          → "{" declaration* "}" ;
 
 expression     → assignment ;
@@ -24,4 +25,6 @@ unary          → ( "!" | "-" ) unary
                | primary ;
 primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")"
-               | IDENTIFIER ;
+               | IDENTIFIER 
+               | "inputNum"
+               | "inputStr" ;

@@ -1,0 +1,9 @@
+
+
+print "Please enter your name: ";
+var name = inputStr;
+
+print "Where are you from: ";
+var nationality = inputStr;
+
+print "Hello " + name + ", All the good coders come from " + nationality + ".";
