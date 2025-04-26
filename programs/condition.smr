@@ -1,0 +1,12 @@
+
+
+var num = -6;
+
+if num > 0 then
+    print "positive !";
+else
+    if num < 0 then
+        print "negative";
+    else
+        print "zero";
+    

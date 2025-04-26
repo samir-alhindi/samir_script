@@ -60,12 +60,31 @@ public class Parser{
             return printStatement();
         }
 
+        else if(currentIs(TokenType.IF)){
+            advance();
+            return ifStatement();
+        }
+
         else if (currentIs(TokenType.L_CUR)){
             advance();
             return new Block(block());
         }
 
         return expresionStatement();
+    }
+
+    Stmt ifStatement(){
+        Expre condition = expression();
+        if( ! currentIs(TokenType.THEN))
+            Language.error("expected 'then' keyword after if condition", current.line);
+        advance();
+        Stmt thenBranch = statement();
+        Stmt elseBranch = null;
+        if(currentIs(TokenType.ELSE)){
+            advance();
+            elseBranch = statement();
+        }
+        return new If(condition, thenBranch, elseBranch);
     }
 
     List<Stmt> block(){

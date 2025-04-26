@@ -16,7 +16,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\degree_conversion.smr");
+        lang.run("programs\\condition.smr");
 
     }
 }
@@ -157,7 +157,7 @@ enum TokenType{
     L_PAR, R_PAR, L_CUR, R_CUR,
     
     // statements:
-    VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN,
+    VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN, THEN,
 
     // Input expressions:
     INPUT_STR, INPUT_NUM,
@@ -389,6 +389,22 @@ class Input extends Expre {
     }
 }
 
+class BinBoolOp extends Expre {
+    Expre left;
+    Expre right;
+    BinBoolOp(Expre left, Token op, Expre right){
+        this.left = left;
+        this.token = op;
+        this.right = right;
+    }
+    @Override
+    Object visit() {
+        Object left = this.left.visit();
+        if(tokenIs(TokenType.OR))
+            
+    }
+}
+
 abstract class Stmt {
     abstract Object visit();
 
@@ -463,4 +479,34 @@ class Block extends Stmt {
         
         return null;
     }
+}
+
+class If extends Stmt {
+    Expre condition;
+    Stmt thenBranch;
+    Stmt elseBranch;
+
+    If(Expre condition, Stmt thenBranch, Stmt elseBranch){
+        this.condition = condition;
+        this.thenBranch = thenBranch;
+        this.elseBranch = elseBranch;
+    }
+
+    @Override
+    Void visit() {
+        Object result = condition.visit();
+        if( result instanceof Boolean == false)
+            Language.error("if statement condition should result in a boolean value", condition.token.line);
+        
+        if(result.equals(true))
+            thenBranch.visit();
+
+        else if (elseBranch != null)
+            elseBranch.visit();
+        
+        return null;
+        
+        
+    }
+    
 }
