@@ -1,0 +1,12 @@
+
+
+var x;
+
+if typeOf(x) == "number" then
+    println str(x) + " is a number.";
+elif typeOf(x) == "string" then
+    println x + " is a string.";
+elif typeOf(x) == "boolean" then
+    println str(x) + " is a boolean.";
+else
+    println "It's nil";

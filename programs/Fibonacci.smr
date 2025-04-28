@@ -1,11 +1,12 @@
 
 
+# Print the Fibonacci Series:
+# (1 1 2 3 5 8 13 21 34...)
+
 var num1 = 1;
 var num2 = 1;
-var temp = 0;
+var temp;
 var counter = 0;
-
-# 1 1 2 3 5 8 13 21 34...
 
 while counter < 10 do {
     println num2;

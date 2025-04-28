@@ -1,0 +1,12 @@
+
+
+
+var number1 = input("Enter a number: ");
+var number2 = input("Enter another number: ");
+
+if not (isNumeric(number1) and isNumeric(number1)) then
+    println "Please enter numbers !!!";
+else {
+    var sum = num(number1) + num(number2);
+    println "Sum is: " + str(sum);
+}

@@ -260,7 +260,51 @@ public class Parser{
             return new UnaryOpExpre(right, opToken);
         }
 
-        return primary();
+        return call();
+    }
+
+    Expre call(){
+        Expre expre = primary();
+
+        while(true){
+            if(currentIs(TokenType.L_PAR)){
+                advance();
+                expre = finishCall(expre);
+            }
+            else{
+                break;
+            }
+        }
+
+        return expre;
+    }
+
+    Expre finishCall(Expre callee){
+        List<Expre> arguments = new ArrayList<>();
+
+        // No args found:
+        if(currentIs(TokenType.R_PAR)){
+            advance();
+            return new Call(callee, current, arguments);
+        }
+
+        Expre arg = expression();
+        arguments.add(arg);
+        while(currentIs(TokenType.COMMA)){
+
+            if(arguments.size() >= 255)
+                Language.error("Can't have more than 255 args !", current.line);
+
+            advance();
+            arg = expression();
+            arguments.add(arg);
+        }
+
+        if( ! currentIs(TokenType.R_PAR))
+            Language.error("Expected ')' to close call.", current.line);
+        advance();
+
+        return new Call(callee, current, arguments);
     }
 
     Expre primary(){
@@ -288,11 +332,6 @@ public class Parser{
         else if(currentIs(TokenType.IDENTIFIER)){
             advance();
             return new Variable(tok);
-        }
-
-        else if(currentIs(TokenType.INPUT_NUM, TokenType.INPUT_STR)){
-            advance();
-            return new Input(tok);
         }
         
         else if(curType.equals(TokenType.L_PAR)){

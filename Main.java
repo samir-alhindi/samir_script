@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -18,16 +19,106 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\Fibonacci.smr");
+        lang.run("programs\\square_of_number.smr");
 
     }
 }
 
 class Language {
 
-    static Environment environment = new Environment();
+    static Environment globals = new Environment();
+    static Environment environment = globals;
+
+    // Native functions and variables:
+    void init(){
+
+        // PI:
+        globals.define("PI", Math.PI);
+
+        // Take input:
+        globals.define("input", new SamirCallable() {
+            @Override
+            public int arity() {return 1;}
+            @Override
+            public Object call(List<Object> arguments) {
+                Object arg = arguments.get(0);
+                System.out.print(arg.toString());
+                Scanner scanner = new Scanner(System.in);
+                return scanner.next();}
+        });
+
+
+        // cast to string function:
+        globals.define("str", new SamirCallable() {
+            @Override
+            public int arity() {return 1;}
+            @Override
+            public Object call(List<Object> arguments) {
+                Object arg = arguments.get(0);
+                return stringify(arg);}
+        });
+
+        // cast to number function:
+        globals.define("num", new SamirCallable() {
+            @Override
+            public int arity() {return 1;}
+            @Override
+            public Object call(List<Object> arguments) {
+                Object arg = arguments.get(0);
+                if(isNumeric(arg.toString()))
+                    return Double.parseDouble(arg.toString());
+                else
+                    return null;
+                }
+        });
+
+        // return type of variable:
+        globals.define("typeOf", new SamirCallable() {
+            @Override
+            public int arity() {return 1;}
+            @Override
+            public Object call(List<Object> arguments) {
+                Object arg = arguments.get(0);
+                if(arg instanceof String)
+                    return "string";
+                else if(arg instanceof Double)
+                    return "number";
+                else if(arg instanceof Boolean)
+                    return "boolean";
+                else
+                    return "nil";
+            }
+        });
+
+        // Check if value is a digit (012345...):
+        globals.define("isNumeric", new SamirCallable() {
+            @Override
+            public int arity() {return 1;}
+            @Override
+            public Object call(List<Object> arguments) {
+                Object arg = arguments.get(0);
+                if(arg instanceof Double)
+                    return true;
+                else if(arg instanceof String)
+                    return isNumeric(arg.toString());
+                else
+                    return false;
+            }
+        });
+
+        // The getTime() function:
+        globals.define("getTime", new SamirCallable() {
+            @Override
+            public int arity() {return 0;}
+            @Override
+            public Object call(List<Object> arguments) {return LocalTime.now();}
+
+        });
+
+    }
 
     void run(String file_path){
+        init();
         try {
             FileReader reader = new FileReader(file_path);
             byte[] bytes = Files.readAllBytes(Paths.get(file_path));
@@ -44,6 +135,7 @@ class Language {
         
         }
         catch(FileNotFoundException e){
+            System.out.println("File not found.");
         }
         catch(IOException e){
         }
@@ -68,6 +160,16 @@ class Language {
         System.out.printf("Error at line %d: %s", line + 1, log);
         System.exit(1);
     }
+
+    boolean isNumeric(String string){
+        try{
+            Double.parseDouble(string);
+            return true;
+        }
+        catch(NumberFormatException e){
+            return false;
+        }
+    }
             
     }
 
@@ -84,10 +186,8 @@ class Environment {
         this.outer = outerEnvironment;
     }
 
-    void define(Token identifier, Object varValue){
-        if(variables.containsKey(identifier.value))
-            Language.error("variable '" + identifier.value + "' has already been defined", identifier.line);
-        variables.put(identifier.value.toString(), varValue);
+    void define(String identifier, Object value){
+        variables.put(identifier, value);
     }
 
     void assign(Token name, Object value){
@@ -160,9 +260,6 @@ enum TokenType{
     
     // statements:
     VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN, THEN, DO,
-
-    // Input expressions:
-    INPUT_STR, INPUT_NUM,
 
     // Other:
     IDENTIFIER, EQUALS, EOS, EOF, COMMA,
@@ -373,24 +470,6 @@ class AssignExpre extends Expre {
     }
 }
 
-class Input extends Expre {
-
-    Input(Token inputType){
-        this.token = inputType;
-    }
-
-    @Override
-    Object visit() {
-        Scanner scanner = new Scanner(System.in);
-        Object input = null;
-        if(tokenIs(TokenType.INPUT_NUM))
-            input = scanner.nextDouble();
-        else if(tokenIs(TokenType.INPUT_STR))
-            input = scanner.next();
-        return input;
-    }
-}
-
 class BinBoolOp extends Expre {
     Expre left;
     Expre right;
@@ -412,6 +491,48 @@ class BinBoolOp extends Expre {
         
         return right.visit();
     }
+}
+
+interface SamirCallable {
+    int arity();
+    Object call(List<Object> arguments);
+}
+
+class Call extends Expre {
+    Expre callee;
+    Token paren;
+    List<Expre> arguments;
+
+    Call(Expre callee, Token paren, List<Expre> arguments){
+        this.callee = callee;
+        this.paren = paren;
+        this.arguments = arguments;
+    }
+
+    @Override
+    Object visit() {
+        Object callee = this.callee.visit();
+        List<Object> arguments = new ArrayList<>();
+        for (Expre arg : this.arguments) 
+            arguments.add(arg.visit());
+        
+        if(callee instanceof SamirCallable == false)
+            Language.error("Can only call functions and classes !", paren.line);
+
+        SamirCallable function = (SamirCallable)callee;
+
+        if(arguments.size() != function.arity())
+            Language.error("Expected " + function.arity() + " args but got " + arguments.size(), paren.line);
+
+        return function.call(arguments);
+        
+    }
+
+    @Override
+    public String toString() {
+        return callee + "(" + arguments + ")";
+    }
+    
 }
 
 abstract class Stmt {
@@ -464,7 +585,7 @@ class VarDeclare extends Stmt {
         Object value = null;
         if(initializer != null)
             value = initializer.visit();
-        Language.environment.define(varName, value);
+        Language.environment.define(varName.value.toString(), value);
         return null;
     }
 

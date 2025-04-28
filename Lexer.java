@@ -11,7 +11,7 @@ public class Lexer {
     // NOTE: true and false aren't keywords but rather boolean literals, nil is just null:
     // I put them with the keywords to make things easier:
     static final String[] keywords = {"var", "and", "or", "not", "if", "then", "elif", "else",
-    "func", "false", "true", "nil", "print", "println", "inputStr", "inputNum", "do", "while"};
+    "func", "false", "true", "nil", "print", "println", "do", "while"};
 
     Lexer(String source){
         Lexer.source = source;
@@ -48,6 +48,12 @@ public class Lexer {
                 while ( ! isNewlineChar(current)) {
                     advance();
                 }
+            }
+
+            // Comma:
+            else if(current == ','){
+                addToken(TokenType.COMMA);
+                advance();
             }
                 
         
@@ -209,8 +215,6 @@ public class Lexer {
                     case "nil" -> token.type = TokenType.NIL;
                     case "print" -> token.type = TokenType.PRINT;
                     case "println" -> token.type = TokenType.PRINT_LN;
-                    case "inputStr" -> token.type = TokenType.INPUT_STR;
-                    case "inputNum" -> token.type = TokenType.INPUT_NUM;
                 }
                 tokens.add(token);
             }
