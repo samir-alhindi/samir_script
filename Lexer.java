@@ -11,7 +11,7 @@ public class Lexer {
     // NOTE: true and false aren't keywords but rather boolean literals, nil is just null:
     // I put them with the keywords to make things easier:
     static final String[] keywords = {"var", "and", "or", "not", "if", "then", "elif", "else",
-    "func", "false", "true", "nil", "print", "println", "inputStr", "inputNum",};
+    "func", "false", "true", "nil", "print", "println", "inputStr", "inputNum", "do", "while"};
 
     Lexer(String source){
         Lexer.source = source;
@@ -198,6 +198,8 @@ public class Lexer {
                     case "or" -> token.type = TokenType.OR;
                     case "if" -> token.type = TokenType.IF;
                     case "then" -> token.type = TokenType.THEN;
+                    case "while" -> token.type = TokenType.WHILE;
+                    case "do" -> token.type = TokenType.DO;
                     case "else" -> token.type = TokenType.ELSE;
                     case "elif" -> token.type = TokenType.ELIF;
                     case "not" -> token.type = TokenType.NOT;

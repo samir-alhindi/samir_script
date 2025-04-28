@@ -6,7 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 
@@ -16,7 +18,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\condition.smr");
+        lang.run("programs\\Fibonacci.smr");
 
     }
 }
@@ -157,7 +159,7 @@ enum TokenType{
     L_PAR, R_PAR, L_CUR, R_CUR,
     
     // statements:
-    VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN, THEN,
+    VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN, THEN, DO,
 
     // Input expressions:
     INPUT_STR, INPUT_NUM,
@@ -400,8 +402,15 @@ class BinBoolOp extends Expre {
     @Override
     Object visit() {
         Object left = this.left.visit();
-        if(tokenIs(TokenType.OR))
-            
+        if(left instanceof Boolean == false)
+            Language.error("(and, or) operands must be boolean values ", token.line);
+
+        if(tokenIs(TokenType.OR) && left.equals(true))
+            return left;
+        else if(tokenIs(TokenType.AND) && left.equals(false))
+            return left;
+        
+        return right.visit();
     }
 }
 
@@ -482,26 +491,33 @@ class Block extends Stmt {
 }
 
 class If extends Stmt {
-    Expre condition;
-    Stmt thenBranch;
+
+    LinkedHashMap<Expre, Stmt> branches = new LinkedHashMap<>();
     Stmt elseBranch;
 
-    If(Expre condition, Stmt thenBranch, Stmt elseBranch){
-        this.condition = condition;
-        this.thenBranch = thenBranch;
+    If(LinkedHashMap<Expre, Stmt> branches, Stmt elseBranch){
+        this.branches = branches;
         this.elseBranch = elseBranch;
     }
 
     @Override
     Void visit() {
-        Object result = condition.visit();
-        if( result instanceof Boolean == false)
-            Language.error("if statement condition should result in a boolean value", condition.token.line);
-        
-        if(result.equals(true))
-            thenBranch.visit();
 
-        else if (elseBranch != null)
+        for (Map.Entry<Expre, Stmt> entry : branches.entrySet()) {
+            Expre condition = entry.getKey();
+            Stmt thenBranch = entry.getValue();
+
+            Object result = condition.visit();
+            if( result instanceof Boolean == false)
+                Language.error("if statement condition should result in a boolean value", condition.token.line);
+            if(result.equals(true)){
+                thenBranch.visit();
+                return null;
+            }
+                
+        }
+        
+        if (elseBranch != null)
             elseBranch.visit();
         
         return null;
@@ -509,4 +525,21 @@ class If extends Stmt {
         
     }
     
+}
+
+class While extends Stmt {
+    Expre condition;
+    Stmt body;
+    While(Expre condition, Stmt body){
+        this.condition = condition;
+        this.body = body;
+    }
+    @Override
+    Void visit() {
+        while (condition.visit().equals(true))
+            body.visit();
+        
+
+    return null;
+    }
 }

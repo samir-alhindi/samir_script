@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public class Parser{
@@ -65,6 +66,11 @@ public class Parser{
             return ifStatement();
         }
 
+        else if(currentIs(TokenType.WHILE)){
+            advance();
+            return whileStatement();
+        }
+
         else if (currentIs(TokenType.L_CUR)){
             advance();
             return new Block(block());
@@ -73,18 +79,43 @@ public class Parser{
         return expresionStatement();
     }
 
+    Stmt whileStatement(){
+        Expre condition = expression();
+        if( ! currentIs(TokenType.DO))
+            Language.error("expected 'do' keyword after while condition", current.line);
+        advance();
+        Stmt body = statement();
+
+        return new While(condition, body);
+    }
+
     Stmt ifStatement(){
+
+        LinkedHashMap<Expre, Stmt> branches = new LinkedHashMap<>();
+
         Expre condition = expression();
         if( ! currentIs(TokenType.THEN))
             Language.error("expected 'then' keyword after if condition", current.line);
         advance();
         Stmt thenBranch = statement();
+        branches.put(condition, thenBranch);
+
+        while (currentIs(TokenType.ELIF)) {
+            advance();
+            condition = expression();
+            if( ! currentIs(TokenType.THEN))
+                Language.error("expected 'then' keyword after elif condition", current.line);
+            advance();
+            thenBranch = statement();
+            branches.put(condition, thenBranch);
+        }
+
         Stmt elseBranch = null;
         if(currentIs(TokenType.ELSE)){
             advance();
             elseBranch = statement();
         }
-        return new If(condition, thenBranch, elseBranch);
+        return new If(branches, elseBranch);
     }
 
     List<Stmt> block(){
@@ -127,7 +158,7 @@ public class Parser{
     }
 
     Expre assignment(){
-        Expre expre = equality();
+        Expre expre = or();
 
         if(currentIs(TokenType.EQUALS)){
             Token equals = current;
@@ -141,6 +172,30 @@ public class Parser{
 
             Language.error("Invalid assignment target", equals.line);
 
+        }
+
+        return expre;
+    }
+
+    Expre or(){
+        Expre expre = and();
+        while (currentIs(TokenType.OR)) {
+            Token opToken = current;
+            advance();
+            Expre right = and();
+            expre = new BinBoolOp(expre, opToken, right);
+        }
+
+        return expre;
+    }
+
+    Expre and(){
+        Expre expre = equality();
+        while (currentIs(TokenType.AND)) {
+            Token opToken = current;
+            advance();
+            Expre right = equality();
+            expre = new BinBoolOp(expre, opToken, right);
         }
 
         return expre;

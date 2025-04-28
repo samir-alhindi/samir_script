@@ -1,0 +1,12 @@
+
+
+var i = 0;
+
+println "Let's count";
+
+while i <= 20 do{
+    println i;
+    i = i + 1;
+}
+
+print "done";
