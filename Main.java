@@ -682,7 +682,7 @@ class Function extends Stmt {
 
     @Override
     Void visit() {
-        SamirFunction function = new SamirFunction(this);
+        SamirFunction function = new SamirFunction(this, Language.environment);
         Language.environment.define(name.value.toString(), function);
         return null;
     }

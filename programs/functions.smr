@@ -17,10 +17,6 @@ func printSum(a, b, c){
     println a + b + c;
 }
 
-func sayHi(first, last) {
-  print "Hi, " + first + " " + last + "!";
-}
-
 func sum(a, b){
     return a + b;
 }
@@ -35,15 +31,22 @@ func average(a, b, c, d, e){
     return sum / 5;
 }
 
-# sayHi("Dear", "Reader");
+func square(number){
+    return number * number;
+}
+
+func map(function, a, b, c){
+    println function(a);
+    println function(b);
+    println function(c);
+}
 
 # greeting("Samir", 20);
 # greeting("Yahya", 19);
 # greeting("Khair", 20);
 
-# count(15);
 # count(5);
 
-# printSum(5, 6, 0);
+# println average(1, 2, 3, 4, 5);
 
-println average(1, 2, 3, 4, 5);
+map(square, 2, 3, 4);

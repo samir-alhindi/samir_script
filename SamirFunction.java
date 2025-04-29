@@ -2,8 +2,10 @@ import java.util.List;
 
 class SamirFunction implements SamirCallable {
     final Function declaration;
-    SamirFunction(Function declaration){
+    private final Environment closure;
+    SamirFunction(Function declaration, Environment closure){
         this.declaration = declaration;
+        this.closure = closure;
     }
     @Override
     public int arity() {
@@ -12,7 +14,7 @@ class SamirFunction implements SamirCallable {
     @Override
     public Object call(List<Object> arguments) {
 
-        Environment environment = new Environment(Language.globals);
+        Environment environment = new Environment(closure);
 
         for (int i = 0; i < declaration.parameters.size(); i++) {
             String paraName = declaration.parameters.get(i).value.toString();
