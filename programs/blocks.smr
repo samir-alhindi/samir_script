@@ -6,14 +6,14 @@ var x = "I'm outside";
 
 {
     var x = "I'm in the middle";
-    print x;
+    println x;
     {
         var x = "Inside !";
-        print x;
+        println x;
     }
 }
 
-print x;
+println x;
 
 # Another demonstration:
 
@@ -25,14 +25,14 @@ var c = "global c";
   var b = "outer b";
   {
     var a = "inner a";
-    print a;
-    print b;
-    print c;
+    println a;
+    println b;
+    println c;
   }
-  print a;
-  print b;
-  print c;
+  println a;
+  println b;
+  println c;
 }
-print a;
-print b;
-print c;
+println a;
+println b;
+println c;

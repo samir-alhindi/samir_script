@@ -19,7 +19,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\square_of_number.smr");
+        lang.run("programs\\blocks.smr");
 
     }
 }
@@ -259,7 +259,7 @@ enum TokenType{
     L_PAR, R_PAR, L_CUR, R_CUR,
     
     // statements:
-    VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN, THEN, DO,
+    VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN, THEN, DO, RETURN,
 
     // Other:
     IDENTIFIER, EQUALS, EOS, EOF, COMMA,
@@ -592,7 +592,10 @@ class VarDeclare extends Stmt {
 }
 
 class Block extends Stmt {
+
     List<Stmt> statements;
+    Environment environment = new Environment();
+
     Block(List<Stmt> statements){
         this.statements = statements;
     }
@@ -600,7 +603,8 @@ class Block extends Stmt {
     @Override
     Void visit() {
         Environment previous = Language.environment;
-        Language.environment = new Environment(previous);
+        this.environment.outer = Language.environment;
+        Language.environment = this.environment;
 
         for (Stmt stmt : statements) 
             stmt.visit();
@@ -662,5 +666,40 @@ class While extends Stmt {
         
 
     return null;
+    }
+}
+
+class Function extends Stmt {
+    Token name;
+    List<Token> parameters;
+    Block body;
+
+    Function(Token name, List<Token> parameters, Block body){
+        this.name = name;
+        this.parameters = parameters;
+        this.body = body;
+    }
+
+    @Override
+    Void visit() {
+        SamirFunction function = new SamirFunction(this);
+        Language.environment.define(name.value.toString(), function);
+        return null;
+    }
+
+    
+}
+
+class Return extends Stmt {
+    Token keyword;
+    Expre value;
+    Return(Token keyword, Expre value){
+        this.keyword = keyword;
+        this.value = value;
+    }
+    @Override
+    Object visit() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 }

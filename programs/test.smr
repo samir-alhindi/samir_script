@@ -1,9 +1,5 @@
 
-print "input x";
-var x = inputStr;
 
-print "input y";
-var y = inputStr;
+var string = str;
 
-print "input z";
-var z = inputStr;
+print string(14) + "11";

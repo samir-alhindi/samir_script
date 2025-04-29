@@ -30,9 +30,60 @@ public class Parser{
             advance();
             return varDeclaration();
         }
+
+        else if(currentIs(TokenType.FUNC)){
+            advance();
+            return function();
+        }
             
 
         return statement();
+    }
+
+    Stmt function(){
+        if( ! currentIs(TokenType.IDENTIFIER))
+            Language.error("Expected identifier after 'func' keyword", current.line);
+        Token name = current;
+        advance();
+
+        if( ! currentIs(TokenType.L_PAR))
+            Language.error("Expected '(' after function name", current.line);
+        advance();
+
+        List<Token> parameters = new ArrayList<>();
+
+        
+        if( ! currentIs(TokenType.R_PAR)){
+            if( ! currentIs(TokenType.IDENTIFIER))
+                Language.error("Expected parameter name", current.line);
+            parameters.add(current);
+            advance();
+            while(currentIs(TokenType.COMMA)){
+                advance();
+                if( ! currentIs(TokenType.IDENTIFIER))
+                    Language.error("Expected parameter name", current.line);
+                parameters.add(current);
+                advance();
+            }
+
+            if(parameters.size() >= 255)
+                Language.error("Can't have more than 255 parameters", current.line);
+                
+        }
+
+        if( ! currentIs(TokenType.R_PAR))
+            Language.error("Expected closing ')'", current.line);
+        advance();
+
+        if( ! currentIs(TokenType.L_CUR))
+            Language.error("Expected '{' before function body", current.line);
+        advance();
+
+        List<Stmt> body = block();
+
+        return new Function(name, parameters, new Block(body));
+
+
     }
 
     Stmt varDeclaration(){
@@ -76,7 +127,17 @@ public class Parser{
             return new Block(block());
         }
 
+        else if(currentIs(TokenType.RETURN)){
+            advance();
+            return returnStatement();
+        }
+
         return expresionStatement();
+    }
+
+    Stmt returnStatement(){
+        return null;
+        
     }
 
     Stmt whileStatement(){
