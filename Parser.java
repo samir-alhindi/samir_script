@@ -127,16 +127,26 @@ public class Parser{
             return new Block(block());
         }
 
-        else if(currentIs(TokenType.RETURN)){
-            advance();
+        else if(currentIs(TokenType.RETURN))
             return returnStatement();
-        }
+        
 
         return expresionStatement();
     }
 
     Stmt returnStatement(){
-        return null;
+        Token keyword = current;
+        advance();
+        Expre value = null;
+        if ( ! currentIs(TokenType.EOS))
+            value = expression();
+        
+        if( ! currentIs(TokenType.EOS))
+            Language.error("Expected ';' after return statement", keyword.line);
+        
+        advance();
+
+        return new Return(keyword, value);
         
     }
 

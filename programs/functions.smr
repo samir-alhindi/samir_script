@@ -17,11 +17,33 @@ func printSum(a, b, c){
     println a + b + c;
 }
 
-greeting("Samir", 20);
-greeting("Yahya", 19);
-greeting("Khair", 20);
+func sayHi(first, last) {
+  print "Hi, " + first + " " + last + "!";
+}
 
-count(15);
-count(5);
+func sum(a, b){
+    return a + b;
+}
 
-printSum(5, 6, 0);
+func factorial(number){
+    if number == 1 then return number;
+    return number * factorial(number - 1);
+}
+
+func average(a, b, c, d, e){
+    var sum = a + b + c + d + e;
+    return sum / 5;
+}
+
+# sayHi("Dear", "Reader");
+
+# greeting("Samir", 20);
+# greeting("Yahya", 19);
+# greeting("Khair", 20);
+
+# count(15);
+# count(5);
+
+# printSum(5, 6, 0);
+
+println average(1, 2, 3, 4, 5);

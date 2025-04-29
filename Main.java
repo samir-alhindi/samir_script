@@ -19,7 +19,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\blocks.smr");
+        lang.run("programs\\functions.smr");
 
     }
 }
@@ -535,7 +535,7 @@ class Call extends Expre {
     
 }
 
-abstract class Stmt {
+abstract class Stmt{
     abstract Object visit();
 
 }
@@ -698,8 +698,10 @@ class Return extends Stmt {
         this.value = value;
     }
     @Override
-    Object visit() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    Void visit() throws ReturnException {
+       Object value = null;
+       if (this.value != null) value = this.value.visit();
+
+       throw new ReturnException(value);
     }
 }
