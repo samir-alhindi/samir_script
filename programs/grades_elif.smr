@@ -1,6 +1,6 @@
 
 
-var grade = 69;
+var grade = num(input("Please enter your grade: "));
 
 if grade >= 90 then
     print "A";

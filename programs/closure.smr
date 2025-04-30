@@ -13,4 +13,3 @@ func makeCounter() {
 var counter = makeCounter();
 counter();
 counter();
-

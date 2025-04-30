@@ -35,10 +35,47 @@ public class Parser{
             advance();
             return function();
         }
+
+        else if(currentIs(TokenType.CLASS)){
+            advance();
+            return classDeclaration();
+        }
             
 
         return statement();
     }
+
+    Stmt classDeclaration(){
+        if( ! currentIs(TokenType.IDENTIFIER))
+            Language.error("Expected identifier after 'class' keyword", current.line);
+        Token name = current;
+        advance();
+
+        if( ! currentIs(TokenType.L_CUR))
+            Language.error("Expected '{' after class name", current.line);
+        advance();
+
+        List<Stmt> classBody = new ArrayList<>();
+
+        while (currentIs(TokenType.FUNC, TokenType.VAR)){
+            if(currentIs(TokenType.FUNC)){
+                advance();
+                classBody.add(function());
+            }
+
+            else if(currentIs(TokenType.VAR)){
+                advance();
+                classBody.add(varDeclaration());
+            }
+        }
+
+        if( ! currentIs(TokenType.R_CUR))
+            Language.error("Expected '}' after class body", pos);
+        advance();
+
+        return new ClassDeclre(classBody, name);
+    }
+
 
     Stmt function(){
         if( ! currentIs(TokenType.IDENTIFIER))
@@ -241,6 +278,11 @@ public class Parser{
                 return new AssignExpre(varName, newValue);
             }
 
+            else if(expre instanceof MemberAccess){
+                MemberAccess memberToChange = (MemberAccess) expre;
+                return new MemberAssign(memberToChange, newValue);
+            }
+
             Language.error("Invalid assignment target", equals.line);
 
         }
@@ -331,7 +373,20 @@ public class Parser{
             return new UnaryOpExpre(right, opToken);
         }
 
-        return call();
+        return memberAaccess();
+    }
+
+    Expre memberAaccess(){
+        Expre expre = call();
+
+        while (currentIs(TokenType.DOT)) {
+            Token dot = current;
+            advance();
+            Expre member = call();
+            expre = new MemberAccess(expre, dot, member);
+        }
+
+        return expre;
     }
 
     Expre call(){

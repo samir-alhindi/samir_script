@@ -1,0 +1,18 @@
+
+class Test {
+    var name;
+
+    func init(name){
+        self.name = name;
+    }
+
+    func do_stuff(){
+        println "I am " + str(name);
+    }
+
+    func
+}
+
+var my_test = Test();
+my_test.init("Samir");
+my_test.do_stuff();

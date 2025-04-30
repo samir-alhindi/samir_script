@@ -2,7 +2,14 @@ program        → declaration* EOF ;
 
 declaration    → funDecl
                | varDecl
+               | classDecl
                | statement ;
+
+classDecl     -> "class" IDENTIFIER "{"
+                (constructer)?
+                (classMembers)* "}";
+
+classMembers  -> function | varDecl ;
 
 
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
@@ -40,7 +47,8 @@ term           → factor ( ( "-" | "+" ) factor )* ;
 factor         → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary | call ;
 call           → primary ( "(" arguments? ")" )* ;
+member_accsses → IDENTIFIER ("." IDENTIFIER)*
 arguments      → expression ( "," expression )* ;
 primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")"
-               | IDENTIFIER ;
+               | IDENTIFIER

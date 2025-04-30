@@ -11,7 +11,7 @@ public class Lexer {
     // NOTE: true and false aren't keywords but rather boolean literals, nil is just null:
     // I put them with the keywords to make things easier:
     static final String[] keywords = {"var", "and", "or", "not", "if", "then", "elif", "else",
-    "func", "false", "true", "nil", "print", "println", "do", "while", "return",};
+    "func", "false", "true", "nil", "print", "println", "do", "while", "return", "class"};
 
     Lexer(String source){
         Lexer.source = source;
@@ -53,6 +53,12 @@ public class Lexer {
             // Comma:
             else if(current == ','){
                 addToken(TokenType.COMMA);
+                advance();
+            }
+
+            // Dot
+            else if(current == '.'){
+                addToken(TokenType.DOT);
                 advance();
             }
                 
@@ -112,9 +118,6 @@ public class Lexer {
                 advance();}
             else if(current == '/'){
                 addToken(TokenType.DIVIDE);
-                advance();}
-            else if(current == '^'){
-                addToken(TokenType.POWER);
                 advance();}
 
         //check if char is equals sign:
@@ -216,6 +219,7 @@ public class Lexer {
                     case "print" -> token.type = TokenType.PRINT;
                     case "println" -> token.type = TokenType.PRINT_LN;
                     case "return" -> token.type = TokenType.RETURN;
+                    case "class" -> token.type = TokenType.CLASS;
                 }
                 tokens.add(token);
             }

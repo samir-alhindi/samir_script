@@ -19,7 +19,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\functions.smr");
+        lang.run("programs\\classes.smr");
 
     }
 }
@@ -246,7 +246,7 @@ enum TokenType{
     Double, STRING, TRUE, FALSE, NIL,
 
     // Numeric opperators:
-    PLUS, MINUS, MULTIPLY, DIVIDE, POWER,
+    PLUS, MINUS, MULTIPLY, DIVIDE,
 
     // Boolean opperators:
     AND, OR, NOT, 
@@ -259,10 +259,10 @@ enum TokenType{
     L_PAR, R_PAR, L_CUR, R_CUR,
     
     // statements:
-    VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN, THEN, DO, RETURN,
+    VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN, THEN, DO, RETURN, CLASS,
 
     // Other:
-    IDENTIFIER, EQUALS, EOS, EOF, COMMA,
+    IDENTIFIER, EQUALS, EOS, EOF, COMMA, DOT,
     }
 
 abstract class Expre {
@@ -535,6 +535,50 @@ class Call extends Expre {
     
 }
 
+class MemberAccess extends Expre {
+
+    Expre instanceVar;
+    Expre memberVar;
+
+    MemberAccess(Expre instanceVar, Token dot, Expre memberVar){
+        this.instanceVar = instanceVar;
+        this.token = dot;
+        this.memberVar = memberVar;
+    }
+
+    @Override
+    Object visit() {
+        Object instance_no_cast = instanceVar.visit();
+        if(instance_no_cast instanceof SamirInstance == false)
+            Language.error("cannot get members from this", token.line);
+        SamirInstance instance = (SamirInstance) instance_no_cast;
+        Environment prev = Language.environment;
+        Language.environment = instance.environment;
+        Object result = memberVar.visit();
+        Language.environment = prev;
+        return result;
+    }
+}
+
+class MemberAssign extends Expre {
+    MemberAccess member;
+    Expre newValue;
+    MemberAssign(MemberAccess member, Expre newValue){
+        this.member = member;
+        this.newValue = newValue;
+    }
+
+    Object visit(){
+        SamirInstance instance = (SamirInstance) member.instanceVar.visit();
+        Object newValueObject = newValue.visit();
+        Environment prev = Language.environment;
+        Language.environment = instance.environment;
+        Language.environment.assign(member.memberVar.token, newValueObject);
+        Language.environment = prev;
+        return newValueObject;
+    }
+}
+
 abstract class Stmt{
     abstract Object visit();
 
@@ -686,8 +730,6 @@ class Function extends Stmt {
         Language.environment.define(name.value.toString(), function);
         return null;
     }
-
-    
 }
 
 class Return extends Stmt {
@@ -703,5 +745,20 @@ class Return extends Stmt {
        if (this.value != null) value = this.value.visit();
 
        throw new ReturnException(value);
+    }
+}
+
+class ClassDeclre extends Stmt {
+    List<Stmt> classBody;
+    Token name;
+    ClassDeclre(List<Stmt> classBody, Token name){
+        this.classBody = classBody;
+        this.name = name;
+    }
+
+    Void visit(){
+        SamirClass class_ = new SamirClass(this, Language.environment);
+        Language.environment.define(name.value.toString(), class_);
+        return null;
     }
 }
