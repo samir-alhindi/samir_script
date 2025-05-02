@@ -1,0 +1,8 @@
+
+
+var my_list = List();
+
+my_list.add(15);
+my_list.add("Hello");
+
+println my_list.toString();

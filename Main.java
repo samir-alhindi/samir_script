@@ -19,7 +19,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\classes.smr");
+        lang.run("programs\\lists_test.smr");
 
     }
 }
@@ -29,8 +29,64 @@ class Language {
     static Environment globals = new Environment();
     static Environment environment = globals;
 
-    // Native functions and variables:
+    // Native functions, classes and variables:
     void init(){
+        
+        // List class:
+        globals.define("List", new SamirCallable(){
+
+            SamirInstance list = new SamirInstance(new ArrayList<Object>());
+
+            @Override
+            public int arity() {
+               return 0;
+            }
+
+            @Override
+            public Object call(List<Object> arguments) {
+
+                // Create append/add method for list object:
+                list.environment.define("add", new SamirCallable() {
+
+                    @Override
+                    public int arity() {
+                        return 1;
+                    }
+
+                    @Override
+                    public Void call(List<Object> arguments) {
+                        Object arg = arguments.get(0);
+                        ((List<Object>) list.data_struct).add(arg);
+                        return null;
+                    }
+                    
+                });
+
+                // Create toString method for list object:
+                list.environment.define("toString", new SamirCallable() {
+
+                    @Override
+                    public int arity() {
+                        return 0;
+                    }
+
+                    @Override
+                    public Object call(List<Object> arguments) {
+                        String result = "[ ";
+                        for (Object element : ((List<Object>)list.data_struct))
+                            result += element.toString() + ", ";
+                        return result + " ]";
+                       
+                    }
+                    
+                });
+
+
+
+                return list;
+            }
+
+        });
 
         // PI:
         globals.define("PI", Math.PI);
