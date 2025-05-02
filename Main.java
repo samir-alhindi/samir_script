@@ -35,7 +35,21 @@ class Language {
         // List class:
         globals.define("List", new SamirCallable(){
 
-            SamirInstance list = new SamirInstance(new ArrayList<Object>());
+            SamirInstance list = new SamirInstance(new ArrayList<Object>()){
+            
+
+                @Override
+                public String toString() {
+
+                    ArrayList<Object> arrayList = (ArrayList) list.dataStruct;
+
+                    String result = "[";
+                    for (Object element : arrayList)
+                        result += element.toString() + ", ";
+                    result = result.substring(0, result.length() - 2);
+                    return result + "]";
+                }
+            };
 
             @Override
             public int arity() {
@@ -44,6 +58,10 @@ class Language {
 
             @Override
             public Object call(List<Object> arguments) {
+
+                
+                // Create size attribute for list object:
+                list.environment.define("size", 0);
 
                 // Create append/add method for list object:
                 list.environment.define("add", new SamirCallable() {
@@ -55,34 +73,46 @@ class Language {
 
                     @Override
                     public Void call(List<Object> arguments) {
+
+                        ArrayList<Object> arrayList = (ArrayList) list.dataStruct;
+
                         Object arg = arguments.get(0);
-                        ((List<Object>) list.data_struct).add(arg);
+                        arrayList.add(arg);
+
+                        Object temp = list.environment.get(new Token(null, "size", 0));
+                        Integer oldSize = (Integer) temp;
+                        list.environment.assign(new Token(null, "size", 0) , oldSize + 1);
+                        
                         return null;
                     }
                     
                 });
 
-                // Create toString method for list object:
-                list.environment.define("toString", new SamirCallable() {
+                // Create "get" method for list object:
+                list.environment.define("get", new SamirCallable() {
 
                     @Override
                     public int arity() {
-                        return 0;
+                        return 1;
                     }
 
                     @Override
                     public Object call(List<Object> arguments) {
-                        String result = "[ ";
-                        for (Object element : ((List<Object>)list.data_struct))
-                            result += element.toString() + ", ";
-                        return result + " ]";
-                       
+                        Object arg = arguments.get(0);
+                        if(arg instanceof Double == false)
+                            Language.error("get() arg must be a whole number", -1);
+                        Double temp = (Double) arg;
+                        if(temp % 1 != 0)
+                            Language.error("get() arg must be a whole number", -1);
+                        Integer index = temp.intValue();
+                        ArrayList<Object> arrayList = (ArrayList<Object>) list.dataStruct;
+                        return arrayList.get(index);
                     }
                     
                 });
 
 
-
+                // Return new list instance:
                 return list;
             }
 

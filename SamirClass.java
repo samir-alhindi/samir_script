@@ -29,7 +29,9 @@ class SamirClass implements SamirCallable{
 class SamirInstance {
     Environment environment;
     SamirClass class_;
-    Object data_struct;
+
+    // For native classes only:
+    Object dataStruct;
 
     SamirInstance(SamirClass class_){
         this.class_ = class_;
@@ -45,10 +47,10 @@ class SamirInstance {
         Language.environment = prev;
     }
 
-    // Constrcuter for native classes:
-    SamirInstance(Object data_struct){
-        this.data_struct = data_struct;
+    // Constructer for native classes:
+    SamirInstance(Object dataStruct){
         this.environment = new Environment(Language.environment);
+        this.dataStruct = dataStruct;
     }
 
     @Override
@@ -56,37 +58,3 @@ class SamirInstance {
         return class_ + " instance.";
     }
 }
-
-class NativeSamirClass implements SamirCallable{
-
-    Environment environment;
-    Object data_struct;
-
-    NativeSamirClass(Object data_struct){
-        this.data_struct = data_struct;
-    }
-
-    @Override
-    public int arity() {
-        return 0;
-    }
-
-    @Override
-    public Object call(List<Object> arguments) {
-        return new NativeSamirInstance(data_struct, environment);
-    }
-
-}
-
-class NativeSamirInstance {
-
-    Object data_struct;
-    Environment environment;
-
-    NativeSamirInstance(Object data_struct, Environment environment){
-        this.data_struct = data_struct;
-        this.environment = environment;
-    }
-
-}
-

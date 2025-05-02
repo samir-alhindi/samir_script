@@ -1,8 +1,27 @@
+var employee_names = List();
+
+employee_names.add("Samir");
+employee_names.add("Yahya");
+employee_names.add("Muhammad");
+
+println employee_names;
 
 
-var my_list = List();
+func list_sum(list){
+    var sum = 0;
+    var i = 0;
+    while i < list.size do {
+        sum = sum + list.get(i);
+        i = i + 1;
+    }
+    return sum;
+}
 
-my_list.add(15);
-my_list.add("Hello");
+var numbers = List();
+numbers.add(10);
+numbers.add(15);
+numbers.add(3);
 
-println my_list.toString();
+println numbers;
+
+println list_sum(numbers);
