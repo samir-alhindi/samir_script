@@ -1,0 +1,15 @@
+
+
+class MyTest {
+    func greeting(number){
+        println number;
+    }
+}
+
+func say_hi(thing){
+    var i = 5;
+    my_instance.greeting(i);
+}
+
+var my_instance = MyTest();
+say_hi(my_instance);

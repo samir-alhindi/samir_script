@@ -1,27 +1,16 @@
-var employee_names = List();
-
-employee_names.add("Samir");
-employee_names.add("Yahya");
-employee_names.add("Muhammad");
-
-println employee_names;
 
 
-func list_sum(list){
-    var sum = 0;
-    var i = 0;
-    while i < list.size do {
-        sum = sum + list.get(i);
-        i = i + 1;
-    }
-    return sum;
-}
+var list_1 = List();
 
-var numbers = List();
-numbers.add(10);
-numbers.add(15);
-numbers.add(3);
+list_1.add(1);
+list_1.add(2);
 
-println numbers;
+var list_2 = List();
 
-println list_sum(numbers);
+list_2.add(3);
+list_2.add(4);
+
+println list_1;
+println list_2;
+
+println list_1.get(0) + list_1.get(1);

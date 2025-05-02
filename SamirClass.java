@@ -4,7 +4,6 @@ import java.util.List;
 class SamirClass implements SamirCallable{
     Environment closure;
     ClassDeclre class_;
-    Object data_struct;
     SamirClass(ClassDeclre class_, Environment closure){
         this.class_ = class_;
         this.closure = closure;
@@ -30,9 +29,6 @@ class SamirInstance {
     Environment environment;
     SamirClass class_;
 
-    // For native classes only:
-    Object dataStruct;
-
     SamirInstance(SamirClass class_){
         this.class_ = class_;
         this.environment = new Environment(Language.environment);
@@ -47,14 +43,80 @@ class SamirInstance {
         Language.environment = prev;
     }
 
-    // Constructer for native classes:
-    SamirInstance(Object dataStruct){
+    // For inherting native classes:
+    SamirInstance(){
         this.environment = new Environment(Language.environment);
-        this.dataStruct = dataStruct;
     }
 
     @Override
     public String toString() {
         return class_ + " instance.";
+    }
+}
+
+class ListInstance extends SamirInstance {
+
+    ArrayList<Object> arrayList;
+
+    ListInstance(ArrayList<Object> arrayList){
+        super();
+        this.arrayList = arrayList;
+
+        this.environment.define("size", 0.0);
+
+        // Create append/add method for list object:
+        this.environment.define("add", new SamirCallable() {
+
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Void call(List<Object> arguments) {
+
+                Object arg = arguments.get(0);
+                arrayList.add(arg);
+
+                Object temp = environment.get(new Token(null, "size", 0));
+                Double oldSize = (Double) temp;
+                environment.assign(new Token(null, "size", 0), oldSize + 1);
+                
+                return null;
+            }
+            
+        });
+
+        // Create "get" method for list object:
+        this.environment.define("get", new SamirCallable() {
+
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(List<Object> arguments) {
+                Object arg = arguments.get(0);
+                if(arg instanceof Double == false)
+                    Language.error("get() arg must be a whole number", -1);
+                Double temp = (Double) arg;
+                if(temp % 1 != 0)
+                    Language.error("get() arg must be a whole number", -1);
+                return arrayList.get(temp.intValue());
+            }
+            
+        });
+        
+    }
+
+    @Override
+    public String toString() {
+
+        String result = "[";
+        for (Object element : arrayList)
+            result += element.toString() + ", ";
+        result = result.substring(0, result.length() - 2);
+        return result + "]";
     }
 }
