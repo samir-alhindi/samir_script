@@ -55,6 +55,3 @@ samir.init("Samir", 20, 6000, "Data science");
 muhammad.init("Muhammad", 20, 6500, "Software dev");
 
 yahya.position.set_salary(10000);
-println yahya.position.get_salary();
-
-println samir.name;

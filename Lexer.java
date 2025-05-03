@@ -45,7 +45,7 @@ public class Lexer {
 
             //Check if char is comment:
             else if(current == '#'){
-                while ( ! isNewlineChar(current)) {
+                while ( ! isNewlineChar(current) && current != '\0') {
                     advance();
                 }
             }

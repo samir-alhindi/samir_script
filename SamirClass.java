@@ -4,9 +4,8 @@ import java.util.List;
 class SamirClass implements SamirCallable{
     Environment closure;
     ClassDeclre class_;
-    SamirClass(ClassDeclre class_, Environment closure){
+    SamirClass(ClassDeclre class_){
         this.class_ = class_;
-        this.closure = closure;
     }
 
     @Override
@@ -25,7 +24,7 @@ class SamirClass implements SamirCallable{
     }
 }
 
-class SamirInstance {
+class SamirInstance implements Cloneable{
     Environment environment;
     SamirClass class_;
 
@@ -42,6 +41,14 @@ class SamirInstance {
         }
         Language.environment = prev;
     }
+
+    @Override
+    protected SamirInstance clone() throws CloneNotSupportedException {
+        SamirInstance copy = (SamirInstance) super.clone();
+        copy.environment = (Environment) environment.clone();
+        return copy;
+    }
+
 
     // For inherting native classes:
     SamirInstance(){

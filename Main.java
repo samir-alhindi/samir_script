@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Stack;
 
 
 public class Main {
@@ -19,7 +20,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\bug.smr");
+        lang.run("programs\\sum_of_list.smr");
 
     }
 }
@@ -28,6 +29,7 @@ class Language {
 
     static Environment globals = new Environment();
     static Environment environment = globals;
+    static Stack<Environment> enviStack = new Stack<>();
 
     // Native functions, classes and variables:
     void init(){
@@ -188,7 +190,7 @@ class Language {
             
     }
 
-class Environment {
+class Environment implements Cloneable{
 
     HashMap <String, Object> variables = new HashMap<>();
     Environment outer;
@@ -230,6 +232,11 @@ class Environment {
         
         Language.error("variable '" + identifier.value + "' has NOT been defined", identifier.line);
         return null;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 
 }
@@ -522,6 +529,7 @@ class Call extends Expre {
         this.callee = callee;
         this.paren = paren;
         this.arguments = arguments;
+        this.token = callee.token;
     }
 
     @Override
@@ -534,12 +542,12 @@ class Call extends Expre {
         if(callee instanceof SamirCallable == false)
             Language.error("Can only call functions and classes !", paren.line);
 
-        SamirCallable function = (SamirCallable)callee;
+        SamirCallable thingToCall = (SamirCallable)callee;
 
-        if(arguments.size() != function.arity())
-            Language.error("Expected " + function.arity() + " args but got " + arguments.size(), paren.line);
+        if(arguments.size() != thingToCall.arity())
+            Language.error("Expected " + thingToCall.arity() + " args but got " + arguments.size(), paren.line);
 
-        return function.call(arguments);
+        return thingToCall.call(arguments);
         
     }
 
@@ -567,11 +575,28 @@ class MemberAccess extends Expre {
         if(instance_no_cast instanceof SamirInstance == false)
             Language.error("cannot get members from this", token.line);
         SamirInstance instance = (SamirInstance) instance_no_cast;
-        Environment prev = Language.environment;
-        Language.environment = instance.environment;
-        Object result = memberVar.visit();
-        Language.environment = prev;
-        return result;
+
+        String memberName = memberVar.token.value.toString();
+
+        if(instance.environment.variables.containsKey(memberName)){
+            Object value = instance.environment.variables.get(memberName);
+            if(value instanceof SamirCallable){
+                Language.enviStack.add(Language.environment);
+                Language.environment = instance.environment;
+                Object callResult =  memberVar.visit();
+                Language.environment = Language.enviStack.pop();
+                return callResult;
+                
+            }
+            else
+                return value;
+        }
+            
+
+        Language.error(memberName + " not found in class: " + instance.class_.class_.name.value, token.line);
+
+        // Unreachable code:
+        return null;
     }
 }
 
@@ -586,10 +611,19 @@ class MemberAssign extends Expre {
     Object visit(){
         SamirInstance instance = (SamirInstance) member.instanceVar.visit();
         Object newValueObject = newValue.visit();
+
+        /*
         Environment prev = Language.environment;
         Language.environment = instance.environment;
         Language.environment.assign(member.memberVar.token, newValueObject);
         Language.environment = prev;
+        */
+
+        Language.enviStack.add(Language.environment);
+        Language.environment = instance.environment;
+        Language.environment.assign(member.memberVar.token, newValueObject);
+        Language.environment = Language.enviStack.pop();
+
         return newValueObject;
     }
 }
@@ -653,22 +687,29 @@ class VarDeclare extends Stmt {
 class Block extends Stmt {
 
     List<Stmt> statements;
-    Environment environment = new Environment();
+    Environment environment;
 
     Block(List<Stmt> statements){
         this.statements = statements;
+        this.environment = new Environment();
     }
 
     @Override
     Void visit() {
+        /*
         Environment previous = Language.environment;
+        this.environment.outer = Language.environment;
+        Language.environment = this.environment;
+        */
+
+        Language.enviStack.add(Language.environment);
         this.environment.outer = Language.environment;
         Language.environment = this.environment;
 
         for (Stmt stmt : statements) 
             stmt.visit();
         
-        Language.environment = previous;
+        Language.environment = Language.enviStack.pop();
         
         return null;
     }
@@ -772,7 +813,7 @@ class ClassDeclre extends Stmt {
     }
 
     Void visit(){
-        SamirClass class_ = new SamirClass(this, Language.environment);
+        SamirClass class_ = new SamirClass(this);
         Language.environment.define(name.value.toString(), class_);
         return null;
     }

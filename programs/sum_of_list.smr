@@ -16,4 +16,4 @@ numbers.add(15);
 numbers.add(3);
 
 
-println list_sum(numbers);
+println list_sum(numbers); # 28.
