@@ -1,5 +1,3 @@
 
 
-var string = str;
 
-print string(14) + "11";

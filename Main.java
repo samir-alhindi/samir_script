@@ -20,7 +20,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\sum_of_list.smr");
+        lang.run("programs\\map.smr");
 
     }
 }
@@ -30,6 +30,7 @@ class Language {
     static Environment globals = new Environment();
     static Environment environment = globals;
     static Stack<Environment> enviStack = new Stack<>();
+    static  boolean runningMethod = false;
 
     // Native functions, classes and variables:
     void init(){
@@ -536,8 +537,20 @@ class Call extends Expre {
     Object visit() {
         Object callee = this.callee.visit();
         List<Object> arguments = new ArrayList<>();
+
+        Environment instancEnvironment = null;
+        if(Language.runningMethod){
+            instancEnvironment = Language.environment;
+            Language.environment = Language.enviStack.pop();
+        }
+            
         for (Expre arg : this.arguments) 
             arguments.add(arg.visit());
+        
+        if(Language.runningMethod){
+            Language.environment = instancEnvironment;
+            Language.runningMethod = false;
+        }
         
         if(callee instanceof SamirCallable == false)
             Language.error("Can only call functions and classes !", paren.line);
@@ -583,8 +596,10 @@ class MemberAccess extends Expre {
             if(value instanceof SamirCallable){
                 Language.enviStack.add(Language.environment);
                 Language.environment = instance.environment;
+                Language.runningMethod = true;
                 Object callResult =  memberVar.visit();
-                Language.environment = Language.enviStack.pop();
+                Language.runningMethod = false;
+                // No need to pop from enviStack, The pop happnes in memberVar.visit().
                 return callResult;
                 
             }
@@ -612,18 +627,13 @@ class MemberAssign extends Expre {
         SamirInstance instance = (SamirInstance) member.instanceVar.visit();
         Object newValueObject = newValue.visit();
 
-        /*
-        Environment prev = Language.environment;
-        Language.environment = instance.environment;
-        Language.environment.assign(member.memberVar.token, newValueObject);
-        Language.environment = prev;
-        */
-
-        Language.enviStack.add(Language.environment);
-        Language.environment = instance.environment;
-        Language.environment.assign(member.memberVar.token, newValueObject);
-        Language.environment = Language.enviStack.pop();
-
+        
+        // Add new member asign code here that resembles the accses code:
+        if(instance.environment.variables.containsKey(member.memberVar.token.value))
+            instance.environment.variables.put(member.memberVar.token.value.toString(), newValueObject);
+        else
+            Language.error(member.memberVar.token.value + " not found in instance of class: " + instance.class_.class_.name, 0);
+            
         return newValueObject;
     }
 }
@@ -696,11 +706,6 @@ class Block extends Stmt {
 
     @Override
     Void visit() {
-        /*
-        Environment previous = Language.environment;
-        this.environment.outer = Language.environment;
-        Language.environment = this.environment;
-        */
 
         Language.enviStack.add(Language.environment);
         this.environment.outer = Language.environment;

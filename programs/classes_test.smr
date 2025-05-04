@@ -1,6 +1,0 @@
-
-class List {
-    var size = 0;
-    var items;
-
-}

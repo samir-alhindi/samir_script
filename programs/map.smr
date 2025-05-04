@@ -3,10 +3,9 @@
 func map(list, function){
     var i = 0;
     var output = List();
-    var result = 0;
     while i < list.size do {
         var current = list.get(i);
-        result = function(current);
+        var result = function(current);
         output.add(result);
         i = i + 1;
     }
@@ -15,9 +14,26 @@ func map(list, function){
 }
 
 func sqr(num){
-    return num * num;
+    return double(num) * num;
 }
+
+func double(num){
+    return num * 2;
+}
+
+
 
 var numbers = List();
 numbers.add(1); numbers.add(2); numbers.add(3);
 print map(numbers, sqr);
+print map(numbers, double);
+
+var names = List();
+names.add("Samir");
+names.add("Yahya");
+
+func funny(string){
+    return string + " !";
+}
+
+println map(names, funny);
