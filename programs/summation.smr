@@ -1,0 +1,29 @@
+func summation(start, end, rule){
+    if end < start then {
+        println "ending cannot be less than start";
+        return nil;
+    }
+    var result = 0;
+    while start <= end do {
+        result = result + rule(start);
+        start = start + 1;
+    }
+
+    return result;
+}
+
+func identity(num){
+    return num;
+}
+
+func double(num){
+    return num * 2;
+}
+
+func double_plus_3(num){
+    return num * 2 + 3;
+}
+
+println summation(1, 5, identity);
+println summation(1, 5, double);
+println summation(1, 5, double_plus_3);

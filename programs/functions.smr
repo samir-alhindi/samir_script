@@ -41,12 +41,12 @@ func map(function, a, b, c){
     println function(c);
 }
 
-# greeting("Samir", 20);
-# greeting("Yahya", 19);
-# greeting("Khair", 20);
+greeting("Samir", 20);
+greeting("Yahya", 19);
+greeting("Khair", 20);
 
-# count(5);
+count(5);
 
-# println average(1, 2, 3, 4, 5);
+println average(1, 2, 3, 4, 5);
 
 map(square, 2, 3, 4);

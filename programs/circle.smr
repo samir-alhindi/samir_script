@@ -1,0 +1,23 @@
+
+
+class Circle {
+    var diameter;
+    var radius;
+
+    func init(diameter){
+        self.diameter = diameter;
+        self.radius = diameter / 2;
+    }
+
+    func getArea(){
+        return PI * (radius * radius);
+    }
+}
+
+var my_circle = Circle();
+my_circle.init(10);
+println my_circle.getArea();
+
+var other_circle = Circle();
+other_circle.init(15);
+println other_circle.getArea();

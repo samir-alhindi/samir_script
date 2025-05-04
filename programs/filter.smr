@@ -1,0 +1,28 @@
+func filter(list, rule){
+    var output = List();
+    var i = 0;
+    while i < list.size do {
+        var current = list.get(i);
+        if rule(current) == true then
+            output.add(current);
+        i = i + 1;
+    }
+    return output;
+}
+
+func is_even(num){
+    if num == 1 then
+        return false;
+    elif num == 0 then
+        return true;
+    else 
+        return is_even(num - 2);
+}
+
+var numbers = List();
+
+numbers.add(1); numbers.add(3);
+numbers.add(2); numbers.add(0); numbers.add(14);
+numbers.add(5);
+
+println filter(numbers, is_even);

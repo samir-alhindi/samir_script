@@ -1,7 +1,9 @@
 
 
+var i = 0;
+
 func makeCounter() {
-  var i = 0;
+
   func count() {
     i = i + 1;
     println i;

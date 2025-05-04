@@ -1,0 +1,32 @@
+
+println "--------------";
+println "--CALCULATOR--";
+println "--------------";
+println "";
+
+var num1 = input("Please enter the 1st operand: ");
+
+while isNumeric(num1) == false do {
+    num1 = input("invalid, Please enter a number: ");
+}
+num1 = num(num1);
+
+var num2 = input("Please enter the 2nd operand: ");
+
+while isNumeric(num2) == false do {
+    num2 = input("invalid, Please enter a number: ");
+}
+num2 = num(num2);
+
+var opp = input("Please enter the operation (+, -, *, /): ");
+
+if opp == "+" then
+    println num1 + num2;
+elif opp == "-" then
+    println num1 - num2;
+elif opp == "*" then
+    println num1 * num2;
+elif opp == "/" then
+    println num1 / num2;
+else
+    println "Please enter a valid operation !";

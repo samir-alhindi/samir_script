@@ -1,7 +1,2 @@
 
 
-func greeting(){
-    println "hi";
-}
-
-greeting();

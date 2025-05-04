@@ -20,7 +20,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\map.smr");
+        lang.run("programs\\circle.smr");
 
     }
 }
@@ -62,7 +62,8 @@ class Language {
                 Object arg = arguments.get(0);
                 System.out.print(arg.toString());
                 Scanner scanner = new Scanner(System.in);
-                return scanner.next();}
+                return scanner.nextLine();
+            }
         });
 
 
@@ -86,8 +87,14 @@ class Language {
                 if(isNumeric(arg.toString()))
                     return Double.parseDouble(arg.toString());
                 else
-                    return null;
+                    Language.error("Cannot cast " + arg.toString() + " to a number", 0);
+
+                // unreachable:
+                return null;
+
                 }
+
+
         });
 
         // return type of variable:
