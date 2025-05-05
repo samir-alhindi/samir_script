@@ -355,7 +355,7 @@ public class Parser{
     Expre factor(){
         Expre expre = unary();
 
-        while(currentIs(TokenType.MULTIPLY, TokenType.DIVIDE)){
+        while(currentIs(TokenType.MULTIPLY, TokenType.DIVIDE, TokenType.MOD)){
             Token opToken = current;
             advance();
             Expre right = unary();

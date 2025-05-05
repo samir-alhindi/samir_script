@@ -20,7 +20,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\circle.smr");
+        lang.run("programs\\filter.smr");
 
     }
 }
@@ -276,7 +276,7 @@ enum TokenType{
     Double, STRING, TRUE, FALSE, NIL,
 
     // Numeric opperators:
-    PLUS, MINUS, MULTIPLY, DIVIDE,
+    PLUS, MINUS, MULTIPLY, DIVIDE, MOD,
 
     // Boolean opperators:
     AND, OR, NOT, 
@@ -288,7 +288,7 @@ enum TokenType{
     // Grouping:
     L_PAR, R_PAR, L_CUR, R_CUR,
     
-    // statements:
+    // keywords:
     VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN, THEN, DO, RETURN, CLASS,
 
     // Other:
@@ -354,6 +354,11 @@ class BinOpExpre extends Expre {
         else if(tokenIs(TokenType.DIVIDE)){
             checkNumberOperands(left, right);
             return (double) left / (double) right;
+        }
+
+        else if(tokenIs(TokenType.MOD)){
+            checkNumberOperands(left, right);
+            return (double) left % (double) right;
         }
 
         else if(tokenIs(TokenType.GREATER_THAN)){

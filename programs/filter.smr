@@ -10,7 +10,7 @@ func filter(list, rule){
     return output;
 }
 
-func is_even(num){
+func is_even_recursion(num){
     if num == 1 then
         return false;
     elif num == 0 then
@@ -19,10 +19,28 @@ func is_even(num){
         return is_even(num - 2);
 }
 
+func is_even(num){
+    return num % 2 == 0;
+}
+
+func isPrime(num){
+    if num <= 1 then
+        return false;
+    var i = num - 1;
+    while i >= 2 do {
+        if num % i == 0 then
+            return false;
+        i = i - 1;
+    }
+
+    return true;
+}
+
 var numbers = List();
 
 numbers.add(1); numbers.add(3);
 numbers.add(2); numbers.add(0); numbers.add(14);
 numbers.add(5);
 
-println filter(numbers, is_even);
+
+println filter(numbers, isPrime);

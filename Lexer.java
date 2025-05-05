@@ -119,6 +119,10 @@ public class Lexer {
             else if(current == '/'){
                 addToken(TokenType.DIVIDE);
                 advance();}
+            else if(current == '%'){
+                addToken(TokenType.MOD);
+                advance();
+            }
 
         //check if char is equals sign:
         else if(current == '='){
