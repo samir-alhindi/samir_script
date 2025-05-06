@@ -1,0 +1,53 @@
+
+func one(){
+    println "Just entered 1";
+    var myFun = two();
+    println "Back to 1";
+    myFun();
+}
+
+func two(){
+    println "Just entered 2";
+    var i = 0;
+    while i <= 10 do {
+        println "Chilling in 2 : " + str(i);
+        i = i + 1;
+        if i == 5 then
+        return three();
+    }
+    
+}
+
+func three(){
+
+    println "Entered 3";
+
+    var local = "I am a local var inside of three()";
+    
+    func innerThree(){
+        println local;
+    }
+
+    return innerThree;
+
+}
+
+func getFunc(){
+
+    func localFunc(){
+
+        var localVar = "i am local";
+        func innerFunc(){
+            return localVar;
+        }
+
+        return innerFunc;
+
+    }
+
+    return localFunc();
+
+}
+
+var myFunction = getFunc();
+println myFunction();

@@ -30,7 +30,9 @@ class Language {
     static Environment globals = new Environment();
     static Environment environment = globals;
     static Stack<Environment> enviStack = new Stack<>();
-    static  boolean runningMethod = false;
+
+    static boolean runningMethod = false;
+    static boolean aboutToRunFunction = false;
 
     // Native functions, classes and variables:
     void init(){
@@ -560,7 +562,7 @@ class Call extends Expre {
             arguments.add(arg.visit());
         
         if(Language.runningMethod){
-            Language.environment = instancEnvironment;
+            //Language.environment = instancEnvironment;
             Language.runningMethod = false;
         }
         
@@ -605,12 +607,12 @@ class MemberAccess extends Expre {
 
         if(instance.environment.variables.containsKey(memberName)){
             Object value = instance.environment.variables.get(memberName);
+            // See if member is method
             if(value instanceof SamirCallable){
                 Language.enviStack.add(Language.environment);
                 Language.environment = instance.environment;
                 Language.runningMethod = true;
                 Object callResult =  memberVar.visit();
-                Language.runningMethod = false;
                 // No need to pop from enviStack, The pop happnes in memberVar.visit().
                 return callResult;
                 
@@ -720,11 +722,17 @@ class Block extends Stmt {
     Void visit() {
 
         Language.enviStack.add(Language.environment);
-        this.environment.outer = Language.environment;
+
+        // No function call, just a normal block:
+        if(Language.aboutToRunFunction == false)
+            this.environment.outer = Language.environment;
+        // if it's a function call then  leave it's outer as it is, It already has it's "closure".
         Language.environment = this.environment;
+        Language.aboutToRunFunction = false;
 
         for (Stmt stmt : statements) 
             stmt.visit();
+        
         
         Language.environment = Language.enviStack.pop();
         

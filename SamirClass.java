@@ -123,7 +123,8 @@ class ListInstance extends SamirInstance {
         String result = "[";
         for (Object element : arrayList)
             result += Language.stringify(element) + ", ";
-        result = result.substring(0, result.length() - 2);
+        if(result.length() > 2)
+            result = result.substring(0, result.length() - 2);
         return result + "]";
     }
 }

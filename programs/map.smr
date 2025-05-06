@@ -14,19 +14,40 @@ func map(list, function){
 }
 
 func sqr(num){
-    return double(num) * num;
+    return num * num;
 }
 
 func double(num){
     return num * 2;
 }
 
+func fizzBuzz(num){
+    if num % 3 == 0 and num % 5 == 0 then
+        return "FizzBuzz";
+    elif num % 3 == 0 then
+        return "Fizz";
+    elif num % 5 == 0 then
+        return "Buzz";
+    else
+        return num;
+}
+
+func fillList(list, from, to){
+    var output = List();
+    while from <= to do {
+        output.add(from);
+        from = from + 1;
+    }
+
+    return output;
+}
 
 
-var numbers = List();
-numbers.add(1); numbers.add(2); numbers.add(3);
-print map(numbers, sqr);
-print map(numbers, double);
+
+var numbers = fillList(List(), 1, 30);
+
+println map(numbers, sqr);
+println map(numbers, double);
 
 var names = List();
 names.add("Samir");
@@ -37,3 +58,4 @@ func funny(string){
 }
 
 println map(names, funny);
+println map(numbers, fizzBuzz);

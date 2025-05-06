@@ -36,11 +36,22 @@ func isPrime(num){
     return true;
 }
 
-var numbers = List();
+func is_multiple_5(num){
+    return num % 5 == 0;
+}
 
-numbers.add(1); numbers.add(3);
-numbers.add(2); numbers.add(0); numbers.add(14);
-numbers.add(5);
+func fillList(from, to){
+    var output = List();
+    while from <= to do {
+        output.add(from);
+        from = from + 1;
+    }
 
+    return output;
+}
+
+var numbers = fillList(0, 30);
 
 println filter(numbers, isPrime);
+println filter(numbers, is_even);
+println filter(numbers, is_multiple_5);

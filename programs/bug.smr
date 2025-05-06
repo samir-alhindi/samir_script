@@ -1,0 +1,18 @@
+
+
+func test(){
+    var i = 0;
+    while i <= 10 do {
+        println i;
+        i = i + 1;
+        if i == 5 then {
+            println "I hate 5 !";
+            return ;
+        }
+            
+    }
+}
+
+test();
+# i should not be visible but is...:
+println i;

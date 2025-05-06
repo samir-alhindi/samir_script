@@ -2,7 +2,7 @@ import java.util.List;
 
 class SamirFunction implements SamirCallable {
     final Function declaration;
-    private final Environment closure;
+    final Environment closure;
     SamirFunction(Function declaration, Environment closure){
         this.declaration = declaration;
         this.closure = closure;
@@ -23,7 +23,7 @@ class SamirFunction implements SamirCallable {
             if(argValue instanceof SamirInstance){
                 try{
                     SamirInstance newInstance = (SamirInstance) ((SamirInstance)argValue).clone();
-                    newInstance.environment.outer = environment;
+                    //newInstance.environment.outer = environment;
                     environment.define(paraName, newInstance);
                 }
                 catch(CloneNotSupportedException e){
@@ -35,12 +35,19 @@ class SamirFunction implements SamirCallable {
         }
 
         declaration.body.environment = environment;
+        Language.aboutToRunFunction = true;
+        // We use this variable to return to the last point since the call,
+        // It's important when we want to return from say an if statement inside a while loop inside a function.
+        Environment lasEnvi = Language.environment;
         try{
             declaration.body.visit();
         }
         catch(ReturnException returnValue){
-            // Restore prevoius environment:
-            Language.environment = Language.enviStack.pop();
+            // Restore previous environment:
+            while (Language.environment != lasEnvi) 
+                Language.environment = Language.enviStack.pop();
+            
+            Language.aboutToRunFunction = false;
             return returnValue.value;
         }
         
