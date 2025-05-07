@@ -10,7 +10,7 @@ class SamirClass implements SamirCallable{
 
     @Override
     public String toString() {
-        return class_.name.value.toString();
+        return "<class " + class_.name.value + ">";
     }
 
     @Override
@@ -22,6 +22,7 @@ class SamirClass implements SamirCallable{
     public Object call(List<Object> arguments) {
         return new SamirInstance(this);
     }
+    
 }
 
 class SamirInstance implements Cloneable{
@@ -57,7 +58,7 @@ class SamirInstance implements Cloneable{
 
     @Override
     public String toString() {
-        return class_ + " instance.";
+        return "<" + class_.class_.name.value + " instance " + this.hashCode() + ">";
     }
 }
 
@@ -91,6 +92,11 @@ class ListInstance extends SamirInstance {
                 
                 return null;
             }
+
+            @Override
+            public String toString() {
+                return "<function add>";
+            }
             
         });
 
@@ -111,6 +117,11 @@ class ListInstance extends SamirInstance {
                 if(temp % 1 != 0)
                     Language.error("get() arg must be a whole number", -1);
                 return arrayList.get(temp.intValue());
+            }
+
+            @Override
+            public String toString() {
+                return "<function get>";
             }
             
         });

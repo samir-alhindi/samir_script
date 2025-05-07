@@ -55,6 +55,11 @@ class SamirFunction implements SamirCallable {
         return null;
     }
 
+    @Override
+    public String toString() {
+        return "<function " + declaration.name.value +  ">";
+    }
+
 }
 
 class ReturnException extends RuntimeException {

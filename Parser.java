@@ -47,12 +47,12 @@ public class Parser{
 
     Stmt classDeclaration(){
         if( ! currentIs(TokenType.IDENTIFIER))
-            Language.error("Expected identifier after 'class' keyword", current.line);
+            Language.error("Expected identifier after 'class' keyword", current.line - 1, current.line);
         Token name = current;
         advance();
 
         if( ! currentIs(TokenType.L_CUR))
-            Language.error("Expected '{' after class name", current.line);
+            Language.error("Expected '{' after class name", current.line - 1, current.line);
         advance();
 
         List<Stmt> classBody = new ArrayList<>();
@@ -70,7 +70,7 @@ public class Parser{
         }
 
         if( ! currentIs(TokenType.R_CUR))
-            Language.error("Expected '}' after class body", pos);
+            Language.error("Expected '}' after class '" + name.value + "' body", name.line);
         advance();
 
         return new ClassDeclre(classBody, name);
@@ -84,7 +84,7 @@ public class Parser{
         advance();
 
         if( ! currentIs(TokenType.L_PAR))
-            Language.error("Expected '(' after function name", current.line);
+            Language.error("Expected '(' after function name", name.line, current.line);
         advance();
 
         List<Token> parameters = new ArrayList<>();
@@ -113,7 +113,7 @@ public class Parser{
         advance();
 
         if( ! currentIs(TokenType.L_CUR))
-            Language.error("Expected '{' before function body", current.line);
+            Language.error("Expected '{' before function body", current.line -1, current.line);
         advance();
 
         List<Stmt> body = block();
@@ -137,7 +137,7 @@ public class Parser{
         }
 
         if( ! currentIs(TokenType.EOS))
-            Language.error("expected ';' after end of statement", current.line);
+            Language.error("expected ';' after end of statement", current.line - 1);
         advance();
 
         return new VarDeclare(varName, initializer);
@@ -228,12 +228,13 @@ public class Parser{
 
     List<Stmt> block(){
         List<Stmt> statements = new ArrayList<>();
+        Token blockStart = tokens.get(pos - 1);
 
         while( ! currentIs(TokenType.R_CUR))
             statements.add(declaration());
         
         if( ! currentIs(TokenType.R_CUR))
-            Language.error("Expected '}' after block.", current.line);
+            Language.error("Expected '}' after block.", blockStart.line);
         
         advance();
 
@@ -245,8 +246,14 @@ public class Parser{
         Token print_type = current;
         advance();
         Expre value = expression();
-        if( ! current.type.equals(TokenType.EOS))
-            Language.error("Expected closing ';' to end statement", current.line);
+        if( ! current.type.equals(TokenType.EOS)){
+            if(print_type.line == current.line){
+                // The user probably wanted to concatenate strings but forgot the '+':
+                Language.error("Expected closing ';' to end print statement\nReminder: you must use '+' to print multiple things", current.line);
+            }
+            Language.error("Expected closing ';' to end print statement", current.line - 1);
+        }
+            
         advance();
         return new Print(value, print_type);
         
@@ -255,7 +262,7 @@ public class Parser{
     Stmt expresionStatement(){
         Expre expre = expression();
         if( ! current.type.equals(TokenType.EOS))
-            Language.error("Expected closing ';' to end statement", current.line);
+            Language.error("Expected closing ';' to end statement", current.line - 1);
         advance();
         return new ExpressionStmt(expre);
     }
@@ -489,6 +496,10 @@ public class Parser{
                 return true;
         return false;
         
+    }
+
+    Token peekNext(){
+        return tokens.get(pos + 1);
     }
 
 

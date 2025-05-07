@@ -20,7 +20,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\filter.smr");
+        lang.run("programs\\test.smr");
 
     }
 }
@@ -48,6 +48,11 @@ class Language {
             @Override
             public Object call(List<Object> arguments) {
                 return new ListInstance(new ArrayList<>());
+            }
+
+            @Override
+            public String toString() {
+                return "<class List>";
             }
 
         });
@@ -183,8 +188,13 @@ class Language {
         return object.toString();
       }
 
-    static void error(String log, int line){
+      static void error(String log, int line){
         System.out.printf("Error at line %d: %s", line + 1, log);
+        System.exit(1);
+    }
+
+    static void error(String log, int fromLine, int toLine){
+        System.out.printf("Error from line %d to %d: %s", fromLine + 1, toLine + 1, log);
         System.exit(1);
     }
 
@@ -600,7 +610,7 @@ class MemberAccess extends Expre {
     Object visit() {
         Object instance_no_cast = instanceVar.visit();
         if(instance_no_cast instanceof SamirInstance == false)
-            Language.error("cannot get members from this", token.line);
+            Language.error("can only access members from class instances", token.line);
         SamirInstance instance = (SamirInstance) instance_no_cast;
 
         String memberName = memberVar.token.value.toString();
