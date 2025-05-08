@@ -33,6 +33,9 @@ class Language {
 
     static boolean runningMethod = false;
     static boolean aboutToRunFunction = false;
+    static int currentRunningLine = 1;
+
+    int currentLine = 0;
 
     // Native functions, classes and variables:
     void init(){
@@ -117,8 +120,19 @@ class Language {
                     return "number";
                 else if(arg instanceof Boolean)
                     return "boolean";
-                else
+                else if(arg instanceof ListInstance)
+                    return "List";
+                else if(arg instanceof SamirInstance)
+                    return ((SamirInstance)arg).class_.class_.name.value.toString();
+                else if(arg instanceof SamirFunction)
+                    return "function";
+                else if(arg instanceof SamirClass)
+                    return "class";
+                else if(arg == null)
                     return "nil";
+                else
+                    return "native callable";
+
             }
         });
 
@@ -143,7 +157,7 @@ class Language {
             @Override
             public int arity() {return 0;}
             @Override
-            public Object call(List<Object> arguments) {return LocalTime.now();}
+            public Object call(List<Object> arguments) {return LocalTime.now().toString().substring(0, 8);}
 
         });
 
@@ -562,9 +576,7 @@ class Call extends Expre {
         Object callee = this.callee.visit();
         List<Object> arguments = new ArrayList<>();
 
-        Environment instancEnvironment = null;
         if(Language.runningMethod){
-            instancEnvironment = Language.environment;
             Language.environment = Language.enviStack.pop();
         }
             
@@ -572,7 +584,6 @@ class Call extends Expre {
             arguments.add(arg.visit());
         
         if(Language.runningMethod){
-            //Language.environment = instancEnvironment;
             Language.runningMethod = false;
         }
         
@@ -619,6 +630,7 @@ class MemberAccess extends Expre {
             Object value = instance.environment.variables.get(memberName);
             // See if member is method
             if(value instanceof SamirCallable){
+                Language.currentRunningLine = token.line;
                 Language.enviStack.add(Language.environment);
                 Language.environment = instance.environment;
                 Language.runningMethod = true;

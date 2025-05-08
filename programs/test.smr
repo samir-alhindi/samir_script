@@ -1,5 +1,8 @@
 
 
+var list = List();
 
-{
+list.size = 5;
 
+println list.size;
+list.get(4);

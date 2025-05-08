@@ -62,6 +62,8 @@ class SamirInstance implements Cloneable{
     }
 }
 
+interface NativeMethod {}
+
 class ListInstance extends SamirInstance {
 
     ArrayList<Object> arrayList;
@@ -73,7 +75,7 @@ class ListInstance extends SamirInstance {
         this.environment.define("size", 0.0);
 
         // Create append/add method for list object:
-        this.environment.define("add", new SamirCallable() {
+        this.environment.define("add", new SamirCallable(){
 
             @Override
             public int arity() {
@@ -112,10 +114,12 @@ class ListInstance extends SamirInstance {
             public Object call(List<Object> arguments) {
                 Object arg = arguments.get(0);
                 if(arg instanceof Double == false)
-                    Language.error("get() arg must be a whole number", -1);
+                    Language.error("get() arg must be a whole number", Language.currentRunningLine);
                 Double temp = (Double) arg;
                 if(temp % 1 != 0)
-                    Language.error("get() arg must be a whole number", -1);
+                    Language.error("get() arg must be a whole number", Language.currentRunningLine);
+                if(temp >= arrayList.size())
+                    Language.error("index " + temp.intValue() + " out of bounds for size " + arrayList.size(), Language.currentRunningLine);
                 return arrayList.get(temp.intValue());
             }
 
