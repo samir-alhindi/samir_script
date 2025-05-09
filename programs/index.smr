@@ -1,0 +1,22 @@
+
+
+var list = List();
+list.fillRange(1, 10, 1); 
+println "Before: " + str(list);
+
+println "index 5: " + str(list.get(5));
+
+list.removeAt(5);
+println "after: " + str(list);
+
+println "index 5: " + str(list.get(5));
+
+println list.popFront();
+println list.pop();
+println list;
+
+list.insert(0, "Hello");
+println list;
+
+list.popFront();
+println list;

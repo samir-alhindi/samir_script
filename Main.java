@@ -20,7 +20,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\test.smr");
+        lang.run("programs\\index.smr");
 
     }
 }

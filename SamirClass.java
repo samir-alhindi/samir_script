@@ -78,20 +78,13 @@ class ListInstance extends SamirInstance {
         this.environment.define("add", new SamirCallable(){
 
             @Override
-            public int arity() {
-                return 1;
-            }
+            public int arity() {return 1;}
 
             @Override
             public Void call(List<Object> arguments) {
 
-                Object arg = arguments.get(0);
-                arrayList.add(arg);
-
-                Object temp = environment.get(new Token(null, "size", 0));
-                Double oldSize = (Double) temp;
-                environment.assign(new Token(null, "size", 0), oldSize + 1);
-                
+                arrayList.add(arguments.get(0));
+                changeSize(1);
                 return null;
             }
 
@@ -102,25 +95,32 @@ class ListInstance extends SamirInstance {
             
         });
 
+        // Create "set" method for list object:
+        this.environment.define("set", new SamirCallable(){
+
+            @Override
+            public int arity() {return 2;}
+
+            @Override
+            public Void call(List<Object> arguments) {
+                
+                int index = checkValidIndex(arguments.get(0));
+                arrayList.set(index, arguments.get(1));
+                return null;
+            }
+
+        });
+
         // Create "get" method for list object:
         this.environment.define("get", new SamirCallable() {
 
             @Override
-            public int arity() {
-                return 1;
-            }
+            public int arity() {return 1;}
 
             @Override
             public Object call(List<Object> arguments) {
-                Object arg = arguments.get(0);
-                if(arg instanceof Double == false)
-                    Language.error("get() arg must be a whole number", Language.currentRunningLine);
-                Double temp = (Double) arg;
-                if(temp % 1 != 0)
-                    Language.error("get() arg must be a whole number", Language.currentRunningLine);
-                if(temp >= arrayList.size())
-                    Language.error("index " + temp.intValue() + " out of bounds for size " + arrayList.size(), Language.currentRunningLine);
-                return arrayList.get(temp.intValue());
+                int index = checkValidIndex(arguments.get(0));
+                return arrayList.get(index);
             }
 
             @Override
@@ -128,6 +128,122 @@ class ListInstance extends SamirInstance {
                 return "<function get>";
             }
             
+        });
+
+        this.environment.define("removeAt", new SamirCallable(){
+
+            @Override
+            public int arity() {return 1;}
+
+            @Override
+            public Void call(List<Object> arguments) {
+                int index = checkValidIndex(arguments.get(0));
+                arrayList.remove(index);
+                changeSize(-1);
+                return null;
+        }});
+
+        this.environment.define("pop", new SamirCallable(){
+
+            @Override
+            public int arity() {return 0;}
+
+            @Override
+            public Object call(List<Object> arguments) {
+                if(arrayList.size() == 0)
+                    Language.error("Can't pop() from an empty list", Language.currentRunningLine);
+                changeSize(-1);
+                return arrayList.removeLast();
+            }
+        });
+
+        this.environment.define("popFront", new SamirCallable(){
+
+            @Override
+            public int arity() {return 0;}
+
+            @Override
+            public Object call(List<Object> arguments) {
+                if(arrayList.size() == 0)
+                    Language.error("Can't popFront() from an empty list", Language.currentRunningLine);
+                changeSize(-1);
+                return arrayList.removeFirst();
+            }
+        });
+
+        this.environment.define("insert", new SamirCallable(){
+
+            @Override
+            public int arity() {return 2;}
+
+            @Override
+            public Void call(List<Object> arguments) {
+
+                int index = checkValidIndex(arguments.get(0));
+                arrayList.add(index, arguments.get(1));
+                changeSize(1);
+                return null;
+            }
+
+        });
+
+        this.environment.define("swap", new SamirCallable(){
+
+            @Override
+            public int arity() {return 2;}
+
+            @Override
+            public Object call(List<Object> arguments) {
+                int index1 = checkValidIndex(arguments.get(0));
+                int index2 = checkValidIndex(arguments.get(1));
+                Object temp = arrayList.get(index2);
+                arrayList.set(index2, arrayList.get(index1));
+                arrayList.set(index1, temp);
+            }
+            
+        });
+
+        this.environment.define("clear", new SamirCallable(){
+
+            @Override
+            public int arity() {return 0;}
+
+            @Override
+            public Void call(List<Object> arguments) {
+                arrayList.clear();
+                environment.assign(new Token(null,"size", 0), 0);
+                return null;
+        }});
+
+    
+
+        this.environment.define("fillRange", new SamirCallable(){
+
+            @Override
+            public int arity() {return 3;}
+
+            @Override
+            public Void call(List<Object> arguments) {
+                Object arg1 = arguments.get(0);
+                Object arg2 = arguments.get(1);
+                Object arg3 = arguments.get(2);
+                if(arg1 instanceof Double == false || arg2 instanceof Double == false || arg3 instanceof Double == false)
+                    Language.error("all fillRange() args must be numbers", Language.currentRunningLine);
+                int from = ((Double) arg1).intValue();
+                int to = ((Double) arg2).intValue();
+                int step = ((Double) arg3).intValue();
+                int sizeChange = 0;
+                if(step > 0)
+                    for (   ; from < to; from += step, sizeChange ++)
+                        arrayList.add(from);
+                else if(step < 0)
+                    for (; from > to; from += step, sizeChange ++)
+                        arrayList.add(from);
+                
+                changeSize(sizeChange);
+                return null;
+            }
+
         });
         
     }
@@ -141,5 +257,33 @@ class ListInstance extends SamirInstance {
         if(result.length() > 2)
             result = result.substring(0, result.length() - 2);
         return result + "]";
+    }
+
+    int checkValidIndex(Object object){
+        if(object instanceof Double == false)
+            Language.error("argument of this List method must be a number", Language.currentRunningLine);
+        Double index = (Double) object;
+
+        if(index % 1 != 0)
+            Language.error("argument must be a whole number", Language.currentRunningLine);
+
+        if(index >= arrayList.size())
+            Language.error("index " + index.intValue() + " out of bounds for size " + arrayList.size(), Language.currentRunningLine);
+        
+        // Negative index:
+        if(index < 0){
+            Double actualIndex = index + arrayList.size();
+            if(actualIndex < 0)
+                Language.error("index " + index.intValue() + " out of bounds for size " + arrayList.size(), Language.currentRunningLine);
+            index = actualIndex;
+        }
+        
+        return index.intValue();
+    }
+
+    void changeSize(int amount){
+        Object temp = environment.get(new Token(null, "size", 0));
+        Double oldSize = (Double) temp;
+        environment.assign(new Token(null, "size", 0), oldSize + amount);
     }
 }
