@@ -2,6 +2,78 @@
 #LEXER
 #########################
 
+class Lexer {
+    var pos = 0;
+    var source;
+    var tokens;
+    var current;
+
+    func _init(source){
+        self.source = source;
+        pos = -1;
+        advance();
+        tokens = List();
+    }
+
+    func lex(){
+
+        while current != "\0" do {
+
+            # Ignore whitespace:
+            if current == " " then
+                advance();
+            
+            else if current == "+" then
+                add_token(TT_PLUS, "+");
+            else if current == "-" then
+                add_token(TT_MINUS, "-");
+                
+            else if(isNumeric(current)) then {
+                make_number();
+            }
+            
+        }
+
+        var end_token = Token(TT_EOF, "EOF");
+        tokens.add(end_token);
+        return tokens;
+    }
+
+    func advance(){
+        if pos + 1 >= len(source) then{
+            pos = pos + 1;
+            current = "\0";
+        }
+        else{
+            pos = pos + 1;
+            current = getChar(pos, source);
+        }
+        
+    }
+
+    func peek_next(){
+        if pos + 1 >= len(source) then
+            return "\0";
+        return getChar(pos + 1, source);
+    }
+
+    func add_token(type, value){
+        var token = Token(type, value);
+        tokens.add(token);
+        advance();
+    }
+
+    func make_number(){
+        var number_string = "";
+        while isNumeric(current) do {
+            number_string = number_string + current;
+            advance();
+        }
+        add_token(TT_NUMBER, num(number_string));
+    }
+
+}
+
 #########################
 #TOKENS AND TOKEN TYPES
 #########################
@@ -24,6 +96,10 @@ class Token {
         self.value = value;
     }
 
+    func _toString(){
+        return str(value);
+    }
+
 }
 
 #########################
@@ -32,4 +108,7 @@ class Token {
 
 while true do {
     var source = input("> ");
+    var lexer = Lexer(source);
+    var tokens = lexer.lex();
+    println tokens;
 }

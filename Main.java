@@ -20,7 +20,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\to_string.smr");
+        lang.run("programs\\interpreter.smr");
 
     }
 }
@@ -478,10 +478,14 @@ class BinOpExpre extends Expre {
         }
 
         else if(tokenIs(TokenType.DOUBLE_EQUAL)){
+            if(left == null && right != null) return false;
+            else if(left == null && right == null) return true;
             return left.equals(right);
         }
 
         else if(tokenIs(TokenType.NOT_EQUAL)){
+            if(left == null && right != null) return false;
+            else if(left == null && right == null) return true;
             return ! left.equals(right);
         }
 
