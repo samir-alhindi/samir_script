@@ -1,0 +1,14 @@
+
+
+func add(x){
+
+    func add(y){
+        return x + y;
+    }
+
+    return add;
+
+}
+
+println add(5)(2); # 7
+println add(20)(30); # 50

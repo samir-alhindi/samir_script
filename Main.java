@@ -20,7 +20,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\index.smr");
+        lang.run("programs\\string.smr");
 
     }
 }
@@ -97,13 +97,14 @@ class Language {
                 if(isNumeric(arg.toString()))
                     return Double.parseDouble(arg.toString());
                 else
-                    Language.error("Cannot cast " + arg.toString() + " to a number", 0);
+                    Language.error("Cannot cast " + arg.toString() + " to a number", Language.currentRunningLine);
 
                 // unreachable:
                 return null;
 
                 }
 
+            
 
         });
 
@@ -159,6 +160,44 @@ class Language {
             @Override
             public Object call(List<Object> arguments) {return LocalTime.now().toString().substring(0, 8);}
 
+        });
+
+        // string methods:
+
+        // getChar string method:
+        globals.define("getChar", new SamirCallable() {
+
+            @Override
+            public int arity() {return 2;}
+
+            @Override
+            public Object call(List<Object> arguments) {
+                List<Object> index_and_string = checkStringIndex(arguments.get(0), arguments.get(1));
+                int index = (int) index_and_string.get(0);
+                String string = (String) index_and_string.get(1);
+                return "" + string.charAt(index);
+            }
+            
+        });
+
+        globals.define("len", new SamirCallable() {
+
+            @Override
+            public int arity() {return 1;}
+
+            @Override
+            public Object call(List<Object> arguments) {
+                Object arg = arguments.get(0);
+                if(arg instanceof String)
+                    return (Double) ((Integer) ((String) arg).length()).doubleValue();
+                else if(arg instanceof ListInstance)
+                    return (Double) ((Integer) ((ListInstance) arg).arrayList.size()).doubleValue();
+                
+                Language.error("len() argument must be a list or a string", Language.currentRunningLine);
+                // unreachable code:
+                return null;
+            }
+            
         });
 
     }
@@ -221,6 +260,37 @@ class Language {
             return false;
         }
     }
+
+    
+    List<Object> checkStringIndex(Object index_object, Object string_object){
+        if(index_object instanceof Double == false)
+            Language.error("1st argument of this string method must be a number", Language.currentRunningLine);
+        Double index = (Double) index_object;
+
+        if(index % 1 != 0)
+            Language.error("1st argument must be a whole number", Language.currentRunningLine);
+
+        if(string_object instanceof String == false)
+            Language.error("2nd argument of this string method must be a string", Language.currentRunningLine);
+        String string = (String) string_object;
+
+        if(index >= string.length())
+            Language.error("index " + index.intValue() + " out of bounds for length " + string.length(), Language.currentRunningLine);
+        
+        // Negative index:
+        if(index < 0){
+            Double actualIndex = index + string.length();
+            if(actualIndex < 0)
+                Language.error("index " + index.intValue() + " out of bounds for length " + string.length(), Language.currentRunningLine);
+            index = actualIndex;
+        }
+
+        List<Object> output = new ArrayList<>();
+        output.add(index.intValue());
+        output.add(string);
+        return output;
+    }
+        
             
     }
 
@@ -594,6 +664,8 @@ class Call extends Expre {
 
         if(arguments.size() != thingToCall.arity())
             Language.error("Expected " + thingToCall.arity() + " args but got " + arguments.size(), paren.line);
+
+        Language.currentRunningLine = paren.line;
 
         return thingToCall.call(arguments);
         

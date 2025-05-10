@@ -136,11 +136,12 @@ class ListInstance extends SamirInstance {
             public int arity() {return 1;}
 
             @Override
-            public Void call(List<Object> arguments) {
+            public Object call(List<Object> arguments) {
                 int index = checkValidIndex(arguments.get(0));
+                Object removed = arrayList.get(index);
                 arrayList.remove(index);
                 changeSize(-1);
-                return null;
+                return removed;
         }});
 
         this.environment.define("pop", new SamirCallable(){
@@ -199,6 +200,7 @@ class ListInstance extends SamirInstance {
                 Object temp = arrayList.get(index2);
                 arrayList.set(index2, arrayList.get(index1));
                 arrayList.set(index1, temp);
+                return null;
             }
             
         });

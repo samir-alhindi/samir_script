@@ -1,0 +1,50 @@
+
+func bubble_sort(list){
+    var i = 0;
+    var j = 0;
+    while i < list.size do{
+        while j < list.size - 1 do{
+            if list.get(j) > list.get(j + 1) then
+                list.swap(j, j + 1);
+            j = j + 1;
+        }
+        j = 0;
+        i = i + 1;
+    }
+    return list;
+}
+
+func selection_sort(list){
+
+    var output = List();
+    var i = 0;
+    var size = list.size;
+
+    while i < size do {
+        var j = 1;
+        var smallest = list.get(0);
+        var smlIndex = 0;
+        while j < list.size do {
+            if list.get(j) < smallest then{
+                smallest = list.get(j);
+                smlIndex = j;
+            }
+            j = j + 1;
+        }
+        output.add(list.removeAt(smlIndex));
+        i = i + 1;
+    }
+
+    return output;
+}
+
+var list = List();
+list.add(7);
+list.add(-5);
+list.add(0);
+list.add(12);
+list.add(-2);
+list.add(1);
+
+println "Unsorted list: " + str(list);
+println "Sorted: " + str(selection_sort(list));

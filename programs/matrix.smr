@@ -1,0 +1,15 @@
+
+
+var matrix = List();
+
+var row_1 = List();
+row_1.fillRange(1, 4, 1);
+
+var row_2 = List();
+row_2.fillRange(4, 7, 1);
+
+matrix.add(row_1);
+matrix.add(row_2);
+
+println matrix;
+println "Row 1 collumn 2: " +  str(matrix.get(0).get(1));
