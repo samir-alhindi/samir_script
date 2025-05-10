@@ -4,8 +4,10 @@ import java.util.List;
 class SamirClass implements SamirCallable{
     Environment closure;
     ClassDeclre class_;
+    Function constructer;
     SamirClass(ClassDeclre class_){
         this.class_ = class_;
+        this.constructer = class_.constructer;
     }
 
     @Override
@@ -15,12 +17,14 @@ class SamirClass implements SamirCallable{
 
     @Override
     public int arity() {
+        if(constructer != null)
+            return constructer.parameters.size();
         return 0;
     }
 
     @Override
     public Object call(List<Object> arguments) {
-        return new SamirInstance(this);
+        return new SamirInstance(this, arguments);
     }
     
 }
@@ -29,7 +33,7 @@ class SamirInstance implements Cloneable{
     Environment environment;
     SamirClass class_;
 
-    SamirInstance(SamirClass class_){
+    SamirInstance(SamirClass class_, List<Object> constructer_args){
         this.class_ = class_;
         this.environment = new Environment(Language.environment);
         Environment prev = Language.environment;
@@ -40,6 +44,12 @@ class SamirInstance implements Cloneable{
         for (Stmt stmt : bodyStatements) {
             stmt.visit();
         }
+        if(class_.constructer != null){
+            class_.constructer.visit();
+            SamirCallable constructerToCall = (SamirCallable) environment.get(new Token(null, "_init", 0));
+            constructerToCall.call(constructer_args);
+        }
+            
         Language.environment = prev;
     }
 

@@ -6,7 +6,7 @@ class Employee {
     var salary;
     var position;
 
-    func init(name, age, salary, position){
+    func _init(name, age, salary, position){
         self.name = name;
         self.age = age;
         self.salary = salary;
@@ -27,7 +27,7 @@ class Position {
     var name;
     var _average_salary;
 
-    func init(name, average_salary){
+    func _init(name, average_salary){
         self.name = name;
         self._average_salary = average_salary;
     }
@@ -44,19 +44,6 @@ class Position {
     }
 }
 
-var yahya = Employee();
-var samir = Employee();
-var muhammad = Employee();
-
-var yahya_pos = Position();
-yahya_pos.init("Backend", 9000);
-
-yahya.init("Yahya", 19, 7500, yahya_pos);
-samir.init("Samir", 20, 6000, "Data science");
-muhammad.init("Muhammad", 20, 6500, "Software dev");
-
-yahya.position.set_salary(10000);
-
-yahya.intro();
-yahya.work();
-println yahya.position.get_salary();
+var yahya = Employee("Yahya", 19, 5000, "Backend dev");
+var samir = Employee("Samir", 20, 6000, "Data scientist");
+var muhammad = Employee("Muhammad", 20, 5500, "Frontend dev");

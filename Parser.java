@@ -56,11 +56,17 @@ public class Parser{
         advance();
 
         List<Stmt> classBody = new ArrayList<>();
+        Function constructer = null;
 
         while (currentIs(TokenType.FUNC, TokenType.VAR)){
             if(currentIs(TokenType.FUNC)){
                 advance();
-                classBody.add(function());
+                Function method = (Function) function();
+                // Check if constructer:
+                if(method.name.value.equals("_init"))
+                    constructer = method;
+                else
+                    classBody.add(method);
             }
 
             else if(currentIs(TokenType.VAR)){
@@ -73,7 +79,7 @@ public class Parser{
             Language.error("Expected '}' after class '" + name.value + "' body", name.line);
         advance();
 
-        return new ClassDeclre(classBody, name);
+        return new ClassDeclre(classBody, name, constructer);
     }
 
 
