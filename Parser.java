@@ -57,6 +57,7 @@ public class Parser{
 
         List<Stmt> classBody = new ArrayList<>();
         Function constructer = null;
+        Function to_string = null;
 
         while (currentIs(TokenType.FUNC, TokenType.VAR)){
             if(currentIs(TokenType.FUNC)){
@@ -65,6 +66,9 @@ public class Parser{
                 // Check if constructer:
                 if(method.name.value.equals("_init"))
                     constructer = method;
+                // Check if toString():
+                else if(method.name.value.equals("_toString"))
+                    to_string = method;
                 else
                     classBody.add(method);
             }
@@ -79,7 +83,7 @@ public class Parser{
             Language.error("Expected '}' after class '" + name.value + "' body", name.line);
         advance();
 
-        return new ClassDeclre(classBody, name, constructer);
+        return new ClassDeclre(classBody, name, constructer, to_string);
     }
 
 

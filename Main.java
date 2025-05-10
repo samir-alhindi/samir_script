@@ -20,7 +20,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\interpreter.smr");
+        lang.run("programs\\to_string.smr");
 
     }
 }
@@ -926,11 +926,13 @@ class Return extends Stmt {
 class ClassDeclre extends Stmt {
     List<Stmt> classBody;
     Function constructer;
+    Function to_string;
     Token name;
-    ClassDeclre(List<Stmt> classBody, Token name, Function constructer){
+    ClassDeclre(List<Stmt> classBody, Token name, Function constructer, Function to_string){
         this.classBody = classBody;
         this.name = name;
         this.constructer = constructer;
+        this.to_string = to_string;
     }
 
     Void visit(){

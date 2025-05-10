@@ -1,0 +1,18 @@
+
+class Student {
+    var name;
+    var id;
+
+    func _init(name, id){
+        self.name = name;
+        self.id = id;
+    }
+
+    func _toString(){
+        return "[" + name + " : " + id + "]";
+    }
+
+}
+
+var samir = Student("Samir", "23465288");
+println samir;

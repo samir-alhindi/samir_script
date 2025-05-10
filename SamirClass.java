@@ -5,9 +5,11 @@ class SamirClass implements SamirCallable{
     Environment closure;
     ClassDeclre class_;
     Function constructer;
+    Function to_string;
     SamirClass(ClassDeclre class_){
         this.class_ = class_;
         this.constructer = class_.constructer;
+        this.to_string = class_.to_string;
     }
 
     @Override
@@ -32,6 +34,7 @@ class SamirClass implements SamirCallable{
 class SamirInstance implements Cloneable{
     Environment environment;
     SamirClass class_;
+    SamirCallable to_string_method_as_callable;
 
     SamirInstance(SamirClass class_, List<Object> constructer_args){
         this.class_ = class_;
@@ -48,6 +51,10 @@ class SamirInstance implements Cloneable{
             class_.constructer.visit();
             SamirCallable constructerToCall = (SamirCallable) environment.get(new Token(null, "_init", 0));
             constructerToCall.call(constructer_args);
+        }
+        if(class_.to_string != null){
+            class_.to_string.visit();
+            to_string_method_as_callable = (SamirCallable) environment.get(new Token(null, "_toString", 0));
         }
             
         Language.environment = prev;
@@ -68,7 +75,9 @@ class SamirInstance implements Cloneable{
 
     @Override
     public String toString() {
-        return "<" + class_.class_.name.value + " instance " + this.hashCode() + ">";
+        if(this.class_.to_string == null)
+            return "<" + class_.class_.name.value + " instance " + this.hashCode() + ">";
+        return Language.stringify(to_string_method_as_callable.call(null));
     }
 }
 
