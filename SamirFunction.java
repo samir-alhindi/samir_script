@@ -65,8 +65,8 @@ class SamirFunction implements SamirCallable {
 class ReturnException extends RuntimeException {
     final Object value;
 
-    ReturnException(Object value){
-        super(null, null, false, false);
+    ReturnException(Object value, Token keyword){
+        super("at line " + keyword.line +": Return statement must be inside a function", null, false, false);
         this.value = value;
     }
 }

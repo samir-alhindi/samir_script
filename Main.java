@@ -20,7 +20,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\break_continue.smr");
+        lang.run("programs\\interpreter.smr");
 
     }
 }
@@ -890,14 +890,14 @@ class If extends Stmt {
 }
 
 class BreakException extends RuntimeException {
-    BreakException(){
-        super(null, null, false, false);
+    BreakException(Token keyword){
+        super("at line " + keyword.line +": break statement must be inside a while loop block", null, false, false);
     }
 }
 
 class ContinueException extends RuntimeException {
-    ContinueException(){
-        super(null, null, false, false);
+    ContinueException(Token keyword){
+        super("at line " + keyword.line + ": continue statement must be inside a while loop block", null, false, false);
     }
 }
 
@@ -911,9 +911,20 @@ class While extends Stmt {
     @Override
     Void visit() {
         Environment lasEnvi = Language.environment;
+        // Try block for the break statement:
         try {
-            while (condition.visit().equals(true))
-                body.visit();
+            while (condition.visit().equals(true)){
+                // Try block for the continue statement:
+                try {
+                    body.visit();
+                }
+                catch(ContinueException e){
+                    while (Language.environment != lasEnvi) 
+                        Language.environment = Language.enviStack.pop();
+                }
+            }
+
+                
         }
         catch(BreakException e){
             while (Language.environment != lasEnvi) 
@@ -955,7 +966,7 @@ class Return extends Stmt {
        Object value = null;
        if (this.value != null) value = this.value.visit();
 
-       throw new ReturnException(value);
+       throw new ReturnException(value, keyword);
     }
 }
 
@@ -967,7 +978,7 @@ class Continue extends Stmt {
 
     @Override
     Object visit() {
-        throw new ContinueException();
+        throw new ContinueException(keyword);
     }
 }
 
@@ -979,7 +990,7 @@ class Break extends Stmt {
 
     @Override
     Object visit() {
-        throw new BreakException();
+        throw new BreakException(keyword);
     }
 }
 

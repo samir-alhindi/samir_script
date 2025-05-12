@@ -200,7 +200,7 @@ class Error {
 #ENTRY POINT
 #########################
 
-func run() {
+while true do {
 
     var source = input("> ");
 
@@ -208,17 +208,14 @@ func run() {
     var tokens = lexer.lex();
     if typeOf(tokens) == "Error" then {
         println tokens.log;
-        run();}
+        continue;}
     println tokens;
 
     var parser = Parser(tokens);
     var AST = parser.parse();
     if typeOf(AST) == "Error" then {
         println AST.log;
-        run();}
+        continue;}
     println AST;
 
-    run();
 }
-
-run();

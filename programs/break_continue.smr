@@ -29,6 +29,25 @@ func print_matrix(){
     }
 }
 
-print_matrix();
+func print_evens(){
+    var i = -1;
+    while i <= 20 do {
+        i = i + 1;
+        if i % 2 == 1 then
+            continue;
+        println i;
+    }
+}
 
-break;
+func print_everything_but_4(){
+    var i = 0;
+    while i <= 10 do {
+        i = i + 1;
+        if i == 4 then
+            continue;
+        println i;
+    }
+}
+
+print_matrix();
+print_evens();
