@@ -177,8 +177,34 @@ public class Parser{
         else if(currentIs(TokenType.RETURN))
             return returnStatement();
         
+        else if(currentIs(TokenType.CONTINUE))
+            return continueStmt();
+
+        else if(currentIs(TokenType.BREAK))
+            return breakStmt();
+        
 
         return expresionStatement();
+    }
+
+    Stmt breakStmt(){
+        Token keyword = current;
+        advance();
+        if( ! currentIs(TokenType.EOS))
+            Language.error("Expected ';' after break statement", keyword.line);
+        advance();
+
+        return new Break(keyword);
+    }
+
+    Stmt continueStmt(){
+        Token keyword = current;
+        advance();
+        if( ! currentIs(TokenType.EOS))
+            Language.error("Expected ';' after continue statement", keyword.line);
+        advance();
+
+        return new Continue(keyword);
     }
 
     Stmt returnStatement(){

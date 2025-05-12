@@ -20,7 +20,7 @@ public class Main {
         Language lang = new Language();
 
         //Testing
-        lang.run("programs\\interpreter.smr");
+        lang.run("programs\\break_continue.smr");
 
     }
 }
@@ -195,6 +195,19 @@ class Language {
                 
                 Language.error("len() argument must be a list or a string", Language.currentRunningLine);
                 // unreachable code:
+                return null;
+            }
+            
+        });
+
+        globals.define("exit", new SamirCallable() {
+
+            @Override
+            public int arity() {return 0;}
+
+            @Override
+            public Void call(List<Object> arguments) {
+                System.exit(1);
                 return null;
             }
             
@@ -385,7 +398,8 @@ enum TokenType{
     L_PAR, R_PAR, L_CUR, R_CUR,
     
     // keywords:
-    VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN, THEN, DO, RETURN, CLASS,
+    VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN, THEN, DO,
+    RETURN, CLASS, BREAK, CONTINUE, 
 
     // Other:
     IDENTIFIER, EQUALS, EOS, EOF, COMMA, DOT,
@@ -875,6 +889,18 @@ class If extends Stmt {
     
 }
 
+class BreakException extends RuntimeException {
+    BreakException(){
+        super(null, null, false, false);
+    }
+}
+
+class ContinueException extends RuntimeException {
+    ContinueException(){
+        super(null, null, false, false);
+    }
+}
+
 class While extends Stmt {
     Expre condition;
     Stmt body;
@@ -884,9 +910,15 @@ class While extends Stmt {
     }
     @Override
     Void visit() {
-        while (condition.visit().equals(true))
-            body.visit();
-        
+        Environment lasEnvi = Language.environment;
+        try {
+            while (condition.visit().equals(true))
+                body.visit();
+        }
+        catch(BreakException e){
+            while (Language.environment != lasEnvi) 
+                Language.environment = Language.enviStack.pop();
+        }
 
     return null;
     }
@@ -924,6 +956,30 @@ class Return extends Stmt {
        if (this.value != null) value = this.value.visit();
 
        throw new ReturnException(value);
+    }
+}
+
+class Continue extends Stmt {
+    Token keyword;
+    Continue(Token keyword){
+        this.keyword = keyword;
+    }
+
+    @Override
+    Object visit() {
+        throw new ContinueException();
+    }
+}
+
+class Break extends Stmt {
+    Token keyword;
+    Break(Token keyword){
+        this.keyword = keyword;
+    }
+
+    @Override
+    Object visit() {
+        throw new BreakException();
     }
 }
 

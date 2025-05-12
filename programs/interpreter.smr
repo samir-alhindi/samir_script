@@ -23,14 +23,37 @@ class Lexer {
             if current == " " then
                 advance();
             
-            else if current == "+" then
+            else if current == "+" then{
                 add_token(TT_PLUS, "+");
-            else if current == "-" then
+                advance();
+            }
+            else if current == "-" then{
                 add_token(TT_MINUS, "-");
+                advance();
+            }
+            else if current == "*" then{
+                add_token(TT_MULTIPLY, "*");
+                advance();
+            }
+            else if current == "/" then{
+                add_token(TT_DIV, "/");
+                advance();
+            }
+            else if current == "(" then {
+                add_token(TT_L_PAREN, "(");
+                advance();
+            }
+            else if current == ")" then {
+                add_token(TT_R_PAREN, ")");
+                advance();
+            }
                 
             else if(isNumeric(current)) then {
                 make_number();
             }
+            
+            else 
+                return Error(current + " is an invalid char");
             
         }
 
@@ -60,7 +83,6 @@ class Lexer {
     func add_token(type, value){
         var token = Token(type, value);
         tokens.add(token);
-        advance();
     }
 
     func make_number(){
@@ -103,12 +125,100 @@ class Token {
 }
 
 #########################
+#PARSER
+#########################
+
+class Parser {
+
+    var tokens;
+    var current;
+    var pos;
+
+    func _init(tokens){
+        self.tokens = tokens;
+        current = tokens.get(0);
+        pos = 0;
+    }
+
+    func parse(){
+        return expression();
+    }
+
+    func expression(){
+        var left = term();
+    }
+
+    func term(){
+        var left = primary();
+    }
+
+    func primary(){
+        if current.type == TT_NUMBER then {
+            var node = NumberNode(current.value);
+            advance();
+            return node;
+        }
+
+    }
+
+    func advance(){
+        if current.type == TT_EOF then {
+            
+        }
+    }
+
+}
+
+#########################
+# AST NODES
+#########################
+
+class NumberNode {
+    var value;
+
+    func _init(value){
+        self.value = value;
+    }
+
+    func _toString(){
+        return str(value);
+    }
+}
+
+#########################
+#ERROR HANDLING
+#########################
+
+class Error {
+    var log;
+    func _init(log){
+        self.log = log;
+    }
+}
+
+#########################
 #ENTRY POINT
 #########################
 
-while true do {
+func run() {
+
     var source = input("> ");
+
     var lexer = Lexer(source);
     var tokens = lexer.lex();
+    if typeOf(tokens) == "Error" then {
+        println tokens.log;
+        run();}
     println tokens;
+
+    var parser = Parser(tokens);
+    var AST = parser.parse();
+    if typeOf(AST) == "Error" then {
+        println AST.log;
+        run();}
+    println AST;
+
+    run();
 }
+
+run();

@@ -21,10 +21,14 @@ statement      → exprStmt
                | ifStmt
                | printStmt
                | returnStmt
+               | breakStmt
+               | returnStmt
                | whileStmt
                | block ;
 
 returnStmt     → "return" expression? ";" ;
+continueStmt   → "continue" ";"
+breakStmt   → "break" ";"
 
 exprStmt       → expression ";" ;
 ifStmt         → "if" expression "then" statement
