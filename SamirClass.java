@@ -26,6 +26,7 @@ class SamirClass implements SamirCallable{
 
     @Override
     public Object call(List<Object> arguments) {
+        // Check stack overflow:
         return new SamirInstance(this, arguments);
     }
     

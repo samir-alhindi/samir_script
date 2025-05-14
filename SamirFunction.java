@@ -39,12 +39,15 @@ class SamirFunction implements SamirCallable {
         // We use this variable to return to the last point since the call,
         // It's important when we want to return from say an if statement inside a while loop inside a function.
         Environment lasEnvi = Language.environment;
+        // Check if stack overflow:
+        if(Language.enviStack.size() > 1024)
+            Language.error("Stack overflow !", -2);
         try{
             declaration.body.visit();
         }
         catch(ReturnException returnValue){
             // Restore previous environment:
-            while (Language.environment != lasEnvi) 
+            while (Language.environment != lasEnvi)
                 Language.environment = Language.enviStack.pop();
             
             Language.aboutToRunFunction = false;

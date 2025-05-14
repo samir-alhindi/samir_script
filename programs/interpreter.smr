@@ -134,6 +134,9 @@ class Parser {
     var current;
     var pos;
 
+    var hadError = false;
+    var log;
+
     func _init(tokens){
         self.tokens = tokens;
         current = tokens.get(0);
@@ -141,30 +144,80 @@ class Parser {
     }
 
     func parse(){
+        var inside_parse_method;
         return expression();
     }
 
     func expression(){
+        var inside_expresion_method;
+        println "Started creating new expression...";
         var left = term();
+        println "Got left hand side: " + str(left);
+
+        while current.type == TT_MINUS or
+        current.type == TT_PLUS do {
+            var op_tok = current;
+            advance();
+            var right = term();
+            println "Got right hand side: " + str(right);
+            left = BinOpNode(left, op_tok, right);
+            println "This is left (Complete) inside the while loop: " + str(left);
+        }
+
+        println "This is left (Complete) inside the function: " + str(left);
+        return left;
+
     }
 
     func term(){
+        var inside_term_method;
         var left = primary();
+
+        while current.type == TT_MULTIPLY or
+        current.type == TT_DIV do {
+            var op_tok = current;
+            advance();
+            var right = primary();
+            left = BinOpNode(left, op_tok, right);
+        }
+
+        return left;
     }
 
     func primary(){
+        var inside_primary_method;
         if current.type == TT_NUMBER then {
             var node = NumberNode(current.value);
             advance();
             return node;
         }
 
+        elif current.type == TT_L_PAREN then {
+            advance();
+            var expre = expression();
+            if current.type != TT_R_PAREN then{
+                hadError = true;
+                log = "Expected closing ')'";
+            }
+            advance();
+            println "Completed grouping expression: " + str(GroupingNode(expre));
+            return GroupingNode(expre);
+        }
+
+        hadError = true;
+        log = "Invalid syntax";
+        return nil;
     }
 
     func advance(){
-        if current.type == TT_EOF then {
-            
+        var inside_advance_method;
+        if pos + 1 >= tokens.size then{
+            hadError = true;
+            log = "invalid syntax";
+            return;
         }
+        pos = pos + 1;
+        current = tokens.get(pos);
     }
 
 }
@@ -183,6 +236,55 @@ class NumberNode {
     func _toString(){
         return str(value);
     }
+
+    func visit(){
+        return value;
+    }
+}
+
+class GroupingNode {
+    var expre;
+
+    func _init(expre){
+        self.expre = expre;
+    }
+
+    func _toString(){
+        return "(" + str(expre) + ")";
+    }
+
+    func visit(){
+        return expre.visit();
+    }
+
+    
+}
+
+class BinOpNode {
+    var op;
+    var left;
+    var right;
+
+    func _init(left, op, right){
+        self.left = left;
+        self.right = right;
+        self.op = op;
+    }
+
+    func _toString(){
+        return "(" + str(left) + str(op) + str(right) + ")";
+    }
+
+    func visit(){
+        var right_op = right.visit();
+        var left_op = left.visit();
+
+        if op.type == TT_PLUS then return left_op + right_op;
+        if op.type == TT_MINUS then return left_op - right_op;
+        if op.type == TT_MULTIPLY then return left_op * right_op;
+        if op.type == TT_DIV then return left_op / right_op;
+
+    }
 }
 
 #########################
@@ -200,6 +302,8 @@ class Error {
 #ENTRY POINT
 #########################
 
+stop();
+
 while true do {
 
     var source = input("> ");
@@ -209,13 +313,15 @@ while true do {
     if typeOf(tokens) == "Error" then {
         println tokens.log;
         continue;}
-    println tokens;
 
     var parser = Parser(tokens);
+    stop();
     var AST = parser.parse();
-    if typeOf(AST) == "Error" then {
-        println AST.log;
+    if parser.hadError then {
+        println parser.log;
         continue;}
-    println AST;
+    println "AST: " + str(AST);
+
+    println AST.visit();
 
 }
