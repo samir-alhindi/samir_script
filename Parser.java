@@ -128,7 +128,7 @@ public class Parser{
 
         List<Stmt> body = block();
 
-        return new Function(name, parameters, new Block(body));
+        return new Function(name, parameters, body);
 
 
     }

@@ -31,8 +31,7 @@ class Language {
     static Environment environment = globals;
     static Stack<Environment> enviStack = new Stack<>();
 
-    static boolean runningMethod = false;
-    static boolean aboutToRunFunction = false;
+    static boolean aboutToRunMethod = false;
     static int currentRunningLine = 1;
 
     int currentLine = 0;
@@ -739,16 +738,14 @@ class Call extends Expre {
         Object callee = this.callee.visit();
         List<Object> arguments = new ArrayList<>();
 
-        if(Language.runningMethod)
+        if(Language.aboutToRunMethod)
             Language.environment = Language.enviStack.pop();
-            
-        
             
         for (Expre arg : this.arguments) 
             arguments.add(arg.visit());
         
-        if(Language.runningMethod){
-            Language.runningMethod = false;
+        if(Language.aboutToRunMethod){
+            Language.aboutToRunMethod = false;
         }
         
         if(callee instanceof SamirCallable == false)
@@ -797,11 +794,14 @@ class MemberAccess extends Expre {
             // See if member is method
             if(value instanceof SamirCallable){
                 Language.currentRunningLine = token.line;
-                Language.enviStack.add(Language.environment);
+                Environment prev = Language.environment;
+                Language.enviStack.add(prev);
                 Language.environment = instance.environment;
-                Language.runningMethod = true;
+                Language.aboutToRunMethod = true;
                 Object callResult =  memberVar.visit();
-                // No need to pop from enviStack, The pop happnes in memberVar.visit().
+    
+                while(Language.environment != prev)
+                    Language.environment = Language.enviStack.pop();
                 return callResult;
                 
             }
@@ -903,26 +903,21 @@ class Block extends Stmt {
 
     Block(List<Stmt> statements){
         this.statements = statements;
-        this.environment = new Environment();
     }
 
     @Override
     Void visit() {
 
-        Language.enviStack.add(Language.environment);
-
-        // No function call, just a normal block:
-        if(Language.aboutToRunFunction == false)
-            this.environment.outer = Language.environment;
-        // if it's a function call then  leave it's outer as it is, It already has it's "closure".
-        Language.environment = this.environment;
-        Language.aboutToRunFunction = false;
-
+        Environment prev = Language.environment;
+        Language.enviStack.add(prev);
+        Language.environment = new Environment(prev);
+        
         for (Stmt stmt : statements) 
             stmt.visit();
         
+        while(Language.environment != prev)
+            Language.environment = Language.enviStack.pop();
         
-        Language.environment = Language.enviStack.pop();
         
         return null;
     }
@@ -1014,9 +1009,9 @@ class While extends Stmt {
 class Function extends Stmt {
     Token name;
     List<Token> parameters;
-    Block body;
+    List<Stmt> body;
 
-    Function(Token name, List<Token> parameters, Block body){
+    Function(Token name, List<Token> parameters, List<Stmt> body){
         this.name = name;
         this.parameters = parameters;
         this.body = body;
@@ -1083,7 +1078,7 @@ class ClassDeclre extends Stmt {
     }
 
     Void visit(){
-        SamirClass class_ = new SamirClass(this);
+        SamirClass class_ = new SamirClass(this, Language.environment);
         Language.environment.define(name.value.toString(), class_);
         return null;
     }

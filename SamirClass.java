@@ -6,10 +6,11 @@ class SamirClass implements SamirCallable{
     ClassDeclre class_;
     Function constructer;
     Function to_string;
-    SamirClass(ClassDeclre class_){
+    SamirClass(ClassDeclre class_, Environment closure){
         this.class_ = class_;
         this.constructer = class_.constructer;
         this.to_string = class_.to_string;
+        this.closure = closure;
     }
 
     @Override
@@ -39,7 +40,7 @@ class SamirInstance implements Cloneable{
 
     SamirInstance(SamirClass class_, List<Object> constructer_args){
         this.class_ = class_;
-        this.environment = new Environment(Language.environment);
+        this.environment = new Environment(class_.closure);
         Environment prev = Language.environment;
         Language.environment = this.environment;
         List<Stmt> bodyStatements = class_.class_.classBody;

@@ -144,48 +144,50 @@ class Parser {
     }
 
     func parse(){
-        var inside_parse_method;
         return expression();
     }
 
     func expression(){
-        var inside_expresion_method;
-        println "Started creating new expression...";
         var left = term();
-        println "Got left hand side: " + str(left);
 
         while current.type == TT_MINUS or
         current.type == TT_PLUS do {
             var op_tok = current;
             advance();
             var right = term();
-            println "Got right hand side: " + str(right);
             left = BinOpNode(left, op_tok, right);
-            println "This is left (Complete) inside the while loop: " + str(left);
         }
 
-        println "This is left (Complete) inside the function: " + str(left);
         return left;
 
     }
 
     func term(){
-        var inside_term_method;
-        var left = primary();
+        var left = unary();
 
         while current.type == TT_MULTIPLY or
         current.type == TT_DIV do {
             var op_tok = current;
             advance();
-            var right = primary();
+            var right = unary();
             left = BinOpNode(left, op_tok, right);
         }
 
         return left;
     }
 
+    func unary(){
+        if current.type == TT_MINUS then {
+            var op = "-";
+            advance();
+            var right = unary();
+            return UnaryOpNode(op, right);
+        }
+
+        return primary();
+    }
+
     func primary(){
-        var inside_primary_method;
         if current.type == TT_NUMBER then {
             var node = NumberNode(current.value);
             advance();
@@ -200,7 +202,6 @@ class Parser {
                 log = "Expected closing ')'";
             }
             advance();
-            println "Completed grouping expression: " + str(GroupingNode(expre));
             return GroupingNode(expre);
         }
 
@@ -210,7 +211,6 @@ class Parser {
     }
 
     func advance(){
-        var inside_advance_method;
         if pos + 1 >= tokens.size then{
             hadError = true;
             log = "invalid syntax";
@@ -287,6 +287,26 @@ class BinOpNode {
     }
 }
 
+class UnaryOpNode {
+    var op;
+    var right;
+
+    func _init(op, right){
+        self.op = op;
+        self.right = right;
+    }
+
+    func visit(){
+        if op == "-" then
+            return right.visit() * -1;    
+    }
+
+    func _toString(){
+        return str(op) + "(" + str(right) + ")" ;
+    }
+
+}
+
 #########################
 #ERROR HANDLING
 #########################
@@ -302,7 +322,6 @@ class Error {
 #ENTRY POINT
 #########################
 
-stop();
 
 while true do {
 
@@ -315,12 +334,10 @@ while true do {
         continue;}
 
     var parser = Parser(tokens);
-    stop();
     var AST = parser.parse();
     if parser.hadError then {
         println parser.log;
         continue;}
-    println "AST: " + str(AST);
 
     println AST.visit();
 
