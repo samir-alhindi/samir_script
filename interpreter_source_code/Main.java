@@ -3,6 +3,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -17,10 +18,12 @@ import java.util.Stack;
 public class Main {
     public static void main(String[] args) {
 
-        Language lang = new Language();
+        String samir_script_filepath = args[0];
+        Language lang = new Language(samir_script_filepath);
+        lang.run();
 
         //Testing
-        lang.run("programs\\interpreter.smr");
+        //lang.run("programs\\files.smr");
 
     }
 }
@@ -35,6 +38,11 @@ class Language {
     static int currentRunningLine = 1;
 
     int currentLine = 0;
+    String samir_script_filepath;
+
+    Language(String samir_script_filepath){
+        this.samir_script_filepath = samir_script_filepath;
+    }
 
     // Native functions, classes and variables:
     void init(){
@@ -277,13 +285,56 @@ class Language {
             
         });
 
+        globals.define("read", new SamirCallable() {
+
+            @Override
+            public int arity() {return 1;}
+
+            @Override
+            public Object call(List<Object> arguments) {
+                if(arguments.get(0) instanceof String == false)
+                    Language.error("read() arg must be a file path", Language.currentRunningLine);
+                
+                // Check if file is in local dir:
+                String parent_dir = Paths.get(samir_script_filepath, "").getParent().toString();
+                String file_path = parent_dir + "\\" + arguments.get(0);
+                
+                try{
+                    FileReader reader = new FileReader(file_path);
+                    byte[] bytes = Files.readAllBytes(Paths.get(file_path));
+                    String text = new String(bytes, Charset.defaultCharset());
+                    return text;
+                }
+                catch(FileNotFoundException e){}
+                catch(IOException e){}
+
+                // Ckeck if file is in abs dir:...
+                String path = (String) arguments.get(0);
+                try{
+                    FileReader reader = new FileReader(path);
+                    byte[] bytes = Files.readAllBytes(Paths.get(path));
+                    String text = new String(bytes, Charset.defaultCharset());
+                    return text;
+                }
+                catch(FileNotFoundException e){
+                    Language.error("could not find file in path: " + path, Language.currentRunningLine);
+                }
+                catch(IOException e){}
+
+                // unreachable:
+                return null;
+
+            }
+            
+        });
+
     }
 
-    void run(String file_path){
+    void run(){
         init();
         try {
-            FileReader reader = new FileReader(file_path);
-            byte[] bytes = Files.readAllBytes(Paths.get(file_path));
+            FileReader reader = new FileReader(samir_script_filepath);
+            byte[] bytes = Files.readAllBytes(Paths.get(samir_script_filepath));
             String source = new String(bytes, Charset.defaultCharset());
             Lexer lexer = new Lexer(source);
             ArrayList<Token> tokens = lexer.lex();
