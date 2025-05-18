@@ -1,9 +1,7 @@
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -21,10 +19,6 @@ public class Main {
         String samir_script_filepath = args[0];
         Language lang = new Language(samir_script_filepath);
         lang.run();
-
-        //Testing
-        //lang.run("programs\\files.smr");
-
     }
 }
 
@@ -300,7 +294,6 @@ class Language {
                 String file_path = parent_dir + "\\" + arguments.get(0);
                 
                 try{
-                    FileReader reader = new FileReader(file_path);
                     byte[] bytes = Files.readAllBytes(Paths.get(file_path));
                     String text = new String(bytes, Charset.defaultCharset());
                     return text;
@@ -311,7 +304,6 @@ class Language {
                 // Ckeck if file is in abs dir:...
                 String path = (String) arguments.get(0);
                 try{
-                    FileReader reader = new FileReader(path);
                     byte[] bytes = Files.readAllBytes(Paths.get(path));
                     String text = new String(bytes, Charset.defaultCharset());
                     return text;
@@ -333,7 +325,6 @@ class Language {
     void run(){
         init();
         try {
-            FileReader reader = new FileReader(samir_script_filepath);
             byte[] bytes = Files.readAllBytes(Paths.get(samir_script_filepath));
             String source = new String(bytes, Charset.defaultCharset());
             Lexer lexer = new Lexer(source);
@@ -344,7 +335,6 @@ class Language {
                 stmt.visit();
             }
 
-            reader.close();
         
         }
         catch(FileNotFoundException e){
