@@ -1,0 +1,139 @@
+
+##########################################
+#   ---Built in samir_script functions---
+##########################################
+
+# All the functions you see here are avalible at the global scope.
+
+########################################
+
+# input(prompt: string) -> string:
+
+# input() takes in a prompt that the user will see as an argument, It will then pause the program's execution until the user enters
+# some text then presses the Enter key on their keyboard, It will then return the text that the user entered
+# as a string.
+
+var name = input("Please enter your name: ");
+println "Hello " + name;
+
+########################################
+
+# str(data: any) -> string:
+
+# str() will take any data as input and return the data's string representation AKA cast it into a string,
+# This opperation is safe and cannot fail unlike num().
+
+var number = 12; # number is of type 'number'.
+var number = str(number); # number is now of type 'string'.
+
+var list = List();
+list.fillRange(1, 4, 1);
+var list = str(list); # the variable list no longer contains a List objec, It now contains the string: "[1, 2, 3]".
+
+########################################
+
+# num(data: string) -> number:
+
+# num() will take a numeric string like "14", "1.23", "0" and return it as a number, This function will throw an
+# error if it can't cast the input as a number, Use the function isNumeric() to check if a string can be cast
+# into a number before using num().
+
+#println 1 + "1"; # This bad code will throw an error !
+println 1 + num("1"); # This is fine.
+
+########################################
+
+# isNumeric(data: any) -> boolean:
+
+# isNumeric() will take any data as an argument and report wither it's Numerical or not, It will always return true.
+# if the argument is a number, If the argument is a string then it will only return true if it is Numerical ("1", 
+# "12.54", "0.34", "1245"), otherwise it will return false.
+
+var user_input = input("Please enter a number: ");
+
+while not isNumeric(user_input) do
+    user_input = input("Please enter a number: ");
+
+var num = num(user_input);
+println str(num) + " squared is: " + str(num * num);
+
+########################################
+
+# typeOf(data: any) -> string:
+
+# typeOf() takes any data as an argument then returns a string that contains it's data type:
+
+typeOf("Hello"); # string
+typeOf(15); # number
+typeOf(true); # boolean
+typeOf(nil); # nil
+
+func foo(){}
+class Test {}
+var test = Test();
+
+typeOf(foo); # function
+typeOf(Test); # class
+typeOf(test); # Test (same as class name)
+
+# You can do something like this for example:
+
+if typeOf(test) == "Test" then {
+    # code...
+}
+
+########################################
+
+#  len(string or List) -> number:
+
+# len() can either take a string value as an argument and return the number of characters it contains,
+# or it can take a List as an argument and return it's size (same as using list.size).
+
+len("Hello"); # 5
+len(""); # 0
+var list = List();
+list.fillRange(1, 11, 1);
+len(list); # 10
+
+########################################
+
+# getChar(word: string, index: number) -> string:
+
+# getChar() takes a string value as it's 1st argument and a whole number index as it's 2nd argument,
+# It will return a string value of length 1 from the string at the position of the index, It will throw
+# an error if the index is greater than or equal to the string's length
+
+# The index can be a whole negative number, Using negative numbers will index the string starting from the end.
+
+println getChar(0, "samir_script"); # "s"
+println getChar(2, "Hello"); # "l"
+println getChar(-1, "Sup"); # "p"
+println getChar(-3, "Sup"); # "S"
+
+# These 2 will throw an error !
+#println getChar(-3, "hi");
+#println getChar(3, "hi");
+
+########################################
+
+# exit() -> nil:
+
+# This function will exit the program:
+
+var x = input("Enter 'q' to exit: ");
+if x == "q" then {
+    println "Bye";
+    exit();
+}
+
+########################################
+
+# read(file_path: string) -> string:
+
+# read() takes a file path as an argument then reads the file and returns it's contents as a string.
+# The file path can be absolute or a local path if the file is in the same directory as the samir_script program.
+
+# It will throw an error if it can't find the file.
+
+var file = read("built_in_var.smr");
+println file;

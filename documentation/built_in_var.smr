@@ -1,0 +1,11 @@
+
+##########################################
+#   ---Built in samir_script variables---
+##########################################
+
+# PI : number
+
+# pretty self explanatory, Good for circles.
+
+var radius = 5;
+var area = PI * (radius * radius);

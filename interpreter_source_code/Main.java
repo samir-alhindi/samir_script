@@ -214,59 +214,7 @@ class Language {
             
         });
 
-        globals.define("curEnvi", new SamirCallable() {
-
-            @Override
-            public int arity() {return 0;}
-
-            @Override
-            public Void call(List<Object> arguments) {
-                System.out.println(Language.environment);
-                return null;
-            }
-
-            
-        });
-
-        globals.define("outers", new SamirCallable() {
-
-            @Override
-            public int arity() {return 1;}
-
-            @Override
-            public Void call(List<Object> arguments) {
-                int num = ((Double) arguments.get(0)).intValue();
-                Environment cur = Language.environment;
-                while (num > 0 && cur.outer != null) {
-                    System.out.println(cur.outer);
-                    num --;
-                    cur = cur.outer;
-                }
-                return null;
-            }
-
-            
-        });
-
-        globals.define("stack", new SamirCallable() {
-
-            @Override
-            public int arity() {return 1;}
-
-            @Override
-            public Void call(List<Object> arguments) {
-                int num = ((Double) arguments.get(0)).intValue();
-                Stack<Environment> stack = (Stack<Environment>) Language.enviStack.clone();
-                while (num > 0 && stack.size() > 0) {
-                    System.out.println(stack.pop());
-                    num --;
-                }
-                return null;
-            }
-
-            
-        });
-
+        /* 
         globals.define("stop", new SamirCallable() {
 
             @Override
@@ -278,6 +226,7 @@ class Language {
             }
             
         });
+        */
 
         globals.define("read", new SamirCallable() {
 
