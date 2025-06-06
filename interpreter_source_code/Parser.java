@@ -370,7 +370,28 @@ public class Parser{
         }
         
 
-        return or();
+        return ternary();
+
+    }
+
+    Expre ternary(){
+
+        Expre left = or();
+
+        if(currentIs(TokenType.IF)){
+            Token keyword = current;
+            advance();
+            Expre middle = expression();
+            if(! currentIs(TokenType.ELSE))
+                Language.error("expected else after ternary expression condition", current.line);
+            advance();
+            Expre right = expression();
+            left = new Ternary(left, middle, right, keyword);
+        }
+
+
+        return left;
+
 
     }
 

@@ -1,0 +1,6 @@
+
+
+var age = 17;
+println "Pass" if age >= 18 else "No entry";
+
+println "Adult" if age >= 18 else "Teenager" if age >= 13 else "Child";

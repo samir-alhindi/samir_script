@@ -21,7 +21,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\bug.smr");
+        Language lang = new Language("samir_script_programs\\map.smr");
         lang.run();
     }
 }
@@ -208,10 +208,11 @@ class Language {
         globals.define("exit", new SamirCallable() {
 
             @Override
-            public int arity() {return 0;}
+            public int arity() {return 1;}
 
             @Override
             public Void call(List<Object> arguments) {
+                System.out.println("Error: " + arguments.get(0));
                 System.exit(1);
                 return null;
             }
@@ -853,6 +854,26 @@ class Lambda extends Expre {
     @Override
     Object visit() {
         return new SamirLambda(this, Language.environment);
+    }
+}
+
+class Ternary extends Expre {
+    Expre left;
+    Expre middle;
+    Expre right;
+    Ternary(Expre left, Expre middle, Expre right, Token keyword){
+        this.left = left;
+        this.middle = middle;
+        this.right = right;
+        this.token = keyword;
+    }
+    @Override
+    Object visit() {
+        Object condition = middle.visit();
+        if(condition instanceof Boolean == false)
+            Language.error("Ternary condition must be a boolean expression", token.line);
+        Object result = (Boolean) condition ? left.visit() : right.visit();
+        return result;
     }
 }
 

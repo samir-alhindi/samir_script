@@ -57,7 +57,5 @@ func funny(string){
     return string + " !";
 }
 
-println map(names, funny);
-println map(numbers, fizzBuzz);
-
-println map(names, lambda name -> name + " ?!");
+println map(numbers,
+lambda number -> "FizzBuzz" if number % 5 == 0 and number % 3 == 0 else "Fizz" if number % 3 == 0 else "Buzz" if number % 5 == 0 else number);

@@ -1,4 +1,30 @@
 
 
-var list = List();
-list.add(5);
+func get_opp(char){
+    if char == "+" then
+        return lambda x, y -> x + y;
+    elif char == "-" then
+        return lambda x, y -> x - y;
+    elif char == "*" then
+        return lambda x, y -> x * y;
+    elif char == "/" then
+        return lambda x, y -> x / y;
+    else
+        exit("Please enter a valid opp !");
+}
+
+var num1;
+while not isNumeric(num1) do
+    num1 = input("Please enter the 1st number: ");
+num1 = num(num1);
+
+var num2;
+while not isNumeric(num2) do
+    num2 = input("Please enter the 2nd number: ");
+num2 = num(num2);
+
+var symbol = input("Please enter an opperation (+, -, &, /): ");
+var opp = get_opp(symbol);
+var result = opp(num1,  num2);
+
+println result;
