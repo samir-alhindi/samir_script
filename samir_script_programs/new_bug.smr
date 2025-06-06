@@ -1,0 +1,20 @@
+
+
+func map(list, rule) {
+    var i = 0;
+    var output = List();
+    while i < len(list) do{
+        var item = list.get(i);
+        output.add(rule(item));
+        i = i + 1;
+    }
+    return output;
+}
+
+var numbers = List();
+numbers.fillRange(1, 6, 1);
+
+println numbers;
+println map(numbers, lambda x -> x * x * x);
+
+println (lambda x -> lambda y -> x + y)(5)(6);

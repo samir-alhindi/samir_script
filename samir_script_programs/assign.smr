@@ -5,7 +5,7 @@ var y = 2;
 var z = 3;
 
 # This prints '4':
-print z = y = x = 4; 
+println z = y = x = 4; 
 
 # All of these will print '4':
 print x; print y; print z;

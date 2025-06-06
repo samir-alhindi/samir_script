@@ -1,0 +1,59 @@
+
+##########################################
+# ---Built in samir_script List class---
+##########################################
+
+###################
+### instantiate ###
+###################
+
+# This is how you can create a list in samir_script:
+var numbers_list = List();
+
+###################
+### attributes ####
+###################
+
+# size : number
+
+# Every list instance has a size variable that tells us how many items are currently stored:
+
+println numbers_list.size; # 0 
+numbers_list.add(1);
+println numbers_list.size; # 1
+numbers_list.pop();
+println numbers_list.size; # 0
+
+###################
+###   methods   ###
+###################
+
+# add(item: any) -> nil:
+
+# add() will append the argument to the end of the list:
+
+println "Before: " +  str(numbers_list);
+
+numbers_list.add(1);
+numbers_list.add(2);
+numbers_list.add(3);
+
+println "After: " +  str(numbers_list);
+
+################################
+
+# pop() -> any:
+
+# The pop() method will remove the item from the end of the list then return it:
+
+println "";
+println "Before: " +  str(numbers_list);
+var last = numbers_list.pop();
+println "After: " +  str(numbers_list);
+println "Last: " + str(last);
+
+# pop()ing from empty an list will throw an error like below:
+#numbers_list.pop(); numbers_list.pop(); numbers_list.pop();
+
+################################
+

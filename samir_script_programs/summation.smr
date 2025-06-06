@@ -1,7 +1,7 @@
 func summation(start, end, rule){
     if end < start then {
         println "ending cannot be less than start";
-        return nil;
+        exit();
     }
     var result = 0;
     while start <= end do {
@@ -27,3 +27,5 @@ func double_plus_3(num){
 println summation(1, 5, identity);
 println summation(1, 5, double);
 println summation(1, 5, double_plus_3);
+
+println summation(1, 5, lambda x -> x * x);

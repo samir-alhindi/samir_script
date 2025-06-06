@@ -309,7 +309,7 @@ public class Parser{
     }
 
     Expre assignment(){
-        Expre expre = or();
+        Expre expre = lambda();
 
         if(currentIs(TokenType.EQUALS)){
             Token equals = current;
@@ -331,6 +331,47 @@ public class Parser{
         }
 
         return expre;
+    }
+
+    Expre lambda(){
+
+        if (currentIs(TokenType.LAMBDA)){
+            Token keyword = current;
+            advance();
+            
+            // See if there's parameters:
+            List<Token> parameters = new ArrayList<>();
+
+            if( ! currentIs(TokenType.ARROW)){
+                if( ! currentIs(TokenType.IDENTIFIER))
+                    Language.error("Expected parameter name after lambda delaration", current.line);
+                parameters.add(current);
+                advance();
+                while(currentIs(TokenType.COMMA)){
+                    advance();
+                    if( ! currentIs(TokenType.IDENTIFIER))
+                        Language.error("Expected parameter name", current.line);
+                    parameters.add(current);
+                    advance();
+                }
+
+                if(parameters.size() >= 255)
+                    Language.error("Can't have more than 255 parameters", current.line);
+                    
+            }
+
+            if( ! currentIs(TokenType.ARROW))
+                Language.error("Expected closing '->' after lambda parameters", current.line);
+            advance();
+
+            Expre body = expression();
+
+            return new Lambda(keyword, parameters, body);
+        }
+        
+
+        return or();
+
     }
 
     Expre or(){

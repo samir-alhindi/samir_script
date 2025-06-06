@@ -1,0 +1,12 @@
+
+println "Started...";
+
+func fib(n) {
+  if (n < 2) then return n;
+  return fib(n - 1) + fib(n - 2); 
+}
+
+var before = getTime();
+println fib(40);
+var after = getTime();
+println "Finished in: " +  str(after - before) + " milliseconds";

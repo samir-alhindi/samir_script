@@ -11,7 +11,8 @@ public class Lexer {
     // NOTE: true and false aren't keywords but rather boolean literals, nil is just null:
     // I put them with the keywords to make things easier:
     static final String[] keywords = {"var", "and", "or", "not", "if", "then", "elif", "else",
-    "func", "false", "true", "nil", "print", "println", "do", "while", "return", "class", "break", "continue",};
+    "func", "false", "true", "nil", "print", "println", "do", "while", "return", "class", "break", "continue",
+    "lambda", };
 
     Lexer(String source){
         Lexer.source = source;
@@ -104,6 +105,37 @@ public class Lexer {
                 addToken(TokenType.STRING, string);
                 advance();
             }
+
+            // Check if char is Compound assignment operator:
+
+            else if(current == '+' && currentFollowedBy('=')){
+                addToken(TokenType.PLUS_EQUAL);
+                advanceTwo();
+            }
+            else if(current == '-' && currentFollowedBy('=')){
+                addToken(TokenType.MINUS_EQUAL);
+                advanceTwo();
+            }
+            else if(current == '*' && currentFollowedBy('=')){
+                addToken(TokenType.MULTIPLY_EQUAL);
+                advanceTwo();
+            }
+            else if(current == '/' && currentFollowedBy('=')){
+                addToken(TokenType.DIVIDE_EQUAL);
+                advanceTwo();
+            }
+            else if(current == '%' && currentFollowedBy('=')){
+                addToken(TokenType.MOD_EQUAL);
+                advanceTwo();
+            }
+
+            // Check if char is lambda arrow '->':
+            else if(current == '-' && currentFollowedBy('>')){
+                addToken(TokenType.ARROW);
+                advanceTwo();
+            }
+        
+
         
             //Check if char is opperator:
 
@@ -226,6 +258,7 @@ public class Lexer {
                     case "class" -> token.type = TokenType.CLASS;
                     case "break" -> token.type = TokenType.BREAK;
                     case "continue" -> token.type = TokenType.CONTINUE;
+                    case "lambda" -> token.type = TokenType.LAMBDA;
                 }
                 tokens.add(token);
             }

@@ -1,0 +1,7 @@
+
+
+# currying :-
+
+var sum = lambda x -> lambda y -> x + y;
+
+println sum(5)(7);

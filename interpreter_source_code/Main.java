@@ -3,7 +3,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -16,8 +15,13 @@ import java.util.Stack;
 public class Main {
     public static void main(String[] args) {
 
+        /* 
         String samir_script_filepath = args[0];
         Language lang = new Language(samir_script_filepath);
+        lang.run();
+        */
+
+        Language lang = new Language("samir_script_programs\\bug.smr");
         lang.run();
     }
 }
@@ -159,7 +163,7 @@ class Language {
             @Override
             public int arity() {return 0;}
             @Override
-            public Object call(List<Object> arguments) {return LocalTime.now().toString().substring(0, 8);}
+            public Object call(List<Object> arguments) {return ((Long) System.currentTimeMillis()).doubleValue();}
 
         });
 
@@ -214,7 +218,7 @@ class Language {
             
         });
 
-        /* 
+        
         globals.define("stop", new SamirCallable() {
 
             @Override
@@ -226,7 +230,7 @@ class Language {
             }
             
         });
-        */
+        
 
         globals.define("read", new SamirCallable() {
 
@@ -451,6 +455,9 @@ enum TokenType{
     // Numeric opperators:
     PLUS, MINUS, MULTIPLY, DIVIDE, MOD,
 
+    // Compound assignment operators (+=, -=...):
+    PLUS_EQUAL, MINUS_EQUAL, MULTIPLY_EQUAL, DIVIDE_EQUAL, MOD_EQUAL,
+
     // Boolean opperators:
     AND, OR, NOT, 
 
@@ -463,10 +470,10 @@ enum TokenType{
     
     // keywords:
     VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN, THEN, DO,
-    RETURN, CLASS, BREAK, CONTINUE, 
+    RETURN, CLASS, BREAK, CONTINUE, LAMBDA,
 
     // Other:
-    IDENTIFIER, EQUALS, EOS, EOF, COMMA, DOT,
+    IDENTIFIER, EQUALS, EOS, EOF, COMMA, DOT, ARROW,
     }
 
 abstract class Expre {
@@ -728,8 +735,11 @@ class Call extends Expre {
         Object callee = this.callee.visit();
         List<Object> arguments = new ArrayList<>();
 
-        if(Language.aboutToRunMethod)
+        if(Language.aboutToRunMethod){
             Language.environment = Language.enviStack.pop();
+            Language.aboutToRunMethod = false;
+        }
+            
             
         for (Expre arg : this.arguments) 
             arguments.add(arg.visit());
@@ -827,6 +837,22 @@ class MemberAssign extends Expre {
             Language.error(member.memberVar.token.value + " not found in instance of class: " + instance.class_.class_.name, 0);
             
         return newValueObject;
+    }
+}
+
+class Lambda extends Expre {
+    List<Token> parameters;
+    Expre body;
+
+    Lambda(Token keyword, List<Token> parameters, Expre body){
+        this.token = keyword;
+        this.parameters = parameters;
+        this.body = body;
+    }
+
+    @Override
+    Object visit() {
+        return new SamirLambda(this, Language.environment);
     }
 }
 

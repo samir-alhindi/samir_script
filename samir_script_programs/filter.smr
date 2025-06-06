@@ -55,3 +55,8 @@ var numbers = fillList(0, 30);
 println filter(numbers, isPrime);
 println filter(numbers, is_even);
 println filter(numbers, is_multiple_5);
+
+println filter(numbers, lambda x -> x % 3 == 0);
+println filter(numbers, lambda x ->isPrime(x));
+
+println filter(numbers, lambda x -> x == 5);

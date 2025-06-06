@@ -92,7 +92,8 @@ class ListInstance extends SamirInstance {
     ListInstance(ArrayList<Object> arrayList){
         super();
         this.arrayList = arrayList;
-
+        // This line exists so we can error report if the user tries to accsses a member that isn't in the List class:
+        this.class_ = new SamirClass(new ClassDeclre(null, new Token(null, "List", 0), null, null), null);
         this.environment.define("size", 0.0);
 
         // Create append/add method for list object:
@@ -258,10 +259,10 @@ class ListInstance extends SamirInstance {
                 int sizeChange = 0;
                 if(step > 0)
                     for (   ; from < to; from += step, sizeChange ++)
-                        arrayList.add(from);
+                        arrayList.add( (Double) (double) from);
                 else if(step < 0)
                     for (; from > to; from += step, sizeChange ++)
-                        arrayList.add(from);
+                        arrayList.add((Double) (double) from);
                 
                 changeSize(sizeChange);
                 return null;
