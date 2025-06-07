@@ -24,6 +24,7 @@ statement      → exprStmt
                | breakStmt
                | returnStmt
                | whileStmt
+               | matchStmt
                | block ;
 
 returnStmt     → "return" expression? ";" ;
@@ -37,6 +38,11 @@ ifStmt         → "if" expression "then" statement
 printStmt      → "print" expression ";"
                | "println" expression ";" ;
 whileStmt      → "while" expression "do" statement ;
+
+matchStmt      → "match" expression "with"
+               ("case" expression "->" statement)*
+               ("else" "->" statement)? ;
+
 block          → "{" declaration* "}" ;
 
 expression     → assignment ;

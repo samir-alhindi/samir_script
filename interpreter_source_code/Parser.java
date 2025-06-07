@@ -183,8 +183,44 @@ public class Parser{
         else if(currentIs(TokenType.BREAK))
             return breakStmt();
         
+        else if(currentIs(TokenType.MATCH))
+            return matchStmt();
+        
 
         return expresionStatement();
+    }
+
+    Stmt matchStmt(){
+        Token keyword = current;
+        advance();
+        Expre mainExpre = expression();
+        if( ! currentIs(TokenType.WITH))
+            Language.error("expected 'with' keyword after match expression", current.line);
+        advance();
+
+        LinkedHashMap<Expre, Stmt> branches = new LinkedHashMap<>();
+
+        while (currentIs(TokenType.CASE)) {
+            advance();
+            Expre condition = expression();
+            if( ! currentIs(TokenType.ARROW))
+                Language.error("expected '->' after match case", current.line);
+            advance();
+            Stmt branch = statement();
+            branches.put(condition, branch);
+        }
+
+        Stmt elseBranch = null;
+        if(currentIs(TokenType.ELSE)){
+            advance();
+            if( ! currentIs(TokenType.ARROW))
+                Language.error("expected '->' after else match case", current.line);
+            advance();
+            elseBranch = statement();
+        }
+
+        return new Match(keyword, mainExpre, branches, elseBranch);
+
     }
 
     Stmt breakStmt(){

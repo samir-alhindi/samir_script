@@ -1,0 +1,8 @@
+
+
+var number = 5;
+
+match number with
+    case 0 -> println "Zero";
+    case 1 -> println "One";
+    else -> println "Something else";

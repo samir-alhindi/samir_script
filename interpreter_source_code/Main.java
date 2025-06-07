@@ -21,7 +21,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\map.smr");
+        Language lang = new Language("samir_script_programs\\match.smr");
         lang.run();
     }
 }
@@ -471,7 +471,7 @@ enum TokenType{
     
     // keywords:
     VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN, THEN, DO,
-    RETURN, CLASS, BREAK, CONTINUE, LAMBDA,
+    RETURN, CLASS, BREAK, CONTINUE, LAMBDA, MATCH, WITH, CASE, 
 
     // Other:
     IDENTIFIER, EQUALS, EOS, EOF, COMMA, DOT, ARROW,
@@ -1041,6 +1041,46 @@ class While extends Stmt {
 
     return null;
     }
+}
+
+class Match extends Stmt {
+
+    Token keyword;
+    Expre mainExpre;
+    LinkedHashMap<Expre, Stmt> branches;
+    Stmt elseBranch;
+
+    Match(Token keyword, Expre mainExpre, LinkedHashMap<Expre, Stmt> branches, Stmt elseBranch){
+        this.keyword = keyword;
+        this.branches = branches;
+        this.mainExpre = mainExpre;
+        this.elseBranch = elseBranch;
+    }
+
+    @Override
+    Void visit() {
+        Object mainExpreVisitd = mainExpre.visit();
+        if(mainExpreVisitd == null)
+            Language.error("Can't match null", keyword.line);
+        for (Map.Entry<Expre, Stmt> entry : branches.entrySet()) {
+            Expre condition = entry.getKey();
+            Stmt stmt = entry.getValue();
+
+            Object result = condition.visit();
+            if(mainExpreVisitd.equals(result)){
+                stmt.visit();
+                return null;
+            }
+                
+        }
+        
+        if (elseBranch != null)
+            elseBranch.visit();
+        
+        return null;
+    }
+
+    
 }
 
 class Function extends Stmt {
