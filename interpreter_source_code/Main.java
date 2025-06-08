@@ -21,7 +21,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\for.smr");
+        Language lang = new Language("samir_script_programs\\compound.smr");
         lang.run();
     }
 }
@@ -709,16 +709,77 @@ class Variable extends Expre {
 }
 
 class AssignExpre extends Expre {
-    Expre value;
-    AssignExpre(Token name, Expre value){
-        this.token = name;
-        this.value = value;
+    Expre right;
+    Object rightVisited;
+    Token opp;
+    Token varName;
+    Object leftVisited;
+    AssignExpre(Token varName, Expre right, Token opp){
+        this.varName = varName;
+        this.right = right;
+        this.opp = opp;
     }
     @Override
     Object visit() {
-        Object val = value.visit();
-        Language.environment.assign(token, val);
-        return val;
+
+        Object newValue = null;
+        rightVisited = right.visit();
+        Object oldValue = Language.environment.get(varName);
+        this.leftVisited = Language.environment.get(varName);
+
+        switch(opp.type){
+            case TokenType.EQUALS -> {
+                newValue = right.visit();
+                Language.environment.define( (String) varName.value, newValue);
+            } 
+            case TokenType.MINUS_EQUAL ->{
+                checkNumberOperands();
+                newValue = (Double) oldValue - (Double) right.visit();
+            }
+            case TokenType.MULTIPLY_EQUAL ->{
+                checkNumberOperands();
+                newValue = (Double) oldValue * (Double) right.visit();
+            }
+            case TokenType.DIVIDE_EQUAL ->{
+                checkNumberOperands();
+                newValue = (Double) oldValue / (Double) right.visit();
+            }
+            case TokenType.MOD_EQUAL ->{
+                checkNumberOperands();
+                newValue = (Double) oldValue % (Double) right.visit();
+            }
+            case TokenType.PLUS_EQUAL -> {
+
+                if(leftVisited instanceof Double && rightVisited instanceof Double)
+                    newValue = (Double) leftVisited + (Double) rightVisited;
+
+                else if(leftVisited instanceof String && rightVisited instanceof String)
+                    newValue = (String) leftVisited + (String) rightVisited;
+        
+                else if(leftVisited instanceof ListInstance){
+                    if(rightVisited instanceof ListInstance){
+                        ListInstance combined = new ListInstance(new ArrayList<>());
+                        for (Object item : ((ListInstance)leftVisited).arrayList)
+                            combined.arrayList.add(item);
+                        for (Object item : ((ListInstance)rightVisited).arrayList)
+                            combined.arrayList.add(item);
+                        combined.environment.variables.put("size", ((ListInstance) leftVisited).getSize() + ((ListInstance) rightVisited).getSize());
+                        newValue = combined;
+                    }
+
+                }
+                else
+                    Language.error("'+=' opperands must both be numbers or strings or Lists", opp.line);
+            }
+        }
+
+        Language.environment.assign(varName, newValue);
+        return newValue;
+    }
+
+    private void checkNumberOperands(){
+        if(leftVisited instanceof Double && rightVisited instanceof Double) return;
+        Language.error("both operands must be numbers", token.line);
     }
 }
 
@@ -911,9 +972,11 @@ class MemberAccess extends Expre {
 class MemberAssign extends Expre {
     MemberAccess member;
     Expre newValue;
-    MemberAssign(MemberAccess member, Expre newValue){
+    Token opp;
+    MemberAssign(MemberAccess member, Expre newValue, Token opp){
         this.member = member;
         this.newValue = newValue;
+        this.opp = opp;
     }
 
     Object visit(){

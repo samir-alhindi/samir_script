@@ -1,0 +1,21 @@
+
+
+var x = 5;
+var y = [1, 2, 3];
+var z = "Hello ";
+class Test {
+    var thing = 5;
+}
+var test = Test();
+
+println x;
+
+x /= 3;
+y += [4, 5];
+z += "world";
+test.thing += 10;
+
+println x;
+println y;
+println z;
+println test.thing;

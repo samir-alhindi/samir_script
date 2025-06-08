@@ -42,7 +42,6 @@ whileStmt      → "while" expression "do" statement ;
 
 forStmt        → "for" IDENTIFIER "in" expression "do" statement ;
 
-
 matchStmt      → "match" expression "with"
                ("case" expression "->" statement)*
                ("else" "->" statement)? ;
@@ -50,7 +49,7 @@ matchStmt      → "match" expression "with"
 block          → "{" declaration* "}" ;
 
 expression     → assignment ;
-assignment     → IDENTIFIER "=" assignment
+assignment     → IDENTIFIER ("="|"+="|"-="|"*="|"/="|"%=") assignment
                | logic_or ;
 lambda         → "lamda" (parameters)? "->" expression ;
 ternary        → expression "if" expression "else" expression ;

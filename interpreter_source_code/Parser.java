@@ -373,22 +373,23 @@ public class Parser{
     Expre assignment(){
         Expre expre = lambda();
 
-        if(currentIs(TokenType.EQUALS)){
-            Token equals = current;
+        if(currentIs(TokenType.EQUALS, TokenType.PLUS_EQUAL, TokenType.MINUS_EQUAL,
+        TokenType.MULTIPLY_EQUAL, TokenType.DIVIDE_EQUAL, TokenType.MOD_EQUAL)){
+            Token opp = current;
             advance();
             Expre newValue = assignment();
 
             if(expre instanceof Variable){
                 Token varName = ( (Variable) expre ).token;
-                return new AssignExpre(varName, newValue);
+                return new AssignExpre(varName, newValue, opp);
             }
 
             else if(expre instanceof MemberAccess){
                 MemberAccess memberToChange = (MemberAccess) expre;
-                return new MemberAssign(memberToChange, newValue);
+                return new MemberAssign(memberToChange, newValue, opp);
             }
 
-            Language.error("Invalid assignment target", equals.line);
+            Language.error("Invalid assignment target", opp.line);
 
         }
 
