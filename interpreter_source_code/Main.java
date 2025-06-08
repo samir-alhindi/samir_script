@@ -21,7 +21,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\list_new.smr");
+        Language lang = new Language("samir_script_programs\\subscript.smr");
         lang.run();
     }
 }
@@ -799,6 +799,65 @@ class Call extends Expre {
         return callee + "(" + arguments + ")";
     }
     
+}
+
+class Subscript extends Expre {
+
+    Expre index;
+    Expre collection;
+
+    Subscript(Token bracket, Expre collection, Expre index){
+        this.token = bracket;
+        this.collection = collection;
+        this.index = index;
+    }
+
+    @Override
+    Object visit() {
+
+        Object collectionVisited = collection.visit();
+        Object indexVisited = index.visit();
+
+        if(indexVisited instanceof Double == false)
+            Language.error("index must be a number", token.line);
+
+        if(collectionVisited instanceof ListInstance){
+            int final_index = ((ListInstance)collectionVisited).checkValidIndex(indexVisited);
+            return ((ListInstance)collectionVisited).arrayList.get(final_index);
+        }
+
+        class Inner {
+            static int checkValidIndex(Object object, String string, Token token){
+                if(object instanceof Double == false)
+                    Language.error("string index must be a number", token.line);
+                Double index = (Double) object;
+
+                if(index % 1 != 0)
+                    Language.error("argument must be a whole number", token.line);
+
+                if(index >= string.length())
+                    Language.error("index " + index.intValue() + " out of bounds for size " + string.length(), token.line);
+                
+                // Negative index:
+                if(index < 0){
+                    Double actualIndex = index + string.length();
+                    if(actualIndex < 0)
+                        Language.error("index " + index.intValue() + " out of bounds for size " + string.length(), token.line);
+                    index = actualIndex;
+        }
+        
+        return index.intValue();
+
+            }
+        }
+
+        if(collectionVisited instanceof String){
+            int final_index = Inner.checkValidIndex(indexVisited, (String) collectionVisited, token);
+            return ((String) collectionVisited).charAt(final_index);
+        }
+
+        return null;
+    }
 }
 
 class MemberAccess extends Expre {

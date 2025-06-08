@@ -531,7 +531,7 @@ public class Parser{
     }
 
     Expre call(){
-        Expre expre = primary();
+        Expre expre = subscript();
 
         while(true){
             if(currentIs(TokenType.L_PAR)){
@@ -572,6 +572,27 @@ public class Parser{
         advance();
 
         return new Call(callee, current, arguments);
+    }
+
+    Expre subscript(){
+        Expre expre = primary();
+
+        while(true){
+            if(currentIs(TokenType.L_BRACKET)){
+                Token bracket = current;
+                advance();
+                Expre index = expression();
+                if(! currentIs(TokenType.R_BRACKET))
+                    Language.error("Expected closing ']' to end index", bracket.line);
+                advance();
+                expre = new Subscript(bracket, expre, index);
+            }
+            else{
+                break;
+            }
+        }
+
+        return expre;
     }
 
     Expre primary(){
