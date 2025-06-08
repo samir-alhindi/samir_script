@@ -24,6 +24,7 @@ statement      → exprStmt
                | breakStmt
                | returnStmt
                | whileStmt
+               | forStmt
                | matchStmt
                | block ;
 
@@ -38,6 +39,9 @@ ifStmt         → "if" expression "then" statement
 printStmt      → "print" expression ";"
                | "println" expression ";" ;
 whileStmt      → "while" expression "do" statement ;
+
+forStmt        → "for" IDENTIFIER "in" expression "do" statement ;
+
 
 matchStmt      → "match" expression "with"
                ("case" expression "->" statement)*

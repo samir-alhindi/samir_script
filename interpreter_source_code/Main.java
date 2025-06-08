@@ -21,7 +21,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\subscript.smr");
+        Language lang = new Language("samir_script_programs\\for.smr");
         lang.run();
     }
 }
@@ -473,7 +473,7 @@ enum TokenType{
     
     // keywords:
     VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN, THEN, DO,
-    RETURN, CLASS, BREAK, CONTINUE, LAMBDA, MATCH, WITH, CASE, 
+    RETURN, CLASS, BREAK, CONTINUE, LAMBDA, MATCH, WITH, CASE, FOR, IN,
 
     // Other:
     IDENTIFIER, EQUALS, EOS, EOF, COMMA, DOT, ARROW,
@@ -1131,6 +1131,101 @@ class While extends Stmt {
 
     return null;
     }
+}
+
+class For extends Stmt {
+    Token identfier;
+    Expre iterable;
+    Stmt body;
+    For(Token identfier, Expre iterable, Stmt body){
+        this.identfier = identfier;
+        this.iterable = iterable;
+        this.body = body;
+    }
+
+    @Override
+    Void visit() {
+
+    class Inner {
+        static void iterate(String string, Stmt body, Token identfier){
+            Environment lasEnvi = Language.environment;
+            Environment newEnvi = new Environment(lasEnvi);
+            newEnvi.define((String) identfier.value, null);
+            Language.enviStack.add(lasEnvi);
+            Language.environment = newEnvi;
+            
+            // Try block for the break statement:
+            try {
+                for(char c : string.toCharArray()){
+                    newEnvi.define((String) identfier.value, c + "");
+                    // Try block for the continue statement:
+                    try {
+                        body.visit();
+                    }
+                    catch(ContinueException e){
+                        while (Language.environment != lasEnvi) 
+                            Language.environment = Language.enviStack.pop();
+                    }
+                }
+
+                    
+            }
+            catch(BreakException e){
+                while (Language.environment != lasEnvi) 
+                    Language.environment = Language.enviStack.pop();
+            }
+
+            while (Language.environment != lasEnvi) 
+                Language.environment = Language.enviStack.pop();
+
+        }
+
+        static void iterate(ListInstance list, Stmt body, Token identfier){
+            Environment lasEnvi = Language.environment;
+            Environment newEnvi = new Environment(lasEnvi);
+            newEnvi.define((String) identfier.value, null);
+            Language.enviStack.add(lasEnvi);
+            Language.environment = newEnvi;
+            
+            // Try block for the break statement:
+            try {
+                for(Object c : list.arrayList){
+                    newEnvi.define((String) identfier.value, c);
+                    // Try block for the continue statement:
+                    try {
+                        body.visit();
+                    }
+                    catch(ContinueException e){
+                        while (Language.environment != lasEnvi) 
+                            Language.environment = Language.enviStack.pop();
+                    }
+                }
+
+                    
+            }
+            catch(BreakException e){
+                while (Language.environment != lasEnvi) 
+                    Language.environment = Language.enviStack.pop();
+            }
+
+            while (Language.environment != lasEnvi) 
+                Language.environment = Language.enviStack.pop();
+
+        }
+    }
+
+    Object iterableVisited = iterable.visit();
+    if(iterableVisited instanceof String)
+        Inner.iterate( (String) iterableVisited, body, identfier);
+    else if(iterableVisited instanceof ListInstance)
+        Inner.iterate((ListInstance) iterableVisited, body, identfier);
+    else
+        Language.error("can only iterate over Lists and strings", identfier.line);
+
+    return null;
+    }
+
+    
 }
 
 class Match extends Stmt {

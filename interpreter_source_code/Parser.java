@@ -169,6 +169,11 @@ public class Parser{
             return whileStatement();
         }
 
+        else if(currentIs(TokenType.FOR)){
+            advance();
+            return forStmt();
+        }
+
         else if (currentIs(TokenType.L_CUR)){
             advance();
             return new Block(block());
@@ -188,6 +193,27 @@ public class Parser{
         
 
         return expresionStatement();
+    }
+
+    Stmt forStmt(){
+
+        if( ! currentIs(TokenType.IDENTIFIER))
+            Language.error("expected identfier after 'for' keyword", current.line);
+        Token forVar = current;
+        advance();
+
+        if( ! currentIs(TokenType.IN))
+            Language.error("expected 'in' keyword after identfier", current.line);
+        advance();
+
+        Expre iterable = expression();
+
+        if( ! currentIs(TokenType.DO))
+            Language.error("expected 'do' keyword after iterable", current.line);
+        advance();
+        Stmt body = statement();
+
+        return new For(forVar, iterable, body);
     }
 
     Stmt matchStmt(){
