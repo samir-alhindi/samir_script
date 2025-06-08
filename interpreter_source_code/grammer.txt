@@ -29,7 +29,7 @@ statement      → exprStmt
 
 returnStmt     → "return" expression? ";" ;
 continueStmt   → "continue" ";"
-breakStmt   → "break" ";"
+breakStmt      → "break" ";"
 
 exprStmt       → expression ";" ;
 ifStmt         → "if" expression "then" statement
@@ -63,3 +63,10 @@ arguments      → expression ( "," expression )* ;
 primary        → NUMBER | STRING | "true" | "false" | "nil"
                | "(" expression ")"
                | IDENTIFIER
+               | index
+               | ListLiteral
+
+index          → (list | string) "[" expression "]"
+
+ListLiteral    → "[" (ListContents)? "]" ;
+ListContents   →  expression ("," expression)* ;

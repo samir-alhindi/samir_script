@@ -1,0 +1,18 @@
+
+var numbers = [1, 2, 3, 4, 5];
+var names = [
+    "Samir",
+    "Yahya",
+    "Muhhamed",
+    "Sultan"
+];
+
+var i = 0;
+while i < len(names) do{
+    println str(i + 1) + "- " + names.get(i);
+    i = i + 1;
+}
+
+var comb = [1, 2, 3] + [4, 5];
+
+println comb[0];

@@ -225,6 +225,16 @@ public class Lexer {
             advance();
         }
 
+        else if (current == '['){
+            addToken(TokenType.L_BRACKET);
+            advance();
+        }
+
+        else if (current == ']'){
+            addToken(TokenType.R_BRACKET);
+            advance();
+        }
+
         //Check if char is identifier/keyword:
         else if(Character.isLetter(current) || current == '_'){
             String word = "";

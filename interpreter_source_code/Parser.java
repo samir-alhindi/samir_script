@@ -610,6 +610,22 @@ public class Parser{
             return new GroupingExpre(expre);
         }
 
+        else if(curType.equals(TokenType.L_BRACKET)){
+            Token token = current;
+            advance();
+            List<Expre> listContents = new ArrayList<>();
+            if(! currentIs(TokenType.R_BRACKET))
+                listContents.add(expression());
+            while( ! currentIs(TokenType.R_BRACKET)){
+                if( ! currentIs(TokenType.COMMA))
+                    Language.error("Expected ',' between list elements", current.line);
+                advance();
+                listContents.add(expression());
+            }
+            advance();
+            return new ListLiteral(token, listContents);
+        }
+
         Language.error("Invalid syntax !", current.line);
         return null;
     }

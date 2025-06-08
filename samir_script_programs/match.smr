@@ -1,8 +1,20 @@
 
-
 var number = 5;
 
 match number with
     case 0 -> println "Zero";
     case 1 -> println "One";
     else -> println "Something else";
+
+var variable = lambda x -> x * x;
+
+match typeOf(variable) with
+    case "string" -> println "variable is a string";
+    case "number" -> println "variable is a number";
+    case "boolean" -> println "Variable is a boolean";
+    case "nil" -> println "Variable is nil";
+    case "List" -> println "Variable is a List";
+    case "function" -> println "Variable is a function";
+    case "class" -> println "Variable is a class";
+    case "lambda" -> println "Variable is a lambda";
+    else -> println "Variable is an instance of " + typeOf(variable);

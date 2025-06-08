@@ -21,7 +21,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\match.smr");
+        Language lang = new Language("samir_script_programs\\list_new.smr");
         lang.run();
     }
 }
@@ -132,6 +132,8 @@ class Language {
                     return ((SamirInstance)arg).class_.class_.name.value.toString();
                 else if(arg instanceof SamirFunction)
                     return "function";
+                else if(arg instanceof SamirLambda)
+                    return "lambda";
                 else if(arg instanceof SamirClass)
                     return "class";
                 else if(arg == null)
@@ -467,7 +469,7 @@ enum TokenType{
     GREATER_THAN_OR_EQUAL, LESS_THAN_OR_EQUAL, 
 
     // Grouping:
-    L_PAR, R_PAR, L_CUR, R_CUR,
+    L_PAR, R_PAR, L_CUR, R_CUR, L_BRACKET, R_BRACKET,
     
     // keywords:
     VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN, THEN, DO,
@@ -506,6 +508,23 @@ class LiteralExpre extends Expre {
         return literal.toString();
         }
     }
+
+class ListLiteral extends Expre {
+    List<Expre> elements;
+    ListLiteral(Token token, List<Expre> elements){
+        this.token = token;
+        this.elements = elements;
+    }
+    @Override
+    ListInstance visit() {
+        ArrayList<Object> elementsVisited = new ArrayList<>();
+        for (Expre element : elements) 
+            elementsVisited.add(element.visit());
+        ListInstance list =  new ListInstance(elementsVisited);
+        list.environment.variables.put("size", (Double) ((double) elements.size()));
+        return list;
+    }
+}
 
 class BinOpExpre extends Expre {
     Expre left_node;
@@ -582,8 +601,20 @@ class BinOpExpre extends Expre {
             else if(left instanceof String && right instanceof String){
                 return (String) left + (String) right;
             }
+            else if(left instanceof ListInstance){
+                if(right instanceof ListInstance){
+                    ListInstance combined = new ListInstance(new ArrayList<>());
+                    for (Object item : ((ListInstance)left).arrayList)
+                        combined.arrayList.add(item);
+                    for (Object item : ((ListInstance)right).arrayList)
+                        combined.arrayList.add(item);
+                    combined.environment.variables.put("size", ((ListInstance) left).getSize() + ((ListInstance) right).getSize());
+                    return combined;
+                }
+
+            }
             else{
-                Language.error("'+' operands must both be strings or numbers", token.line);
+                Language.error("'+' operands must both be strings or numbers or Lists", token.line);
             }
         }
 

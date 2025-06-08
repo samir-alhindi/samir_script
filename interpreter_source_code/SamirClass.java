@@ -310,4 +310,8 @@ class ListInstance extends SamirInstance {
         Double oldSize = (Double) temp;
         environment.assign(new Token(null, "size", 0), oldSize + amount);
     }
+
+    Double getSize(){
+        return (Double) (double) arrayList.size();
+    }
 }
