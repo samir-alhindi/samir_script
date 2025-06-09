@@ -21,7 +21,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\compound.smr");
+        Language lang = new Language("samir_script_programs\\interpreter.smr");
         lang.run();
     }
 }
@@ -710,10 +710,9 @@ class Variable extends Expre {
 
 class AssignExpre extends Expre {
     Expre right;
-    Object rightVisited;
     Token opp;
     Token varName;
-    Object leftVisited;
+
     AssignExpre(Token varName, Expre right, Token opp){
         this.varName = varName;
         this.right = right;
@@ -723,30 +722,29 @@ class AssignExpre extends Expre {
     Object visit() {
 
         Object newValue = null;
-        rightVisited = right.visit();
-        Object oldValue = Language.environment.get(varName);
-        this.leftVisited = Language.environment.get(varName);
+
+        Object rightVisited = right.visit();
+        Object leftVisited = Language.environment.get(varName);
 
         switch(opp.type){
             case TokenType.EQUALS -> {
-                newValue = right.visit();
-                Language.environment.define( (String) varName.value, newValue);
+                newValue = rightVisited;
             } 
             case TokenType.MINUS_EQUAL ->{
-                checkNumberOperands();
-                newValue = (Double) oldValue - (Double) right.visit();
+                checkNumberOperands(leftVisited, rightVisited);
+                newValue = (Double) leftVisited - (Double) rightVisited;
             }
             case TokenType.MULTIPLY_EQUAL ->{
-                checkNumberOperands();
-                newValue = (Double) oldValue * (Double) right.visit();
+                checkNumberOperands(leftVisited, rightVisited);
+                newValue = (Double) leftVisited * (Double) rightVisited;
             }
             case TokenType.DIVIDE_EQUAL ->{
-                checkNumberOperands();
-                newValue = (Double) oldValue / (Double) right.visit();
+                checkNumberOperands(leftVisited, rightVisited);
+                newValue = (Double) leftVisited / (Double) rightVisited;
             }
             case TokenType.MOD_EQUAL ->{
-                checkNumberOperands();
-                newValue = (Double) oldValue % (Double) right.visit();
+                checkNumberOperands(leftVisited, rightVisited);
+                newValue = (Double) leftVisited % (Double) rightVisited;
             }
             case TokenType.PLUS_EQUAL -> {
 
@@ -777,8 +775,8 @@ class AssignExpre extends Expre {
         return newValue;
     }
 
-    private void checkNumberOperands(){
-        if(leftVisited instanceof Double && rightVisited instanceof Double) return;
+    private void checkNumberOperands(Object left, Object right){
+        if(left instanceof Double && right instanceof Double) return;
         Language.error("both operands must be numbers", token.line);
     }
 }
@@ -973,6 +971,7 @@ class MemberAssign extends Expre {
     MemberAccess member;
     Expre newValue;
     Token opp;
+
     MemberAssign(MemberAccess member, Expre newValue, Token opp){
         this.member = member;
         this.newValue = newValue;
@@ -980,17 +979,72 @@ class MemberAssign extends Expre {
     }
 
     Object visit(){
+
         SamirInstance instance = (SamirInstance) member.instanceVar.visit();
-        Object newValueObject = newValue.visit();
+
+        Object rightVisited = newValue.visit();
+        Object leftVisited = null;
+
+        Object newValueObject = null;
+
+        if(instance.environment.variables.containsKey(member.memberVar.token.value))
+            leftVisited = instance.environment.get(member.memberVar.token);
+        else
+            Language.error(member.memberVar.token.value + " not found in instance of class: " + instance.class_.class_.name.value, opp.line);
+
+        switch(opp.type){
+            case TokenType.EQUALS -> {
+                newValueObject = rightVisited;
+            } 
+            case TokenType.MINUS_EQUAL ->{
+                checkNumberOperands(leftVisited, rightVisited);
+                newValueObject = (Double) leftVisited - (Double) rightVisited;
+            }
+            case TokenType.MULTIPLY_EQUAL ->{
+                checkNumberOperands(leftVisited, rightVisited);
+                newValueObject = (Double) leftVisited * (Double) rightVisited;
+            }
+            case TokenType.DIVIDE_EQUAL ->{
+                checkNumberOperands(leftVisited, rightVisited);
+                newValueObject = (Double) leftVisited / (Double) rightVisited;
+            }
+            case TokenType.MOD_EQUAL ->{
+                checkNumberOperands(leftVisited, rightVisited);
+                newValueObject = (Double) leftVisited % (Double) rightVisited;
+            }
+            case TokenType.PLUS_EQUAL -> {
+
+                if(leftVisited instanceof Double && rightVisited instanceof Double)
+                    newValueObject = (Double) leftVisited + (Double) rightVisited;
+
+                else if(leftVisited instanceof String && rightVisited instanceof String)
+                    newValueObject = (String) leftVisited + (String) rightVisited;
+        
+                else if(leftVisited instanceof ListInstance){
+                    if(rightVisited instanceof ListInstance){
+                        ListInstance combined = new ListInstance(new ArrayList<>());
+                        for (Object item : ((ListInstance)leftVisited).arrayList)
+                            combined.arrayList.add(item);
+                        for (Object item : ((ListInstance)rightVisited).arrayList)
+                            combined.arrayList.add(item);
+                        combined.environment.variables.put("size", ((ListInstance) leftVisited).getSize() + ((ListInstance) rightVisited).getSize());
+                        newValueObject = combined;
+                    }
+
+                }
+                else
+                    Language.error("'+=' opperands must both be numbers or strings or Lists", opp.line);
+            }
+        }
 
         
-        // Add new member asign code here that resembles the accses code:
-        if(instance.environment.variables.containsKey(member.memberVar.token.value))
-            instance.environment.variables.put(member.memberVar.token.value.toString(), newValueObject);
-        else
-            Language.error(member.memberVar.token.value + " not found in instance of class: " + instance.class_.class_.name, 0);
-            
+        instance.environment.variables.put(member.memberVar.token.value.toString(), newValueObject);
         return newValueObject;
+    }
+
+    private void checkNumberOperands(Object left, Object right){
+        if(left instanceof Double && right instanceof Double) return;
+        Language.error("both operands must be numbers", token.line);
     }
 }
 

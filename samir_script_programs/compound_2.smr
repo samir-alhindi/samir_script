@@ -1,0 +1,12 @@
+
+
+class Test {
+    var thing = "Hello";
+    var otherThing = [true, nil, "hi"];
+    var numberThing = 10;
+}
+
+var test = Test();
+println test.thing += " world";
+println test.otherThing += [4, 5];
+println test.numberThing %= 7;

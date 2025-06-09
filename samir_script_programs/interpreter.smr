@@ -57,6 +57,7 @@ class Lexer {
             
         }
 
+        stop();
         var end_token = Token(TT_EOF, "EOF");
         tokens.add(end_token);
         return tokens;
