@@ -21,7 +21,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\interpreter.smr");
+        Language lang = new Language("samir_script_programs\\functions.smr");
         lang.run();
     }
 }
@@ -267,7 +267,9 @@ class Language {
                 catch(FileNotFoundException e){
                     Language.error("could not find file in path: " + path, Language.currentRunningLine);
                 }
-                catch(IOException e){}
+                catch(IOException e){
+                    Language.error("could not find file in path: " + path, Language.currentRunningLine);
+                }
 
                 // unreachable:
                 return null;
@@ -912,7 +914,7 @@ class Subscript extends Expre {
 
         if(collectionVisited instanceof String){
             int final_index = Inner.checkValidIndex(indexVisited, (String) collectionVisited, token);
-            return ((String) collectionVisited).charAt(final_index);
+            return ((String) collectionVisited).charAt(final_index) + "";
         }
 
         return null;

@@ -2,16 +2,16 @@
 
 func map(list, rule) {
     var i = 0;
-    var output = List();
+    var output = [];
     while i < len(list) do{
-        var item = list.get(i);
+        var item = list[i];
         output.add(rule(item));
-        i = i + 1;
+        i += 1;
     }
     return output;
 }
 
-var numbers = List();
+var numbers = [];
 numbers.fillRange(1, 6, 1);
 
 println numbers;

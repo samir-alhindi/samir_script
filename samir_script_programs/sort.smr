@@ -16,35 +16,29 @@ func bubble_sort(list){
 
 func selection_sort(list){
 
-    var output = List();
+    var output = [];
     var i = 0;
     var size = list.size;
 
     while i < size do {
         var j = 1;
-        var smallest = list.get(0);
+        var smallest = list[0];
         var smlIndex = 0;
         while j < list.size do {
             if list.get(j) < smallest then{
-                smallest = list.get(j);
+                smallest = list[j];
                 smlIndex = j;
             }
-            j = j + 1;
+            j += 1;
         }
         output.add(list.removeAt(smlIndex));
-        i = i + 1;
+        i += 1;
     }
 
     return output;
 }
 
-var list = List();
-list.add(7);
-list.add(-5);
-list.add(0);
-list.add(12);
-list.add(-2);
-list.add(1);
+var list = [7, -5, 0, 12, -2, 1];
 
 println "Unsorted list: " + str(list);
 println "Sorted: " + str(selection_sort(list));

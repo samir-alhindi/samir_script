@@ -2,18 +2,10 @@
 
 func list_sum(list){
     var sum = 0;
-    var index = 0;
-    while index < list.size do {
-        sum = sum + list.get(index);
-        index = index + 1;
-    }
+    for num in list do
+        sum += num;
     return sum;
 }
 
-var numbers = List();
-numbers.add(10);
-numbers.add(15);
-numbers.add(3);
-
-
-println list_sum(numbers); # 28.
+var numbers = [3, 0, 9];
+println list_sum(numbers); # 12.

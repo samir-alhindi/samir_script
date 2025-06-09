@@ -42,7 +42,7 @@ class SamirFunction implements SamirCallable {
         Language.environment = environment;
         // Check if stack overflow:
         if(Language.enviStack.size() > 1024)
-            Language.error("Stack overflow !", -2);
+            Language.error("function caused a stack overflow", declaration.name.line);
         try{
             for (Stmt stmt : declaration.body)
                 stmt.visit();
@@ -122,7 +122,7 @@ class SamirLambda implements SamirCallable {
         Language.environment = environment;
         // Check if stack overflow:
         if(Language.enviStack.size() > 1024)
-            Language.error("Stack overflow !", -2);
+            Language.error("lambda caused a stack overflow", declaration.token.line);
         
         Object value = declaration.body.visit();
             

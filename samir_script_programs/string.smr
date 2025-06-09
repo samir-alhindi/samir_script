@@ -4,12 +4,11 @@ func reverse(word){
     var output = "";
     var i = -1;
     while i >= len(word) * -1 do {
-        output = output + getChar(i, word);
-        i = i - 1;
+        output += word[i];
+        i -= 1;
     }
     
     return output;
-
 }
 
 println reverse("Samir");
