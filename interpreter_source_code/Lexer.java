@@ -62,6 +62,12 @@ public class Lexer {
                 addToken(TokenType.DOT);
                 advance();
             }
+
+            // Colon
+            else if(current == ':'){
+                addToken(TokenType.COLON);
+                advance();;
+            }
                 
         
             //Check if char is digit:

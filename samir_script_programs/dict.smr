@@ -1,0 +1,9 @@
+
+
+var dict = Dict();
+
+dict["Samir"] = 20;
+dict["Yahya"] = 21;
+dict["Muhammed"] = 22;
+dict[5] = "Hello";
+dict[true] = "Yup";

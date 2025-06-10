@@ -1,0 +1,15 @@
+
+
+var x = [0, 0, 0, 0, 0];
+var y = "Samir";
+
+var i = 0;
+while i < len(x) do{
+    x[i] = str(i);
+    i += 1;
+}
+
+println y;
+
+y = y[-5] = "X";
+println y;

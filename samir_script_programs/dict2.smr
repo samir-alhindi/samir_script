@@ -1,0 +1,15 @@
+
+var grades = {
+    "Samir" : 95,
+    "Yahya" : 98,
+    "Sulatan" : 100,
+    "Muhammed" : 99
+};
+
+println grades["Samir"];
+
+var rules = {};
+rules["add"] = lambda x, y -> x + y;
+rules["subtract"] = lambda x, y -> x - y;
+
+println rules["add"](2, 5);

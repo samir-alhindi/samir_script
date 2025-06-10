@@ -69,8 +69,13 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
                | IDENTIFIER
                | index
                | ListLiteral
+               | DictLiteral
 
-index          → (list | string) "[" expression "]"
+index          → (list | string | Dict) "[" expression "]"
 
 ListLiteral    → "[" (ListContents)? "]" ;
 ListContents   →  expression ("," expression)* ;
+
+DictLiteral    → "{" (DictContents)? "}" ;
+DictContents   → keyValuePair ("," keyValuePair)* ;
+keyValuePair   → expression ":" expression ;

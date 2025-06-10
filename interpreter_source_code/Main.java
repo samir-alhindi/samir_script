@@ -21,7 +21,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\functions.smr");
+        Language lang = new Language("samir_script_programs\\subscript_assign.smr");
         lang.run();
     }
 }
@@ -63,6 +63,25 @@ class Language {
                 return "<class List>";
             }
 
+        });
+
+        globals.define("Dict", new SamirCallable() {
+
+            @Override
+            public int arity() {
+                return 0;
+            }
+
+            @Override
+            public Object call(List<Object> arguments) {
+                return new DictInstance(new HashMap<Object, Object>());
+            }
+
+            @Override
+            public String toString() {
+                return "<class Dict>";
+            }
+            
         });
 
         // PI:
@@ -478,7 +497,7 @@ enum TokenType{
     RETURN, CLASS, BREAK, CONTINUE, LAMBDA, MATCH, WITH, CASE, FOR, IN,
 
     // Other:
-    IDENTIFIER, EQUALS, EOS, EOF, COMMA, DOT, ARROW,
+    IDENTIFIER, EQUALS, EOS, EOF, COMMA, DOT, ARROW, COLON,
     }
 
 abstract class Expre {
@@ -525,6 +544,24 @@ class ListLiteral extends Expre {
         ListInstance list =  new ListInstance(elementsVisited);
         list.environment.variables.put("size", (Double) ((double) elements.size()));
         return list;
+    }
+}
+
+class DictLiteral extends Expre {
+    Map<Expre, Expre> map;
+    DictLiteral(Token token, Map<Expre, Expre> map){
+        this.token = token;
+        this.map = map;
+    }
+    @Override
+    Object visit() {
+        var output = new HashMap<Object, Object>();
+        for (Map.Entry<Expre, Expre> pair : map.entrySet()) {
+            Object key = pair.getKey().visit();
+            Object value = pair.getValue().visit();
+            output.put(key, value);
+        }
+        return new DictInstance(output);
     }
 }
 
@@ -783,6 +820,50 @@ class AssignExpre extends Expre {
     }
 }
 
+class CollectionAssign extends Expre {
+    Subscript subscript;
+    Expre newValue;
+    CollectionAssign(Subscript subscript, Expre newValue, Token token){
+        this.subscript = subscript;
+        this.newValue = newValue;
+        this.token = token;
+    }
+    @Override
+    Object visit() {
+        
+        Object collectionVisited = subscript.collection.visit();
+        Object indexVisited = subscript.index.visit();
+        Object newValueVisited = newValue.visit();
+
+        if(collectionVisited instanceof ListInstance){
+            int final_index = ((ListInstance)collectionVisited).checkValidIndex(indexVisited);
+            ((ListInstance)collectionVisited).arrayList.set(final_index, newValueVisited);
+        }
+
+        else if(collectionVisited instanceof String){
+
+            if(newValueVisited instanceof String == false || ((String) newValueVisited).length() != 1)
+                Language.error("string[index] must be set to a string of length 1", token.line);
+
+            int finalIndex = Subscript.Inner.checkValidIndex(indexVisited, collectionVisited.toString(), token);
+            char[] chars = ((String) collectionVisited).toCharArray();
+            chars[finalIndex] = ((String) newValueVisited).charAt(0);
+            collectionVisited = new String(chars);
+        }
+
+        else if(collectionVisited instanceof DictInstance){
+            ( (DictInstance) collectionVisited).hashMap.put(indexVisited, newValueVisited);
+        }
+
+        else
+            Language.error("Invalid assignment target", token.line);
+
+        
+
+        return collectionVisited;
+    }
+}
+
 class BinBoolOp extends Expre {
     Expre left;
     Expre right;
@@ -879,13 +960,25 @@ class Subscript extends Expre {
         Object collectionVisited = collection.visit();
         Object indexVisited = index.visit();
 
-        if(indexVisited instanceof Double == false)
-            Language.error("index must be a number", token.line);
-
         if(collectionVisited instanceof ListInstance){
             int final_index = ((ListInstance)collectionVisited).checkValidIndex(indexVisited);
             return ((ListInstance)collectionVisited).arrayList.get(final_index);
         }
+
+        else if(collectionVisited instanceof String){
+            int final_index = Inner.checkValidIndex(indexVisited, (String) collectionVisited, token);
+            return ((String) collectionVisited).charAt(final_index) + "";
+        }
+
+        else if(collectionVisited instanceof DictInstance){
+            if(((DictInstance)collectionVisited).hashMap.containsKey(indexVisited) == false)
+                Language.error("Key: " + indexVisited.toString() + " not found in Dict", token.line);
+            return ((DictInstance)collectionVisited).hashMap.get(indexVisited);
+        }
+
+
+        return null;
+    }
 
         class Inner {
             static int checkValidIndex(Object object, String string, Token token){
@@ -911,14 +1004,6 @@ class Subscript extends Expre {
 
             }
         }
-
-        if(collectionVisited instanceof String){
-            int final_index = Inner.checkValidIndex(indexVisited, (String) collectionVisited, token);
-            return ((String) collectionVisited).charAt(final_index) + "";
-        }
-
-        return null;
-    }
 }
 
 class MemberAccess extends Expre {

@@ -1,4 +1,6 @@
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -389,6 +391,10 @@ public class Parser{
                 return new MemberAssign(memberToChange, newValue, opp);
             }
 
+            else if(expre instanceof Subscript)
+                return new CollectionAssign( (Subscript) expre, newValue, opp);
+            
+
             Language.error("Invalid assignment target", opp.line);
 
         }
@@ -672,6 +678,60 @@ public class Parser{
             }
             advance();
             return new ListLiteral(token, listContents);
+        }
+
+        else if(curType.equals(TokenType.L_CUR)){
+
+            class Inner {
+                Token tok;
+                Inner(Token tok){
+                    this.tok = tok;
+                }
+
+                HashMap<Expre, Expre> dictContents(){
+
+                    AbstractMap.SimpleEntry<Expre, Expre> pair = keyValuePair();
+                    HashMap<Expre, Expre> output = new HashMap<>();
+                    output.put(pair.getKey(), pair.getValue());
+
+                    while(! currentIs(TokenType.R_CUR)){
+                        if( ! currentIs(TokenType.COMMA))
+                            Language.error("Expected ',' between Dict elements", tok.line);
+                        advance();
+                        pair = keyValuePair();
+                        output.put(pair.getKey(), pair.getValue());
+                    }
+
+                    advance();
+                    return output;
+                }
+                AbstractMap.SimpleEntry<Expre, Expre> keyValuePair(){
+                    Expre key = Parser.this.expression();
+                    if(! currentIs(TokenType.COLON))
+                        Language.error("key value pairs must be separated by ':'", tok.line);
+                    advance();
+                    Expre value = Parser.this.expression();
+
+                    return new AbstractMap.SimpleEntry<Expre, Expre>(key, value);
+                    
+                }
+            }
+
+
+            Token token = current;
+            advance();
+            HashMap<Expre, Expre> hashMap;
+            if( ! currentIs(TokenType.R_CUR)){
+                Inner inner = new Inner(current);
+                hashMap = inner.dictContents();
+                return new DictLiteral(token, hashMap);
+            }
+            if(currentIs(TokenType.R_CUR)){
+                advance();
+                return new DictLiteral(token, new HashMap<>());
+            }
+                
+
         }
 
         Language.error("Invalid syntax !", current.line);

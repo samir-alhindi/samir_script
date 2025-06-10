@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 class SamirClass implements SamirCallable{
     Environment closure;
@@ -314,4 +316,32 @@ class ListInstance extends SamirInstance {
     Double getSize(){
         return (Double) (double) arrayList.size();
     }
+}
+
+class DictInstance extends SamirInstance {
+
+    HashMap<Object, Object> hashMap;
+
+    DictInstance(HashMap<Object, Object> hashMap){
+        super();
+        this.hashMap = hashMap;
+        // This line exists so we can error report if the user tries to accsses a member that isn't in the Dict class:
+        this.class_ = new SamirClass(new ClassDeclre(null, new Token(null, "Dict", 0), null, null), null);
+    }
+
+    @Override
+    public String toString() {
+        String result = "{";
+        for (Map.Entry<Object, Object> pair : hashMap.entrySet()){
+            Object key = pair.getKey();
+            Object value = pair.getValue();
+            result += Language.stringify(key) + " : " + Language.stringify(value) + ", ";
+        }
+            
+        if(result.length() > 2)
+            result = result.substring(0, result.length() - 2);
+        return result + "}";
+    }
+
+
 }
