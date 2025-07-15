@@ -11,5 +11,17 @@ func double_list(list, in_place){
 
 var x = [1, 2, 3];
 var y = double_list(x, false);
-println x;
-println y;
+
+
+class Test {
+    var num;
+}
+
+func double(test){
+    test.num = 5;
+}
+
+var mine = Test();
+mine.num = 2;
+double(mine);
+println mine.num;

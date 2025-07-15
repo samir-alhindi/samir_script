@@ -1,0 +1,11 @@
+
+
+var grades = {
+    "Samir" : 98,
+    "Yahya" : 0,
+    "Muhammed" : 99,
+    "Sultan" : 97
+};
+
+for key in grades.keys() do
+    println key + " : " +  str(grades[key]);

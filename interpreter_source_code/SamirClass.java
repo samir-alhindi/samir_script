@@ -35,7 +35,7 @@ class SamirClass implements SamirCallable{
     
 }
 
-class SamirInstance implements Cloneable{
+class SamirInstance{
     Environment environment;
     SamirClass class_;
     SamirCallable to_string_method_as_callable;
@@ -62,13 +62,6 @@ class SamirInstance implements Cloneable{
         }
             
         Language.environment = prev;
-    }
-
-    @Override
-    protected SamirInstance clone() throws CloneNotSupportedException {
-        SamirInstance copy = (SamirInstance) super.clone();
-        copy.environment = (Environment) environment.clone();
-        return copy;
     }
 
 
@@ -337,6 +330,18 @@ class ListInstance extends SamirInstance {
         return (Double) (double) arrayList.size();
     }
 
+    static ListInstance create_filled_list(Object[] items){
+        ListInstance list = new ListInstance(new ArrayList<>());
+        Object add_method_uncast = list.environment.variables.get("add");
+        SamirCallable add_method = (SamirCallable) add_method_uncast;
+        for (Object item : items) {
+            List<Object> arg = new ArrayList<>();
+            arg.add(item);
+            add_method.call(arg);
+        }
+        return list;
+    }
+
 }
 
 class DictInstance extends SamirInstance {
@@ -348,6 +353,18 @@ class DictInstance extends SamirInstance {
         this.hashMap = hashMap;
         // This line exists so we can error report if the user tries to accsses a member that isn't in the Dict class:
         this.class_ = new SamirClass(new ClassDeclre(null, new Token(null, "Dict", 0), null, null), null);
+
+        // Methods:
+        this.environment.define("keys", new SamirCallable(){
+
+            @Override
+            public int arity() {return 0;}
+
+            @Override
+            public ListInstance call(List<Object> arguments) {
+                return ListInstance.create_filled_list(hashMap.keySet().toArray());
+            }
+        });
     }
 
     @Override

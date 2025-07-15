@@ -21,7 +21,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\classes.smr");
+        Language lang = new Language("samir_script_programs\\copy.smr");
         lang.run();
     }
 }
