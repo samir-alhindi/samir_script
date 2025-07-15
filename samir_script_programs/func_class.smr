@@ -1,0 +1,48 @@
+func new_employee(name, id){
+
+    func employee(command){
+
+        func get_name(){
+            return name;
+        }
+
+        func set_name(new_name){
+            name = new_name;
+        }
+
+        func get_id(){
+            return id;
+        }
+
+        func set_id(new_id){
+            id = new_id;
+        }
+
+        match command with
+            case "get_name" -> return get_name;
+            case "set_name" -> return set_name;
+            case "get_id" -> return get_id;
+            case "set_id" -> return set_id;
+            else -> println "invalid command !";
+
+    }
+
+    return employee;
+
+}
+
+var samir = new_employee("Samir", 1234);
+println samir("get_name")();
+samir("set_name")("Sameer");
+println samir("get_name")();
+
+var maria = new_employee("Maria", 3232);
+println maria("get_name")();
+maria("set_id")(9986);
+println maria("get_id")();
+
+var employees = [samir, maria];
+
+println "----------";
+for employee in employees do
+    println employee("get_name")();

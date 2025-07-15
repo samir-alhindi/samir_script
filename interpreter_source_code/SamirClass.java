@@ -316,6 +316,13 @@ class ListInstance extends SamirInstance {
     Double getSize(){
         return (Double) (double) arrayList.size();
     }
+
+    @Override
+    protected ListInstance clone() throws CloneNotSupportedException{
+        ListInstance copy = (ListInstance) super.clone();
+        copy.arrayList = (ArrayList<Object>) arrayList.clone();
+        return copy;
+    }
 }
 
 class DictInstance extends SamirInstance {

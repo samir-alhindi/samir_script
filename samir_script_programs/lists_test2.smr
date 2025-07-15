@@ -1,0 +1,9 @@
+
+func append_1(list){
+    list.add(1);
+}
+
+var test = [];
+test.add(2);
+append_1(test);
+println test;

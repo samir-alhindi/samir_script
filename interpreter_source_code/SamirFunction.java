@@ -23,6 +23,7 @@ class SamirFunction implements SamirCallable {
             if(argValue instanceof SamirInstance){
                 try{
                     SamirInstance newInstance = (SamirInstance) ((SamirInstance)argValue).clone();
+                    //System.out.println( ((ListInstance) argValue).arrayList == ((ListInstance) newInstance).arrayList);
                     //newInstance.environment.outer = environment;
                     environment.define(paraName, newInstance);
                 }
