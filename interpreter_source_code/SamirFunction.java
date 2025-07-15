@@ -19,20 +19,7 @@ class SamirFunction implements SamirCallable {
         for (int i = 0; i < declaration.parameters.size(); i++) {
             String paraName = declaration.parameters.get(i).value.toString();
             Object argValue = arguments.get(i);
-
-            if(argValue instanceof SamirInstance){
-                try{
-                    SamirInstance newInstance = (SamirInstance) ((SamirInstance)argValue).clone();
-                    //System.out.println( ((ListInstance) argValue).arrayList == ((ListInstance) newInstance).arrayList);
-                    //newInstance.environment.outer = environment;
-                    environment.define(paraName, newInstance);
-                }
-                catch(CloneNotSupportedException e){
-                    System.out.println("Can't clone.");
-                }
-            }
-            else
-                environment.define(paraName, argValue);
+            environment.define(paraName, argValue);
         }
 
         
@@ -100,19 +87,7 @@ class SamirLambda implements SamirCallable {
         for (int i = 0; i < declaration.parameters.size(); i++) {
             String paraName = declaration.parameters.get(i).value.toString();
             Object argValue = arguments.get(i);
-
-            if(argValue instanceof SamirInstance){
-                try{
-                    SamirInstance newInstance = (SamirInstance) ((SamirInstance)argValue).clone();
-                    //newInstance.environment.outer = environment;
-                    environment.define(paraName, newInstance);
-                }
-                catch(CloneNotSupportedException e){
-                    System.out.println("Can't clone.");
-                }
-            }
-            else
-                environment.define(paraName, argValue);
+            environment.define(paraName, argValue);
         }
 
         

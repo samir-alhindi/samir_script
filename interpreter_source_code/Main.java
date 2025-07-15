@@ -21,7 +21,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\lists_test2.smr");
+        Language lang = new Language("samir_script_programs\\classes.smr");
         lang.run();
     }
 }
@@ -435,7 +435,9 @@ class Environment implements Cloneable{
 
     @Override
     protected Object clone() throws CloneNotSupportedException {
-        return super.clone();
+        Environment clone = (Environment) super.clone();
+        clone.variables = (HashMap<String, Object>) variables.clone();
+        return clone;
     }
 
     @Override

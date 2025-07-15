@@ -1,0 +1,15 @@
+
+func double_list(list, in_place){
+    var output = list if in_place else list.copy();
+    var i = 0;
+    while i < len(output) do{
+        output[i] = output[i] * 2;
+        i += 1;
+    }
+    return output;
+}
+
+var x = [1, 2, 3];
+var y = double_list(x, false);
+println x;
+println y;

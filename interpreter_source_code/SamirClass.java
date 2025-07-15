@@ -212,6 +212,26 @@ class ListInstance extends SamirInstance {
 
         });
 
+        this.environment.define("copy", new SamirCallable(){
+
+            @Override
+            public int arity() {return 0;}
+
+            @Override
+            public ListInstance call(List<Object> arguments) {
+                ListInstance new_list = new ListInstance(new ArrayList<>());
+                Object add_method_uncast = new_list.environment.variables.get("add");
+                SamirCallable add_method = (SamirCallable) add_method_uncast;
+                for (Object item : arrayList) {
+                    List<Object> args = new ArrayList<>();
+                    args.add(item);
+                    add_method.call(args);
+                }
+                return new_list;
+            }
+
+        });
+
         this.environment.define("swap", new SamirCallable(){
 
             @Override
@@ -317,12 +337,6 @@ class ListInstance extends SamirInstance {
         return (Double) (double) arrayList.size();
     }
 
-    @Override
-    protected ListInstance clone() throws CloneNotSupportedException{
-        ListInstance copy = (ListInstance) super.clone();
-        copy.arrayList = (ArrayList<Object>) arrayList.clone();
-        return copy;
-    }
 }
 
 class DictInstance extends SamirInstance {
