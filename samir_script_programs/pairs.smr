@@ -1,0 +1,17 @@
+
+var grades = {
+    "Samir" : 100,
+    "Yahya" : 95,
+    "Sultan" : 96
+};
+
+for key, value in grades.items() do
+    println key + " : " + str(value);
+
+for i in [1, 2, 3] do
+    println i;
+
+println grades.items();
+
+for i, j in {}.items() do
+    println i;

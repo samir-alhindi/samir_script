@@ -202,7 +202,17 @@ public class Parser{
         if( ! currentIs(TokenType.IDENTIFIER))
             Language.error("expected identfier after 'for' keyword", current.line);
         Token forVar = current;
+        Token secondForVar = null;
         advance();
+
+        // for thing, otherThing in iterable...
+        if(currentIs(TokenType.COMMA)){
+            advance();
+            if( ! currentIs(TokenType.IDENTIFIER))
+                Language.error("expected identfier after ','", current.line);
+            secondForVar = current;
+            advance();
+        }
 
         if( ! currentIs(TokenType.IN))
             Language.error("expected 'in' keyword after identfier", current.line);
@@ -215,7 +225,7 @@ public class Parser{
         advance();
         Stmt body = statement();
 
-        return new For(forVar, iterable, body);
+        return new For(forVar, iterable, body, secondForVar);
     }
 
     Stmt matchStmt(){

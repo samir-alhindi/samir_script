@@ -1,0 +1,8 @@
+
+println len([1, 2, 3]);
+println len("Hello");
+println len({"key" : "value"});
+
+println len("");
+println len([]);
+println len({});

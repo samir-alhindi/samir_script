@@ -365,6 +365,18 @@ class DictInstance extends SamirInstance {
                 return ListInstance.create_filled_list(hashMap.keySet().toArray());
             }
         });
+
+        this.environment.define("items", new SamirCallable(){
+
+            @Override
+            public int arity() {return 0;}
+
+            @Override
+            public Object call(List<Object> arguments) {
+                return new SamirPairList(DictInstance.this);
+            }
+
+        });
     }
 
     @Override
@@ -383,3 +395,37 @@ class DictInstance extends SamirInstance {
 
 
 }
+
+class SamirPairList {
+    List<SamirPair> list;
+    SamirPairList(DictInstance dict){
+        list = new ArrayList<>();
+        for (Map.Entry<Object, Object> entry : dict.hashMap.entrySet()){
+            SamirPair pair = new SamirPair(entry.getKey(), entry.getValue());
+            list.add(pair);
+        }
+        
+    }
+
+    @Override
+    public String toString() {
+        String result = "(";
+        for (SamirPair pair : list){
+            result += "(" + Language.stringify(pair.first) + ", " + Language.stringify(pair.second) + ")" + ", ";
+        }
+            
+        if(result.length() > 2)
+            result = result.substring(0, result.length() - 2);
+        return result + ")";
+    }
+}
+
+
+ class SamirPair {
+    Object first;
+    Object second;
+    SamirPair(Object first, Object second){
+        this.first = first;
+        this.second = second;
+    }
+ }

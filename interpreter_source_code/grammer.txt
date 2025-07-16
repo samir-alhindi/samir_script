@@ -40,7 +40,7 @@ printStmt      → "print" expression ";"
                | "println" expression ";" ;
 whileStmt      → "while" expression "do" statement ;
 
-forStmt        → "for" IDENTIFIER "in" expression "do" statement ;
+forStmt        → "for" IDENTIFIER "," IDENTIFIER  "in" expression "do" statement ;
 
 matchStmt      → "match" expression "with"
                ("case" expression "->" statement)*
