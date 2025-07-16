@@ -33,5 +33,15 @@ println enumarate([]);
 for i, j in zip(names, numbers) do
     println str(i) + " " + str(j);
 
-for i in {}.items() do
+for i, j in {}.items() do
     println i;
+
+for i, j in zip([], [1, 2, 3]) do
+    println i;
+
+var pair = Pair("Samir", 20);
+println pair;
+println pair.first;
+println pair.second;
+
+println typeOf(pair);

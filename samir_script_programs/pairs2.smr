@@ -1,0 +1,19 @@
+
+var grades = {
+    "Samir" : 100,
+    "Yahya" : 98,
+    "Sultan" : 99
+};
+
+for pair in grades.items() do
+    println pair;
+
+for key, value in grades.items() do
+    println key + " : " + str(value);
+
+var i = 0;
+var all_pairs = grades.items();
+while i < len(all_pairs) do {
+    println all_pairs[i];
+    i += 1;
+}

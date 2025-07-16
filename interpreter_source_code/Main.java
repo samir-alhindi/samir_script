@@ -21,7 +21,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\summation.smr");
+        Language lang = new Language("samir_script_programs\\pairs2.smr");
         lang.run();
     }
 }
@@ -80,6 +80,18 @@ class Language {
             @Override
             public String toString() {
                 return "<class Dict>";
+            }
+            
+        });
+
+        globals.define("Pair", new SamirCallable() {
+
+            @Override
+            public int arity() {return 2;}
+
+            @Override
+            public Object call(List<Object> arguments) {
+                return new SamirPair(arguments.get(0), arguments.get(1));
             }
             
         });
@@ -147,6 +159,8 @@ class Language {
                     return "boolean";
                 else if(arg instanceof ListInstance)
                     return "List";
+                else if(arg instanceof SamirPair)
+                    return "pair";
                 else if(arg instanceof SamirInstance)
                     return ((SamirInstance)arg).class_.class_.name.value.toString();
                 else if(arg instanceof SamirFunction)
@@ -155,6 +169,8 @@ class Language {
                     return "lambda";
                 else if(arg instanceof SamirClass)
                     return "class";
+                else if(arg instanceof SamirPairList)
+                    return "pair list";
                 else if(arg == null)
                     return "nil";
                 else
@@ -220,6 +236,8 @@ class Language {
                     return int_to_Double(((ListInstance)arg).arrayList.size());
                 else if(arg instanceof DictInstance)
                     return int_to_Double(((DictInstance)arg).hashMap.size());
+                else if(arg instanceof SamirPairList)
+                    return int_to_Double(((SamirPairList) arg).list.size());
                 
                 Language.error("len() argument must be a list, string or Dict", Language.currentRunningLine);
                 // unreachable code:
@@ -1022,6 +1040,11 @@ class Subscript extends Expre {
             return ((DictInstance)collectionVisited).hashMap.get(indexVisited);
         }
 
+        else if(collectionVisited instanceof SamirPairList){
+            int final_index = Inner.checkValidIndex(indexVisited, (SamirPairList) collectionVisited, token);
+            return ((SamirPairList)collectionVisited).list.get(final_index);
+        }
+
 
         return null;
     }
@@ -1049,6 +1072,29 @@ class Subscript extends Expre {
         return index.intValue();
 
             }
+        
+        static int checkValidIndex(Object object, SamirPairList samir_pair_list, Token token){
+                if(object instanceof Double == false)
+                    Language.error("string index must be a number", token.line);
+                Double index = (Double) object;
+
+                if(index % 1 != 0)
+                    Language.error("argument must be a whole number", token.line);
+
+                if(index >= samir_pair_list.list.size())
+                    Language.error("index " + index.intValue() + " out of bounds for size " + samir_pair_list.list.size(), token.line);
+                
+                // Negative index:
+                if(index < 0){
+                    Double actualIndex = index + samir_pair_list.list.size();
+                    if(actualIndex < 0)
+                        Language.error("index " + index.intValue() + " out of bounds for size " + samir_pair_list.list.size(), token.line);
+                    index = actualIndex;
+        }
+        
+        return index.intValue();
+        }
+
         }
 }
 
@@ -1466,18 +1512,24 @@ class For extends Stmt {
         }
 
         static void iterate(SamirPairList samir_pair_list, Stmt body, Token identfier, Token second_identfier){
+            boolean unpack_pairs = second_identfier != null;
             Environment lasEnvi = Language.environment;
             Environment newEnvi = new Environment(lasEnvi);
             newEnvi.define((String) identfier.value, null);
-            newEnvi.define((String) second_identfier.value, null);
+            if(unpack_pairs)
+                newEnvi.define((String) second_identfier.value, null);
             Language.enviStack.add(lasEnvi);
             Language.environment = newEnvi;
             
             // Try block for the break statement:
             try {
                 for(SamirPair pair : samir_pair_list.list){
-                    newEnvi.define((String) identfier.value, pair.first);
-                    newEnvi.define((String) second_identfier.value, pair.second);
+                    if(unpack_pairs){
+                        newEnvi.define((String) identfier.value, pair.first);
+                        newEnvi.define((String) second_identfier.value, pair.second);
+                    }
+                    else
+                        newEnvi.define((String) identfier.value, pair);
                     // Try block for the continue statement:
                     try {
                         body.visit();
@@ -1504,8 +1556,6 @@ class For extends Stmt {
     Object iterableVisited = iterable.visit();
     if((iterableVisited instanceof String || iterableVisited instanceof ListInstance) && second_identfier != null)
         Language.error("Can only use 2 variables in a for loop to iterate over PairList", identfier.line);
-    if(iterableVisited instanceof SamirPairList && second_identfier == null)
-        Language.error("for loop must have 2 variables in order to iterate over PairList", identfier.line);
     if(iterableVisited instanceof String)
         Inner.iterate( (String) iterableVisited, body, identfier);
     else if(iterableVisited instanceof ListInstance)

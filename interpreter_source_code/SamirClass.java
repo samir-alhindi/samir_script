@@ -428,11 +428,18 @@ class SamirPairList {
 }
 
 
- class SamirPair {
+ class SamirPair extends SamirInstance{
     Object first;
     Object second;
     SamirPair(Object first, Object second){
         this.first = first;
         this.second = second;
+        environment.define("first", first);
+        environment.define("second", second);
+    }
+
+    @Override
+    public String toString() {
+        return "(" + Language.stringify(first) + ", " + Language.stringify(second) + ")";
     }
  }
