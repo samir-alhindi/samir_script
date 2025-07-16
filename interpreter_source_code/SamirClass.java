@@ -407,6 +407,13 @@ class SamirPairList {
         
     }
 
+    SamirPairList(ListInstance a, ListInstance b){
+        list = new ArrayList<>();
+        int size = Math.min(a.arrayList.size(), b.arrayList.size());
+        for(int i = 0; i < size; i++)
+            list.add(new SamirPair(a.arrayList.get(i), b.arrayList.get(i)));
+    }
+
     @Override
     public String toString() {
         String result = "(";

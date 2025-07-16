@@ -15,3 +15,23 @@ println grades.items();
 
 for i, j in {}.items() do
     println i;
+
+var names = ["Samir", "Rayyan", "Maria", "Fadi", "Faten"];
+
+for i, name in enumarate(names) do
+    println str(i + 1) + "- " + name;
+
+var numbers = [1, 2, 3, 4];
+
+for i, number in enumarate(numbers) do
+    numbers[i] = number * number;
+
+println numbers;
+
+println enumarate([]);
+
+for i, j in zip(names, numbers) do
+    println str(i) + " " + str(j);
+
+for i in {}.items() do
+    println i;

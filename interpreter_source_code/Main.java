@@ -21,7 +21,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\pairs.smr");
+        Language lang = new Language("samir_script_programs\\summation.smr");
         lang.run();
     }
 }
@@ -309,8 +309,30 @@ class Language {
                 Object arg = arguments.get(0);
                 if(arg instanceof ListInstance == false)
                     Language.error("enumarate() arg must be a list", currentRunningLine);
-                // Code me please...
-                return null;
+                ListInstance listInstance = (ListInstance) arg;
+                // Generate indices:
+                Double[] indices_array = new Double[listInstance.arrayList.size()];
+                for(int i = 0; i < listInstance.arrayList.size(); i++)
+                    indices_array[i] = Language.int_to_Double(i);
+                ListInstance indices_list = ListInstance.create_filled_list(indices_array);
+                return new SamirPairList(indices_list, listInstance);
+            }
+            
+        });
+
+        globals.define("zip", new SamirCallable() {
+
+            @Override
+            public int arity() {return 2;}
+
+            @Override
+            public Object call(List<Object> arguments) {
+                if(arguments.get(0) instanceof ListInstance == false
+                || arguments.get(1) instanceof ListInstance == false)
+                    Language.error("zip args must both be lists", Language.currentRunningLine);
+                ListInstance a = (ListInstance) arguments.get(0);
+                ListInstance b = (ListInstance) arguments.get(1);
+                return new SamirPairList(a, b);
             }
             
         });
@@ -1481,7 +1503,9 @@ class For extends Stmt {
 
     Object iterableVisited = iterable.visit();
     if((iterableVisited instanceof String || iterableVisited instanceof ListInstance) && second_identfier != null)
-        Language.error("Can only use 2 variables in a for loop in certain settings", identfier.line);
+        Language.error("Can only use 2 variables in a for loop to iterate over PairList", identfier.line);
+    if(iterableVisited instanceof SamirPairList && second_identfier == null)
+        Language.error("for loop must have 2 variables in order to iterate over PairList", identfier.line);
     if(iterableVisited instanceof String)
         Inner.iterate( (String) iterableVisited, body, identfier);
     else if(iterableVisited instanceof ListInstance)
