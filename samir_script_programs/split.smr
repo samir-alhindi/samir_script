@@ -1,0 +1,6 @@
+
+
+var word = "hello world" + ln + "Life is awesome" + ln + "Yup...";
+var lines = split(word, ln);
+
+println lines;

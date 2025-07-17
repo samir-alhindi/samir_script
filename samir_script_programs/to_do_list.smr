@@ -1,0 +1,114 @@
+
+func load_save_data(){
+    if fileExists("my_tasks.txt") then{
+        var contents = read("my_tasks.txt");
+        for line in split(contents, ln) do {
+            stop();
+            if not isNumeric(line[0]) then
+                continue;
+            var priority = num(line[0]);
+            var name = substring(line, 3, len(line));
+            all_tasks.add(Task(name, priority));
+        }
+    }
+}
+
+func save_data(){
+    sort_tasks();
+    var contents = "";
+    contents += "---------------" + ln;
+    contents += "---All Tasks---" + ln;
+    contents += "---------------" + ln;
+    for task in all_tasks do
+        contents += str(task) + ln;
+    write("my_tasks.txt", contents);
+}
+
+func sort_tasks(){
+    all_tasks.sortCustom(lambda task -> task.priority);
+}
+
+func title_screen(){
+    println "Enter a number:-";
+    println "1- Add new tasks";
+    println "2- Cross off tasks";
+    println "3- View all tasks";
+    println "4- exit";
+    var choice = get_number_input("> ");
+    match choice with
+        case 1 -> add_new_tasks();
+        case 2 -> cross_off_tasks();
+        case 3 -> view_all_tasks();
+        case 4 -> {
+            println "GoodBye.";
+            exit(0);
+        }
+        else -> {
+            println "Please enter a valid number.";
+            input("Press Enter to continue: ");
+        }
+}
+
+func get_number_input(prompt){
+    var user_input = input(prompt);
+    while(not isNumeric(user_input)) do
+        user_input = input("Please enter a number: ");
+    return num(user_input);
+}
+
+class Task {
+    var name;
+    var priority;
+    func _init(name, priority){
+        self.name = name;
+        self.priority = priority;
+    }
+
+    func _toString(){
+        return str(priority) + "- " + name;
+    }
+}
+
+var all_tasks = [];
+
+func add_new_tasks(){
+    println "Please enter the new task's name:";
+    var task_name = input("> ");
+    println "Please enter the priority of this task (number):";
+    var task_priority = get_number_input("> ");
+    all_tasks.add(Task(task_name, task_priority));
+    save_data();
+}
+
+func cross_off_tasks(){
+    if len(all_tasks) == 0 then{
+        println "No tasks to cross off.";
+        input("Press Enter to continue: ");
+        return;
+    }
+    println "Please enter the index of the task:-";
+    for i, task in enumarate(all_tasks) do
+        println str(i + 1) + "- " + task.name;
+    var index = get_number_input("> ");
+    while index - 1 >= len(all_tasks) or index - 1 < 0 do {
+        println "Please enter a valid index: ";
+        index = get_number_input("> ");
+    }
+    all_tasks.removeAt(index - 1);
+    save_data();
+}
+
+func view_all_tasks(){
+    println "All tasks:- ";
+    for task in all_tasks do
+        println task;
+    input("Press Enter to continue: ");
+}
+
+# Entry point:-
+println "----------------";
+println "---TO-DO LIST---";
+println "----------------";
+load_save_data();
+while true do
+    title_screen();

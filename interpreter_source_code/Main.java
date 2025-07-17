@@ -1,4 +1,6 @@
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -15,13 +17,14 @@ import java.util.Stack;
 public class Main {
     public static void main(String[] args) {
 
-        /* 
+        /*
         String samir_script_filepath = args[0];
         Language lang = new Language(samir_script_filepath);
         lang.run();
         */
+        
 
-        Language lang = new Language("samir_script_programs\\pairs2.smr");
+        Language lang = new Language("samir_script_programs\\to_do_list.smr");
         lang.run();
     }
 }
@@ -37,9 +40,11 @@ class Language {
 
     int currentLine = 0;
     String samir_script_filepath;
+    Scanner scanner;
 
     Language(String samir_script_filepath){
         this.samir_script_filepath = samir_script_filepath;
+        scanner = new Scanner(System.in);
     }
 
     // Native functions, classes and variables:
@@ -99,6 +104,9 @@ class Language {
         // PI:
         globals.define("PI", Math.PI);
 
+        // newline:
+        globals.define("ln", "\n");
+
         // Take input:
         globals.define("input", new SamirCallable() {
             @Override
@@ -106,9 +114,9 @@ class Language {
             @Override
             public Object call(List<Object> arguments) {
                 Object arg = arguments.get(0);
-                System.out.print(arg.toString());
-                Scanner scanner = new Scanner(System.in);
-                return scanner.nextLine();
+                System.out.print(Language.stringify(arg));
+                String input = scanner.nextLine();
+                return input;
             }
         });
 
@@ -253,6 +261,8 @@ class Language {
 
             @Override
             public Void call(List<Object> arguments) {
+                if(arguments.get(0).equals(0.0))
+                    System.exit(0);;
                 System.out.println("Error: " + arguments.get(0));
                 System.exit(1);
                 return null;
@@ -269,6 +279,32 @@ class Language {
             @Override
             public Object call(List<Object> arguments) {
                 return null;
+            }
+            
+        });
+
+        globals.define("fileExists", new SamirCallable() {
+
+            @Override
+            public int arity() {return 1;}
+
+            @Override
+            public Boolean call(List<Object> arguments) {
+                if(arguments.get(0) instanceof String == false)
+                    Language.error("fileExists() arg must be a file path", Language.currentRunningLine);
+                
+                // Check if file is in local dir:
+                String parent_dir = Paths.get(samir_script_filepath, "").getParent().toString();
+                String file_path = parent_dir + "\\" + arguments.get(0);
+                File file = new File(file_path);
+                if(file.exists())
+                    return true;
+                // Check if in abs dir:
+                File file_abs = new File((String)arguments.get(0)); 
+                if(file_abs.exists())
+                    return true;
+                return false;
+                
             }
             
         });
@@ -317,6 +353,39 @@ class Language {
             
         });
 
+        globals.define("write", new SamirCallable() {
+
+            @Override
+            public int arity() {return 2;}
+
+            @Override
+            public Void call(List<Object> arguments) {
+                if(arguments.get(0) instanceof String == false)
+                    Language.error("write() arg must be a file path", Language.currentRunningLine);
+                
+                String path = (String) arguments.get(0);
+                String content = Language.stringify(arguments.get(1));
+
+                String parent_dir = Paths.get(samir_script_filepath, "").getParent().toString();
+                String file_path = parent_dir + "\\" + path;
+                
+                File file = new File(file_path);
+                try {
+                    file.createNewFile();
+                } catch (IOException e) {
+                    System.out.println("couldn't create file: " + file_path);
+                }
+                try (FileWriter writer = new FileWriter(file_path)) {
+                    writer.write(content);
+                } catch (IOException e) {
+                    System.out.println("couldn't write to file: " + file_path);
+                    e.printStackTrace();
+                }
+                return null;
+            }
+            
+        });
+
         globals.define("enumarate", new SamirCallable() {
 
             @Override
@@ -351,6 +420,45 @@ class Language {
                 ListInstance a = (ListInstance) arguments.get(0);
                 ListInstance b = (ListInstance) arguments.get(1);
                 return new SamirPairList(a, b);
+            }
+            
+        });
+
+        globals.define("split", new SamirCallable() {
+
+            @Override
+            public int arity() {return 2;}
+
+            @Override
+            public ListInstance call(List<Object> arguments) {
+                if(arguments.get(0) instanceof String == false)
+                    Language.error("first arg of split() must be a string", Language.currentRunningLine);
+                if(arguments.get(1) instanceof String == false || ((String) arguments.get(1)).length() != 1)
+                    Language.error("second arg of split() must be a string of length 1", Language.currentRunningLine);
+                String word = (String) arguments.get(0);
+                String split = (String) arguments.get(1);
+                return ListInstance.create_filled_list(word.split(split));
+            }
+            
+        });
+
+        globals.define("substring", new SamirCallable() {
+
+            @Override
+            public int arity() {return 3;}
+
+            @Override
+            public Object call(List<Object> arguments) {
+                if(arguments.get(0) instanceof String == false
+                || arguments.get(1) instanceof Double == false
+                || arguments.get(2) instanceof Double == false)
+                    Language.error("substring args must be (string, number, number)", Language.currentRunningLine);
+                String word = (String) arguments.get(0);
+                Double start = (Double) arguments.get(1);
+                Double end = (Double) arguments.get(2);
+                if(start % 1 != 0 || end % 1 != 0)
+                    Language.error("substring indices must be whole numbers", Language.currentRunningLine);
+                return word.substring(start.intValue(), end.intValue());
             }
             
         });
@@ -446,6 +554,12 @@ class Language {
 
     static Double int_to_Double(int i){
         return (Double) ((Integer) i).doubleValue();
+    }
+
+    static List<Object> to_list(Object object){
+        ArrayList<Object> list = new ArrayList<>();
+        list.add(object);
+        return list;
     }
         
             
@@ -1463,6 +1577,10 @@ class For extends Stmt {
                     catch(ContinueException e){
                         while (Language.environment != lasEnvi) 
                             Language.environment = Language.enviStack.pop();
+                        Language.enviStack.add(lasEnvi);
+                        Language.environment = newEnvi;
+
+
                     }
                 }
 
@@ -1496,6 +1614,8 @@ class For extends Stmt {
                     catch(ContinueException e){
                         while (Language.environment != lasEnvi) 
                             Language.environment = Language.enviStack.pop();
+                        Language.enviStack.add(lasEnvi);
+                        Language.environment = newEnvi;
                     }
                 }
 
@@ -1537,6 +1657,8 @@ class For extends Stmt {
                     catch(ContinueException e){
                         while (Language.environment != lasEnvi) 
                             Language.environment = Language.enviStack.pop();
+                        Language.enviStack.add(lasEnvi);
+                        Language.environment = newEnvi;
                     }
                 }
 

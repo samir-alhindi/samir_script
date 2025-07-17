@@ -1,0 +1,10 @@
+
+
+var x = ["Samir", "mary", "bob", "Spongebob"];
+x.sortCustom(len);
+println x;
+
+var y = [];
+y.sortCustom(lambda x -> x * 2);
+println y;
+

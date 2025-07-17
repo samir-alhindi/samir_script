@@ -284,6 +284,36 @@ class ListInstance extends SamirInstance {
             }
 
         });
+
+        this.environment.define("sortCustom", new SamirCallable(){
+
+            @Override
+            public int arity() {return 1;}
+
+            @Override
+            public Void call(List<Object> arguments) {
+                if(arguments.get(0) instanceof SamirCallable == false)
+                    Language.error("sortCustom() arg must be a callable", Language.currentRunningLine);
+                SamirCallable callable = (SamirCallable) arguments.get(0);
+                if(callable.arity() != 1)
+                    Language.error("sortCustom() arg must be a callable that takes exactly 1 arg", Language.currentRunningLine);
+                for (int i = 0; i < arrayList.size(); i++) {
+                    for (int j = 0; j < arrayList.size() - 1; j++) {
+                        Object a = callable.call(Language.to_list(arrayList.get(j)));
+                        Object b = callable.call(Language.to_list(arrayList.get(j+1)));
+                        if(a instanceof Double == false || b instanceof Double == false)
+                            Language.error("sortCustom() must return a number", Language.currentRunningLine);
+                        if((Double) a > (Double) b){
+                            Object temp = arrayList.get(j);
+                            arrayList.set(j, arrayList.get(j+1));
+                            arrayList.set(j+1, temp);
+                        }
+                    }
+                }
+                return null;
+            }
+
+        });
         
     }
 
@@ -399,6 +429,7 @@ class DictInstance extends SamirInstance {
 class SamirPairList {
     List<SamirPair> list;
     SamirPairList(DictInstance dict){
+        super();
         list = new ArrayList<>();
         for (Map.Entry<Object, Object> entry : dict.hashMap.entrySet()){
             SamirPair pair = new SamirPair(entry.getKey(), entry.getValue());
@@ -408,6 +439,7 @@ class SamirPairList {
     }
 
     SamirPairList(ListInstance a, ListInstance b){
+        super();
         list = new ArrayList<>();
         int size = Math.min(a.arrayList.size(), b.arrayList.size());
         for(int i = 0; i < size; i++)
@@ -432,6 +464,7 @@ class SamirPairList {
     Object first;
     Object second;
     SamirPair(Object first, Object second){
+        super();
         this.first = first;
         this.second = second;
         environment.define("first", first);
