@@ -1,0 +1,31 @@
+
+var numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+println numbers.filter(lambda x -> x % 2 == 0);
+
+func is_prime(number){
+    if number < 2 then
+        return false;
+    var i = number - 1;
+    while i > 1 do {
+        if number % i == 0 then
+            return false;
+        i -= 1;
+    }
+
+    return true;
+}
+
+println numbers.filter(is_prime);
+
+class Human {
+    var age;
+    func _init(age){
+        self.age = age;
+    }
+    func _toString(){
+        return str(age);
+    }
+}
+
+var humans = [Human(10), Human(18), Human(16), Human(20)];
+println humans.filter(lambda human -> human.age >= 18);

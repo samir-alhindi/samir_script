@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -22,9 +23,8 @@ public class Main {
         Language lang = new Language(samir_script_filepath);
         lang.run();
         */
-        
 
-        Language lang = new Language("samir_script_programs\\to_do_list.smr");
+        Language lang = new Language("samir_script_programs\\reduce.smr");
         lang.run();
     }
 }
@@ -462,8 +462,8 @@ class Language {
             }
             
         });
-
     }
+
 
     void run(){
         init();

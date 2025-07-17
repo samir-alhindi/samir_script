@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -314,6 +315,70 @@ class ListInstance extends SamirInstance {
             }
 
         });
+
+        this.environment.define("map", new SamirCallable(){
+
+            @Override
+            public int arity() {return 1;}
+
+            @Override
+            public ListInstance call(List<Object> arguments) {
+                if(arguments.get(0) instanceof SamirCallable == false)
+                    Language.error("map() arg must be a callable (function name, lambda)", Language.currentRunningLine);
+                SamirCallable callable = (SamirCallable) arguments.get(0);
+                if(callable.arity() != 1)
+                    Language.error("map() arg must be a callable that takes exactly 1 arg", Language.currentRunningLine);
+                for (int i = 0; i < arrayList.size(); i++)
+                    arrayList.set(i, callable.call(Arrays.asList(arrayList.get(i))));
+                return ListInstance.this;
+            }
+
+        });
+
+        this.environment.define("filter", new SamirCallable(){
+
+            @Override
+            public int arity() {return 1;}
+
+            @Override
+            public Object call(List<Object> arguments) {
+                if(arguments.get(0) instanceof SamirCallable == false)
+                    Language.error("filter() arg must be a callable (function name, lambda) ", Language.currentRunningLine);
+                SamirCallable callable = (SamirCallable) arguments.get(0);
+                if(callable.arity() != 1)
+                    Language.error("filter() arg must be a callable that takes exactly 1 arg", Language.currentRunningLine);
+                var output = new ArrayList<Object>();
+                for (Object item : arrayList){
+                    Object result = callable.call(Arrays.asList(item));
+                    if(result instanceof Boolean == false)
+                        Language.error("filter() arg must be a callable that returns a boolean value (true or false)", Language.currentRunningLine);
+                    if(((Boolean) result).equals(true))
+                        output.add(item);
+                }
+                return ListInstance.create_filled_list(output.toArray());
+            }
+
+        });
+
+        /*
+        this.environment.define("reduce", new SamirCallable(){
+
+            @Override
+            public int arity() {return 1;}
+
+            @Override
+            public Object call(List<Object> arguments) {
+                if(arguments.get(0) instanceof SamirCallable == false)
+                    Language.error("reduce() arg must be a callable (function, lambda)", Language.currentRunningLine);
+                SamirCallable callable = (SamirCallable) arguments.get(0);
+                if(callable.arity() != 2)
+                    Language.error("reduce() arg must be a callable that takes 2 args", Language.currentRunningLine);
+                var output = 0.0;
+                
+            }
+
+        });
+        */
         
     }
 
