@@ -2,7 +2,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -24,7 +23,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\reduce.smr");
+        Language lang = new Language("samir_script_programs\\enum.smr");
         lang.run();
     }
 }
@@ -672,7 +671,8 @@ enum TokenType{
     
     // keywords:
     VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN, THEN, DO,
-    RETURN, CLASS, BREAK, CONTINUE, LAMBDA, MATCH, WITH, CASE, FOR, IN,
+    RETURN, CLASS, BREAK, CONTINUE, LAMBDA, MATCH, WITH, CASE,
+    FOR, IN, ENUM,
 
     // Other:
     IDENTIFIER, EQUALS, EOS, EOF, COMMA, DOT, ARROW, COLON,
@@ -1807,6 +1807,21 @@ class ClassDeclre extends Stmt {
     Void visit(){
         SamirClass class_ = new SamirClass(this, Language.environment);
         Language.environment.define(name.value.toString(), class_);
+        return null;
+    }
+}
+
+class EnumDecl extends Stmt {
+    Token keyword;
+    List<Token> identfiers;
+    EnumDecl(Token keyword, List<Token> identfiers){
+        this.keyword = keyword;
+        this.identfiers = identfiers;
+    }
+    @Override
+    Void visit() {
+        for (int i = 0; i < identfiers.size(); i++)
+            Language.environment.define(identfiers.get(i).value.toString(), Language.int_to_Double(i));
         return null;
     }
 }

@@ -42,9 +42,42 @@ public class Parser{
             advance();
             return classDeclaration();
         }
+
+        else if(currentIs(TokenType.ENUM)){
+            advance();
+            return enumDeclaration();
+        }
             
 
         return statement();
+    }
+
+    Stmt enumDeclaration(){
+        if( ! currentIs(TokenType.L_CUR))
+            Language.error("expected '{' after enum keyword", current.line);
+        Token keyword = current;
+        advance();
+
+        if( ! currentIs(TokenType.IDENTIFIER))
+            Language.error("expected at least 1 identifier inside enum body", current.line);
+        var identfiers = new ArrayList<Token>();
+        identfiers.add(current);
+        advance();
+
+        while(currentIs(TokenType.COMMA)){
+            advance();
+            if( ! currentIs(TokenType.IDENTIFIER))
+                Language.error("expected identfier after ','", current.line);
+            identfiers.add(current);
+            advance();
+        }
+        if( ! currentIs(TokenType.R_CUR))
+            Language.error("expected closing '}' after enum body", current.line);
+        advance();
+
+        return new EnumDecl(keyword, identfiers);
+
+
     }
 
     Stmt classDeclaration(){

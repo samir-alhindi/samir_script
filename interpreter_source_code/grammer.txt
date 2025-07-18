@@ -3,11 +3,14 @@ program        → declaration* EOF ;
 declaration    → funDecl
                | varDecl
                | classDecl
+               | enumDecl
                | statement ;
 
 classDecl     -> "class" IDENTIFIER "{"
                 (constructer)?
                 (classMembers)* "}";
+
+enumDecl      -> "enum" "{" parameters "}"
 
 classMembers  -> funDecl | varDecl ;
 

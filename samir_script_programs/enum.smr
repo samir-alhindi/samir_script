@@ -1,0 +1,11 @@
+
+
+enum {
+    ZERO,
+    ONE,
+    TWO
+}
+
+println ZERO;
+println ONE;
+println TWO;
