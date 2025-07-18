@@ -360,7 +360,7 @@ class ListInstance extends SamirInstance {
 
         });
 
-        /*
+        
         this.environment.define("reduce", new SamirCallable(){
 
             @Override
@@ -373,12 +373,17 @@ class ListInstance extends SamirInstance {
                 SamirCallable callable = (SamirCallable) arguments.get(0);
                 if(callable.arity() != 2)
                     Language.error("reduce() arg must be a callable that takes 2 args", Language.currentRunningLine);
-                var output = 0.0;
-                
+                if(arrayList.size() < 2)
+                    Language.error("List must be of at least length 2 in order to reduce", Language.currentRunningLine);
+                Object output;
+                output = callable.call(Arrays.asList(arrayList.get(0), arrayList.get(1)));
+                for (int i = 2; i < arrayList.size(); i++)
+                    output = callable.call(Arrays.asList(output, arrayList.get(i)));
+                return output; 
             }
 
         });
-        */
+        
         
     }
 
