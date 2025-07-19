@@ -552,3 +552,12 @@ class SamirPairList {
         return "(" + Language.stringify(first) + ", " + Language.stringify(second) + ")";
     }
  }
+
+ class Importinstance extends SamirInstance {
+    Importinstance(Language lang, Token import_name){
+        super(lang);
+        this.environment = lang.environment;
+        // This line exists so we can error report if the user tries to accsses a member that isn't in the file:
+        this.class_ = new SamirClass(new ClassDeclre(null, new Token(null, (String) import_name.value, 0), null, null, lang), null, lang); 
+    }
+ }

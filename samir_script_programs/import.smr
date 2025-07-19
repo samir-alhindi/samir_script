@@ -1,0 +1,6 @@
+import "samir_script_programs\\math.smr" as math
+
+println math.cubed(3);
+println math.factorial(5);
+println math.magic_constant;
+println math.area(5);

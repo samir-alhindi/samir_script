@@ -1,0 +1,15 @@
+
+func cubed(x) {
+    return x * x * x;
+}
+
+func factorial(num){
+    if num == 1 then return 1;
+    return num * factorial(num - 1);
+}
+
+func area(radius){
+    return radius * radius * PI;
+}
+
+var magic_constant = 23.543;

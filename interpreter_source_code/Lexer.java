@@ -2,20 +2,20 @@ import java.util.ArrayList;
 
 public class Lexer {
 
-    static String source;
-    static int pos = 0;
-    static int line = 0;
-    static char current;
-    static ArrayList<Token> tokens = new ArrayList<>();
+    String source;
+    int pos = 0;
+    int line = 0;
+    char current;
+    ArrayList<Token> tokens = new ArrayList<>();
 
     // NOTE: true and false aren't keywords but rather boolean literals, nil is just null:
     // I put them with the keywords to make things easier:
-    static final String[] keywords = {"var", "and", "or", "not", "if", "then", "elif", "else",
+    final String[] keywords = {"var", "and", "or", "not", "if", "then", "elif", "else",
     "func", "false", "true", "nil", "print", "println", "do", "while", "return", "class", "break", "continue",
     "lambda", "match", "with", "case", "for", "in", "enum", "import", "as"};
 
     Lexer(String source){
-        Lexer.source = source;
+        this.source = source;
     }
 
     ArrayList<Token> lex (){

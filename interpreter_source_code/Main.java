@@ -23,7 +23,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\interpreter.smr");
+        Language lang = new Language("samir_script_programs\\import.smr");
         lang.run();
     }
 }
@@ -482,10 +482,8 @@ class Language {
 
         
         }
-        catch(FileNotFoundException e){
-            System.out.println("File not found.");
-        }
-        catch(IOException e){
+        catch(IOException d){
+            Language.error("File: " + samir_script_filepath + " not found", currentLine);
         }
         
     }
@@ -1865,13 +1863,19 @@ class Import extends Stmt {
     Token keyword;
     String path;
     Token identfier;
-    Import(Token keyword, String path, Token identfier){
+    Language lang;
+    Import(Token keyword, String path, Token identfier, Language lang){
         this.keyword = keyword;
         this.path = path;
         this.identfier = identfier;
+        this.lang = lang;
     }
     @Override
     Void visit() {
+        Language new_lang = new Language(path);
+        new_lang.run();
+        SamirInstance import_instance = new Importinstance(new_lang, identfier);
+        lang.environment.define((String) identfier.value, import_instance);
         return null;
     }
 }

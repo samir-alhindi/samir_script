@@ -5,13 +5,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 public class Parser{
-    static int pos = 0;
-    static Token current;
-    static ArrayList<Token> tokens = new ArrayList<>();
+    int pos = 0;
+    Token current;
+    ArrayList<Token> tokens = new ArrayList<>();
     Language lang;
 
     Parser(ArrayList<Token> tokens, Language lang){
-        Parser.tokens = tokens;
+        this.tokens = tokens;
         this.lang = lang;
     }
 
@@ -73,7 +73,7 @@ public class Parser{
             identifier = current;
             advance();
         }
-        return new Import(keyword, path, identifier);
+        return new Import(keyword, path, identifier, lang);
     }
 
     Stmt enumDeclaration(){
