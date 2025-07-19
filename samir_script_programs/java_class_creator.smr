@@ -1,1 +1,56 @@
 
+
+func create_java_class(class_name, variables_list) {
+    var contents = "" + ln;
+
+    # Creating class signature:
+    contents += "public class " + class_name + " {" + ln;
+
+    # Creating member variables:
+    var variables_dict = {};
+    for variable in variables_list do {
+        var type_and_name = split(variable, " ");
+        variables_dict[type_and_name[1]] = type_and_name[0];
+    }
+
+    for variable in variables_list do
+        contents += tab + "private " + variable + ";" + ln;
+    
+    contents += ln;
+    
+    # Create constructer:
+    contents += tab + class_name + "(";
+    for variable in variables_list do
+        contents += variable + ", ";
+    # Remove last comma:
+    contents = substring(contents, 0, len(contents) - 2);
+    contents += "){" + ln;
+    
+    for name in variables_dict.keys() do
+        contents += tab + tab + "this." + name + " = " + name + ";" + ln;
+    contents += tab + "}" + ln + ln;
+
+    # Setters:
+    for name, type in variables_dict.items() do {
+        contents += tab + "public void set_" + name + "(" + type + " " + name + ")";
+        contents += "{" + ln + tab + tab + "this." + name + " = " + name + ";" + ln + tab + "}";
+        contents += ln;
+    }
+
+    contents += ln;
+
+    # Getters:
+    for name, type in variables_dict.items() do {
+        contents += tab + "public " + type + " get_" + name + "()";
+        contents += "{" + ln + tab + tab + "return " + name + ";" + ln + tab + "}";
+        contents += ln;
+    }
+    
+    contents += ln +  "}";
+    write(class_name + ".java", contents);
+}
+
+
+create_java_class("Employee", ["String name", "int salary"]);
+create_java_class("Student", ["String name", "double gpa", "int total_credits", "int age", "Course[] finished_courses"]);
+create_java_class("Course", ["String name", "int credit_hours", "Employee tutor", "String description", "String track"]);

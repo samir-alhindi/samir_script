@@ -4,6 +4,7 @@ declaration    → funDecl
                | varDecl
                | classDecl
                | enumDecl
+               | importDecl
                | statement ;
 
 classDecl     -> "class" IDENTIFIER "{"
@@ -11,6 +12,8 @@ classDecl     -> "class" IDENTIFIER "{"
                 (classMembers)* "}";
 
 enumDecl      -> "enum" "{" parameters "}"
+
+importDecl    -> "import" STRING ("as" IDENTIFIER)? ;
 
 classMembers  -> funDecl | varDecl ;
 

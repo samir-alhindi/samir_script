@@ -12,7 +12,7 @@ public class Lexer {
     // I put them with the keywords to make things easier:
     static final String[] keywords = {"var", "and", "or", "not", "if", "then", "elif", "else",
     "func", "false", "true", "nil", "print", "println", "do", "while", "return", "class", "break", "continue",
-    "lambda", "match", "with", "case", "for", "in", "enum"};
+    "lambda", "match", "with", "case", "for", "in", "enum", "import", "as"};
 
     Lexer(String source){
         Lexer.source = source;
@@ -281,6 +281,8 @@ public class Lexer {
                     case "for" -> token.type = TokenType.FOR;
                     case "in" -> token.type = TokenType.IN;
                     case "enum" -> token.type = TokenType.ENUM;
+                    case "import" -> token.type = TokenType.IMPORT;
+                    case "as" -> token.type = TokenType.AS;
                 }
                 tokens.add(token);
             }

@@ -23,7 +23,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\enum.smr");
+        Language lang = new Language("samir_script_programs\\java_class_creator.smr");
         lang.run();
     }
 }
@@ -105,6 +105,9 @@ class Language {
 
         // newline:
         globals.define("ln", "\n");
+
+        // Tab:
+        globals.define("tab", "\t");
 
         // Take input:
         globals.define("input", new SamirCallable() {
@@ -672,7 +675,7 @@ enum TokenType{
     // keywords:
     VAR, IF, ELSE, ELIF, FUNC, WHILE, PRINT, PRINT_LN, THEN, DO,
     RETURN, CLASS, BREAK, CONTINUE, LAMBDA, MATCH, WITH, CASE,
-    FOR, IN, ENUM,
+    FOR, IN, ENUM, IMPORT, AS, 
 
     // Other:
     IDENTIFIER, EQUALS, EOS, EOF, COMMA, DOT, ARROW, COLON,
@@ -1822,6 +1825,21 @@ class EnumDecl extends Stmt {
     Void visit() {
         for (int i = 0; i < identfiers.size(); i++)
             Language.environment.define(identfiers.get(i).value.toString(), Language.int_to_Double(i));
+        return null;
+    }
+}
+
+class Import extends Stmt {
+    Token keyword;
+    String path;
+    Token identfier;
+    Import(Token keyword, String path, Token identfier){
+        this.keyword = keyword;
+        this.path = path;
+        this.identfier = identfier;
+    }
+    @Override
+    Void visit() {
         return null;
     }
 }

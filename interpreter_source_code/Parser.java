@@ -47,9 +47,31 @@ public class Parser{
             advance();
             return enumDeclaration();
         }
+
+        else if(currentIs(TokenType.IMPORT)){
+            return importDeclaration();
+        }
             
 
         return statement();
+    }
+
+    Stmt importDeclaration(){
+        Token keyword = current;
+        advance();
+        if( ! currentIs(TokenType.STRING))
+            Language.error("expected file path after 'import' keyword", current.line);
+        String path = (String) current.value;
+        advance();
+        Token identifier = null;
+        if(currentIs(TokenType.AS)){
+            advance();
+            if( ! currentIs(TokenType.IDENTIFIER))
+                Language.error("expected identifier after 'as' keyword", current.line);
+            identifier = current;
+            advance();
+        }
+        return new Import(keyword, path, identifier);
     }
 
     Stmt enumDeclaration(){
