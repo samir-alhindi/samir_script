@@ -9,11 +9,13 @@ class SamirClass implements SamirCallable{
     ClassDeclre class_;
     Function constructer;
     Function to_string;
-    SamirClass(ClassDeclre class_, Environment closure){
+    Language lang;
+    SamirClass(ClassDeclre class_, Environment closure, Language lang){
         this.class_ = class_;
         this.constructer = class_.constructer;
         this.to_string = class_.to_string;
         this.closure = closure;
+        this.lang = lang;
     }
 
     @Override
@@ -31,7 +33,7 @@ class SamirClass implements SamirCallable{
     @Override
     public Object call(List<Object> arguments) {
         // Check stack overflow:
-        return new SamirInstance(this, arguments);
+        return new SamirInstance(this, arguments, lang);
     }
     
 }
@@ -41,11 +43,11 @@ class SamirInstance{
     SamirClass class_;
     SamirCallable to_string_method_as_callable;
 
-    SamirInstance(SamirClass class_, List<Object> constructer_args){
+    SamirInstance(SamirClass class_, List<Object> constructer_args, Language lang){
         this.class_ = class_;
         this.environment = new Environment(class_.closure);
-        Environment prev = Language.environment;
-        Language.environment = this.environment;
+        Environment prev = lang.environment;
+        lang.environment = this.environment;
         List<Stmt> bodyStatements = class_.class_.classBody;
 
         environment.define("self", this);
@@ -62,13 +64,13 @@ class SamirInstance{
             to_string_method_as_callable = (SamirCallable) environment.get(new Token(null, "_toString", 0));
         }
             
-        Language.environment = prev;
+        lang.environment = prev;
     }
 
 
     // For inherting native classes:
-    SamirInstance(){
-        this.environment = new Environment(Language.environment);
+    SamirInstance(Language lang){
+        this.environment = new Environment(lang.environment);
     }
 
     @Override
@@ -84,12 +86,14 @@ interface NativeMethod {}
 class ListInstance extends SamirInstance {
 
     ArrayList<Object> arrayList;
+    Language lang;
 
-    ListInstance(ArrayList<Object> arrayList){
-        super();
+    ListInstance(ArrayList<Object> arrayList, Language lang){
+        super(lang);
         this.arrayList = arrayList;
+        this.lang = lang;
         // This line exists so we can error report if the user tries to accsses a member that isn't in the List class:
-        this.class_ = new SamirClass(new ClassDeclre(null, new Token(null, "List", 0), null, null), null);
+        this.class_ = new SamirClass(new ClassDeclre(null, new Token(null, "List", 0), null, null, lang), null, lang);
         this.environment.define("size", 0.0);
 
         // Create append/add method for list object:
@@ -170,7 +174,7 @@ class ListInstance extends SamirInstance {
             @Override
             public Object call(List<Object> arguments) {
                 if(arrayList.size() == 0)
-                    Language.error("Can't pop() from an empty list", Language.currentRunningLine);
+                    Language.error("Can't pop() from an empty list", lang.currentRunningLine);
                 changeSize(-1);
                 return arrayList.removeLast();
             }
@@ -184,7 +188,7 @@ class ListInstance extends SamirInstance {
             @Override
             public Object call(List<Object> arguments) {
                 if(arrayList.size() == 0)
-                    Language.error("Can't popFront() from an empty list", Language.currentRunningLine);
+                    Language.error("Can't popFront() from an empty list", lang.currentRunningLine);
                 changeSize(-1);
                 return arrayList.removeFirst();
             }
@@ -213,7 +217,7 @@ class ListInstance extends SamirInstance {
 
             @Override
             public ListInstance call(List<Object> arguments) {
-                ListInstance new_list = new ListInstance(new ArrayList<>());
+                ListInstance new_list = new ListInstance(new ArrayList<>(), lang);
                 Object add_method_uncast = new_list.environment.variables.get("add");
                 SamirCallable add_method = (SamirCallable) add_method_uncast;
                 for (Object item : arrayList) {
@@ -268,7 +272,7 @@ class ListInstance extends SamirInstance {
                 Object arg2 = arguments.get(1);
                 Object arg3 = arguments.get(2);
                 if(arg1 instanceof Double == false || arg2 instanceof Double == false || arg3 instanceof Double == false)
-                    Language.error("all fillRange() args must be numbers", Language.currentRunningLine);
+                    Language.error("all fillRange() args must be numbers", lang.currentRunningLine);
                 int from = ((Double) arg1).intValue();
                 int to = ((Double) arg2).intValue();
                 int step = ((Double) arg3).intValue();
@@ -294,16 +298,16 @@ class ListInstance extends SamirInstance {
             @Override
             public Void call(List<Object> arguments) {
                 if(arguments.get(0) instanceof SamirCallable == false)
-                    Language.error("sortCustom() arg must be a callable", Language.currentRunningLine);
+                    Language.error("sortCustom() arg must be a callable", lang.currentRunningLine);
                 SamirCallable callable = (SamirCallable) arguments.get(0);
                 if(callable.arity() != 1)
-                    Language.error("sortCustom() arg must be a callable that takes exactly 1 arg", Language.currentRunningLine);
+                    Language.error("sortCustom() arg must be a callable that takes exactly 1 arg", lang.currentRunningLine);
                 for (int i = 0; i < arrayList.size(); i++) {
                     for (int j = 0; j < arrayList.size() - 1; j++) {
                         Object a = callable.call(Language.to_list(arrayList.get(j)));
                         Object b = callable.call(Language.to_list(arrayList.get(j+1)));
                         if(a instanceof Double == false || b instanceof Double == false)
-                            Language.error("sortCustom() must return a number", Language.currentRunningLine);
+                            Language.error("sortCustom() must return a number", lang.currentRunningLine);
                         if((Double) a > (Double) b){
                             Object temp = arrayList.get(j);
                             arrayList.set(j, arrayList.get(j+1));
@@ -324,10 +328,10 @@ class ListInstance extends SamirInstance {
             @Override
             public ListInstance call(List<Object> arguments) {
                 if(arguments.get(0) instanceof SamirCallable == false)
-                    Language.error("map() arg must be a callable (function name, lambda)", Language.currentRunningLine);
+                    Language.error("map() arg must be a callable (function name, lambda)", lang.currentRunningLine);
                 SamirCallable callable = (SamirCallable) arguments.get(0);
                 if(callable.arity() != 1)
-                    Language.error("map() arg must be a callable that takes exactly 1 arg", Language.currentRunningLine);
+                    Language.error("map() arg must be a callable that takes exactly 1 arg", lang.currentRunningLine);
                 for (int i = 0; i < arrayList.size(); i++)
                     arrayList.set(i, callable.call(Arrays.asList(arrayList.get(i))));
                 return ListInstance.this;
@@ -343,19 +347,19 @@ class ListInstance extends SamirInstance {
             @Override
             public Object call(List<Object> arguments) {
                 if(arguments.get(0) instanceof SamirCallable == false)
-                    Language.error("filter() arg must be a callable (function name, lambda) ", Language.currentRunningLine);
+                    Language.error("filter() arg must be a callable (function name, lambda) ", lang.currentRunningLine);
                 SamirCallable callable = (SamirCallable) arguments.get(0);
                 if(callable.arity() != 1)
-                    Language.error("filter() arg must be a callable that takes exactly 1 arg", Language.currentRunningLine);
+                    Language.error("filter() arg must be a callable that takes exactly 1 arg", lang.currentRunningLine);
                 var output = new ArrayList<Object>();
                 for (Object item : arrayList){
                     Object result = callable.call(Arrays.asList(item));
                     if(result instanceof Boolean == false)
-                        Language.error("filter() arg must be a callable that returns a boolean value (true or false)", Language.currentRunningLine);
+                        Language.error("filter() arg must be a callable that returns a boolean value (true or false)", lang.currentRunningLine);
                     if(((Boolean) result).equals(true))
                         output.add(item);
                 }
-                return ListInstance.create_filled_list(output.toArray());
+                return ListInstance.create_filled_list(output.toArray(), lang);
             }
 
         });
@@ -369,12 +373,12 @@ class ListInstance extends SamirInstance {
             @Override
             public Object call(List<Object> arguments) {
                 if(arguments.get(0) instanceof SamirCallable == false)
-                    Language.error("reduce() arg must be a callable (function, lambda)", Language.currentRunningLine);
+                    Language.error("reduce() arg must be a callable (function, lambda)", lang.currentRunningLine);
                 SamirCallable callable = (SamirCallable) arguments.get(0);
                 if(callable.arity() != 2)
-                    Language.error("reduce() arg must be a callable that takes 2 args", Language.currentRunningLine);
+                    Language.error("reduce() arg must be a callable that takes 2 args", lang.currentRunningLine);
                 if(arrayList.size() < 2)
-                    Language.error("List must be of at least length 2 in order to reduce", Language.currentRunningLine);
+                    Language.error("List must be of at least length 2 in order to reduce", lang.currentRunningLine);
                 Object output;
                 output = callable.call(Arrays.asList(arrayList.get(0), arrayList.get(1)));
                 for (int i = 2; i < arrayList.size(); i++)
@@ -400,20 +404,20 @@ class ListInstance extends SamirInstance {
 
     int checkValidIndex(Object object){
         if(object instanceof Double == false)
-            Language.error("argument of this List method must be a number", Language.currentRunningLine);
+            Language.error("argument of this List method must be a number", lang.currentRunningLine);
         Double index = (Double) object;
 
         if(index % 1 != 0)
-            Language.error("argument must be a whole number", Language.currentRunningLine);
+            Language.error("argument must be a whole number", lang.currentRunningLine);
 
         if(index >= arrayList.size())
-            Language.error("index " + index.intValue() + " out of bounds for size " + arrayList.size(), Language.currentRunningLine);
+            Language.error("index " + index.intValue() + " out of bounds for size " + arrayList.size(), lang.currentRunningLine);
         
         // Negative index:
         if(index < 0){
             Double actualIndex = index + arrayList.size();
             if(actualIndex < 0)
-                Language.error("index " + index.intValue() + " out of bounds for size " + arrayList.size(), Language.currentRunningLine);
+                Language.error("index " + index.intValue() + " out of bounds for size " + arrayList.size(), lang.currentRunningLine);
             index = actualIndex;
         }
         
@@ -430,8 +434,8 @@ class ListInstance extends SamirInstance {
         return (Double) (double) arrayList.size();
     }
 
-    static ListInstance create_filled_list(Object[] items){
-        ListInstance list = new ListInstance(new ArrayList<>());
+    static ListInstance create_filled_list(Object[] items, Language lang){
+        ListInstance list = new ListInstance(new ArrayList<>(), lang);
         Object add_method_uncast = list.environment.variables.get("add");
         SamirCallable add_method = (SamirCallable) add_method_uncast;
         for (Object item : items) {
@@ -447,12 +451,14 @@ class ListInstance extends SamirInstance {
 class DictInstance extends SamirInstance {
 
     HashMap<Object, Object> hashMap;
+    Language lang;
 
-    DictInstance(HashMap<Object, Object> hashMap){
-        super();
+    DictInstance(HashMap<Object, Object> hashMap, Language lang){
+        super(lang);
         this.hashMap = hashMap;
+        this.lang = lang;
         // This line exists so we can error report if the user tries to accsses a member that isn't in the Dict class:
-        this.class_ = new SamirClass(new ClassDeclre(null, new Token(null, "Dict", 0), null, null), null);
+        this.class_ = new SamirClass(new ClassDeclre(null, new Token(null, "Dict", 0), null, null, lang), null, lang);
 
         // Methods:
         this.environment.define("keys", new SamirCallable(){
@@ -462,7 +468,7 @@ class DictInstance extends SamirInstance {
 
             @Override
             public ListInstance call(List<Object> arguments) {
-                return ListInstance.create_filled_list(hashMap.keySet().toArray());
+                return ListInstance.create_filled_list(hashMap.keySet().toArray(), lang);
             }
         });
 
@@ -473,7 +479,7 @@ class DictInstance extends SamirInstance {
 
             @Override
             public Object call(List<Object> arguments) {
-                return new SamirPairList(DictInstance.this);
+                return new SamirPairList(DictInstance.this, lang);
             }
 
         });
@@ -498,22 +504,22 @@ class DictInstance extends SamirInstance {
 
 class SamirPairList {
     List<SamirPair> list;
-    SamirPairList(DictInstance dict){
+    SamirPairList(DictInstance dict, Language lang){
         super();
         list = new ArrayList<>();
         for (Map.Entry<Object, Object> entry : dict.hashMap.entrySet()){
-            SamirPair pair = new SamirPair(entry.getKey(), entry.getValue());
+            SamirPair pair = new SamirPair(entry.getKey(), entry.getValue(), lang);
             list.add(pair);
         }
         
     }
 
-    SamirPairList(ListInstance a, ListInstance b){
+    SamirPairList(ListInstance a, ListInstance b, Language lang){
         super();
         list = new ArrayList<>();
         int size = Math.min(a.arrayList.size(), b.arrayList.size());
         for(int i = 0; i < size; i++)
-            list.add(new SamirPair(a.arrayList.get(i), b.arrayList.get(i)));
+            list.add(new SamirPair(a.arrayList.get(i), b.arrayList.get(i), lang));
     }
 
     @Override
@@ -533,8 +539,8 @@ class SamirPairList {
  class SamirPair extends SamirInstance{
     Object first;
     Object second;
-    SamirPair(Object first, Object second){
-        super();
+    SamirPair(Object first, Object second, Language lang){
+        super(lang);
         this.first = first;
         this.second = second;
         environment.define("first", first);

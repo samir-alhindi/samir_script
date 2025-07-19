@@ -8,9 +8,11 @@ public class Parser{
     static int pos = 0;
     static Token current;
     static ArrayList<Token> tokens = new ArrayList<>();
+    Language lang;
 
-    Parser(ArrayList<Token> tokens){
+    Parser(ArrayList<Token> tokens, Language lang){
         Parser.tokens = tokens;
+        this.lang = lang;
     }
 
     List<Stmt> parse(){
@@ -97,7 +99,7 @@ public class Parser{
             Language.error("expected closing '}' after enum body", current.line);
         advance();
 
-        return new EnumDecl(keyword, identfiers);
+        return new EnumDecl(keyword, identfiers, lang);
 
 
     }
@@ -140,7 +142,7 @@ public class Parser{
             Language.error("Expected '}' after class '" + name.value + "' body", name.line);
         advance();
 
-        return new ClassDeclre(classBody, name, constructer, to_string);
+        return new ClassDeclre(classBody, name, constructer, to_string, lang);
     }
 
 
@@ -185,7 +187,7 @@ public class Parser{
 
         List<Stmt> body = block();
 
-        return new Function(name, parameters, body);
+        return new Function(name, parameters, body, lang);
 
 
     }
@@ -207,7 +209,7 @@ public class Parser{
             Language.error("expected ';' after end of statement", current.line - 1);
         advance();
 
-        return new VarDeclare(varName, initializer);
+        return new VarDeclare(varName, initializer, lang);
         
     }
     
@@ -233,7 +235,7 @@ public class Parser{
 
         else if (currentIs(TokenType.L_CUR)){
             advance();
-            return new Block(block());
+            return new Block(block(), lang);
         }
 
         else if(currentIs(TokenType.RETURN))
@@ -280,7 +282,7 @@ public class Parser{
         advance();
         Stmt body = statement();
 
-        return new For(forVar, iterable, body, secondForVar);
+        return new For(forVar, iterable, body, secondForVar, lang);
     }
 
     Stmt matchStmt(){
@@ -359,7 +361,7 @@ public class Parser{
         advance();
         Stmt body = statement();
 
-        return new While(condition, body);
+        return new While(condition, body, lang);
     }
 
     Stmt ifStatement(){
@@ -448,12 +450,12 @@ public class Parser{
 
             if(expre instanceof Variable){
                 Token varName = ( (Variable) expre ).token;
-                return new AssignExpre(varName, newValue, opp);
+                return new AssignExpre(varName, newValue, opp, lang);
             }
 
             else if(expre instanceof MemberAccess){
                 MemberAccess memberToChange = (MemberAccess) expre;
-                return new MemberAssign(memberToChange, newValue, opp);
+                return new MemberAssign(memberToChange, newValue, opp, lang);
             }
 
             else if(expre instanceof Subscript)
@@ -500,7 +502,7 @@ public class Parser{
 
             Expre body = expression();
 
-            return new Lambda(keyword, parameters, body);
+            return new Lambda(keyword, parameters, body, lang);
         }
         
 
@@ -560,7 +562,7 @@ public class Parser{
             Token opToken = current;
             advance();
             Expre right = comparison();
-            expre = new BinOpExpre(expre, opToken, right);
+            expre = new BinOpExpre(expre, opToken, right, lang);
         }
 
         return expre;
@@ -573,7 +575,7 @@ public class Parser{
             Token opToken = current;
             advance();
             Expre right = term();
-            expre = new BinOpExpre(expre, opToken, right);
+            expre = new BinOpExpre(expre, opToken, right, lang);
         }
 
         return expre;
@@ -586,7 +588,7 @@ public class Parser{
             Token opToken = current;
             advance();
             Expre right = factor();
-            expre = new BinOpExpre(expre, opToken, right);
+            expre = new BinOpExpre(expre, opToken, right, lang);
         }
         return expre;
     }
@@ -598,7 +600,7 @@ public class Parser{
             Token opToken = current;
             advance();
             Expre right = unary();
-            expre = new BinOpExpre(expre, opToken, right);
+            expre = new BinOpExpre(expre, opToken, right, lang);
         }
 
         return expre;
@@ -622,7 +624,7 @@ public class Parser{
             Token dot = current;
             advance();
             Expre member = call();
-            expre = new MemberAccess(expre, dot, member);
+            expre = new MemberAccess(expre, dot, member, lang);
         }
 
         return expre;
@@ -650,7 +652,7 @@ public class Parser{
         // No args found:
         if(currentIs(TokenType.R_PAR)){
             advance();
-            return new Call(callee, current, arguments);
+            return new Call(callee, current, arguments, lang);
         }
 
         Expre arg = expression();
@@ -669,7 +671,7 @@ public class Parser{
             Language.error("Expected ')' to close call.", current.line);
         advance();
 
-        return new Call(callee, current, arguments);
+        return new Call(callee, current, arguments, lang);
     }
 
     Expre subscript(){
@@ -717,7 +719,7 @@ public class Parser{
             
         else if(currentIs(TokenType.IDENTIFIER)){
             advance();
-            return new Variable(tok);
+            return new Variable(tok, lang);
         }
         
         else if(curType.equals(TokenType.L_PAR)){
@@ -742,7 +744,7 @@ public class Parser{
                 listContents.add(expression());
             }
             advance();
-            return new ListLiteral(token, listContents);
+            return new ListLiteral(token, listContents, lang);
         }
 
         else if(curType.equals(TokenType.L_CUR)){
@@ -789,11 +791,11 @@ public class Parser{
             if( ! currentIs(TokenType.R_CUR)){
                 Inner inner = new Inner(current);
                 hashMap = inner.dictContents();
-                return new DictLiteral(token, hashMap);
+                return new DictLiteral(token, hashMap, lang);
             }
             if(currentIs(TokenType.R_CUR)){
                 advance();
-                return new DictLiteral(token, new HashMap<>());
+                return new DictLiteral(token, new HashMap<>(), lang);
             }
                 
 

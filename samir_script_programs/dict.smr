@@ -7,3 +7,5 @@ dict["Yahya"] = 21;
 dict["Muhammed"] = 22;
 dict[5] = "Hello";
 dict[true] = "Yup";
+
+println dict;

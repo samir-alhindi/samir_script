@@ -3,9 +3,11 @@ import java.util.List;
 class SamirFunction implements SamirCallable {
     final Function declaration;
     final Environment closure;
-    SamirFunction(Function declaration, Environment closure){
+    Language lang;
+    SamirFunction(Function declaration, Environment closure, Language lang){
         this.declaration = declaration;
         this.closure = closure;
+        this.lang = lang;
     }
     @Override
     public int arity() {
@@ -25,24 +27,24 @@ class SamirFunction implements SamirCallable {
         
         // We use this variable to return to the last point since the call,
         // It's important when we want to return from say an if statement inside a while loop inside a function.
-        Environment lasEnvi = Language.environment;
-        Language.enviStack.add(lasEnvi);
-        Language.environment = environment;
+        Environment lasEnvi = lang.environment;
+        lang.enviStack.add(lasEnvi);
+        lang.environment = environment;
         // Check if stack overflow:
-        if(Language.enviStack.size() > 1024)
+        if(lang.enviStack.size() > 1024)
             Language.error("function caused a stack overflow", declaration.name.line);
         try{
             for (Stmt stmt : declaration.body)
                 stmt.visit();
             
             // Restore previous environment:
-            while (Language.environment != lasEnvi)
-                Language.environment = Language.enviStack.pop();
+            while (lang.environment != lasEnvi)
+                lang.environment = lang.enviStack.pop();
         }
         catch(ReturnException returnValue){
             // Restore previous environment:
-            while (Language.environment != lasEnvi)
-                Language.environment = Language.enviStack.pop();
+            while (lang.environment != lasEnvi)
+                lang.environment = lang.enviStack.pop();
             
             return returnValue.value;
         }
@@ -70,9 +72,11 @@ class ReturnException extends RuntimeException {
 class SamirLambda implements SamirCallable {
     final Lambda declaration;
     final Environment closure;
-    SamirLambda(Lambda declaration, Environment closure){
+    Language lang;
+    SamirLambda(Lambda declaration, Environment closure, Language lang){
         this.declaration = declaration;
         this.closure = closure;
+        this.lang = lang;
     }
     @Override
     public int arity() {
@@ -93,18 +97,18 @@ class SamirLambda implements SamirCallable {
         
         // We use this variable to return to the last point since the call,
         // It's important when we want to return from say an if statement inside a while loop inside a function.
-        Environment lasEnvi = Language.environment;
-        Language.enviStack.add(lasEnvi);
-        Language.environment = environment;
+        Environment lasEnvi = lang.environment;
+        lang.enviStack.add(lasEnvi);
+        lang.environment = environment;
         // Check if stack overflow:
-        if(Language.enviStack.size() > 1024)
+        if(lang.enviStack.size() > 1024)
             Language.error("lambda caused a stack overflow", declaration.token.line);
         
         Object value = declaration.body.visit();
             
         // Restore previous environment:
-        while (Language.environment != lasEnvi)
-            Language.environment = Language.enviStack.pop();
+        while (lang.environment != lasEnvi)
+            lang.environment = lang.enviStack.pop();
 
         return value;
     }

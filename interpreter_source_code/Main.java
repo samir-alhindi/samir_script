@@ -23,19 +23,19 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\java_class_creator.smr");
+        Language lang = new Language("samir_script_programs\\interpreter.smr");
         lang.run();
     }
 }
 
 class Language {
 
-    static Environment globals = new Environment();
-    static Environment environment = globals;
-    static Stack<Environment> enviStack = new Stack<>();
+    Environment globals = new Environment();
+    Environment environment = globals;
+    Stack<Environment> enviStack = new Stack<>();
 
-    static boolean aboutToRunMethod = false;
-    static int currentRunningLine = 1;
+    boolean aboutToRunMethod = false;
+    int currentRunningLine = 1;
 
     int currentLine = 0;
     String samir_script_filepath;
@@ -59,7 +59,7 @@ class Language {
 
             @Override
             public Object call(List<Object> arguments) {
-                return new ListInstance(new ArrayList<>());
+                return new ListInstance(new ArrayList<>(), Language.this);
             }
 
             @Override
@@ -78,7 +78,7 @@ class Language {
 
             @Override
             public Object call(List<Object> arguments) {
-                return new DictInstance(new HashMap<Object, Object>());
+                return new DictInstance(new HashMap<Object, Object>(), Language.this);
             }
 
             @Override
@@ -95,7 +95,7 @@ class Language {
 
             @Override
             public Object call(List<Object> arguments) {
-                return new SamirPair(arguments.get(0), arguments.get(1));
+                return new SamirPair(arguments.get(0), arguments.get(1), Language.this);
             }
             
         });
@@ -143,7 +143,7 @@ class Language {
                 if(isNumeric(arg.toString()))
                     return Double.parseDouble(arg.toString());
                 else
-                    Language.error("Cannot cast " + arg.toString() + " to a number", Language.currentRunningLine);
+                    Language.error("Cannot cast " + arg.toString() + " to a number", currentRunningLine);
 
                 // unreachable:
                 return null;
@@ -249,7 +249,7 @@ class Language {
                 else if(arg instanceof SamirPairList)
                     return int_to_Double(((SamirPairList) arg).list.size());
                 
-                Language.error("len() argument must be a list, string or Dict", Language.currentRunningLine);
+                Language.error("len() argument must be a list, string or Dict", currentRunningLine);
                 // unreachable code:
                 return null;
             }
@@ -293,7 +293,7 @@ class Language {
             @Override
             public Boolean call(List<Object> arguments) {
                 if(arguments.get(0) instanceof String == false)
-                    Language.error("fileExists() arg must be a file path", Language.currentRunningLine);
+                    Language.error("fileExists() arg must be a file path", currentRunningLine);
                 
                 // Check if file is in local dir:
                 String parent_dir = Paths.get(samir_script_filepath, "").getParent().toString();
@@ -320,7 +320,7 @@ class Language {
             @Override
             public Object call(List<Object> arguments) {
                 if(arguments.get(0) instanceof String == false)
-                    Language.error("read() arg must be a file path", Language.currentRunningLine);
+                    Language.error("read() arg must be a file path", currentRunningLine);
                 
                 // Check if file is in local dir:
                 String parent_dir = Paths.get(samir_script_filepath, "").getParent().toString();
@@ -342,10 +342,10 @@ class Language {
                     return text;
                 }
                 catch(FileNotFoundException e){
-                    Language.error("could not find file in path: " + path, Language.currentRunningLine);
+                    Language.error("could not find file in path: " + path, currentRunningLine);
                 }
                 catch(IOException e){
-                    Language.error("could not find file in path: " + path, Language.currentRunningLine);
+                    Language.error("could not find file in path: " + path, currentRunningLine);
                 }
 
                 // unreachable:
@@ -363,7 +363,7 @@ class Language {
             @Override
             public Void call(List<Object> arguments) {
                 if(arguments.get(0) instanceof String == false)
-                    Language.error("write() arg must be a file path", Language.currentRunningLine);
+                    Language.error("write() arg must be a file path", currentRunningLine);
                 
                 String path = (String) arguments.get(0);
                 String content = Language.stringify(arguments.get(1));
@@ -403,8 +403,8 @@ class Language {
                 Double[] indices_array = new Double[listInstance.arrayList.size()];
                 for(int i = 0; i < listInstance.arrayList.size(); i++)
                     indices_array[i] = Language.int_to_Double(i);
-                ListInstance indices_list = ListInstance.create_filled_list(indices_array);
-                return new SamirPairList(indices_list, listInstance);
+                ListInstance indices_list = ListInstance.create_filled_list(indices_array, Language.this);
+                return new SamirPairList(indices_list, listInstance, Language.this);
             }
             
         });
@@ -418,10 +418,10 @@ class Language {
             public Object call(List<Object> arguments) {
                 if(arguments.get(0) instanceof ListInstance == false
                 || arguments.get(1) instanceof ListInstance == false)
-                    Language.error("zip args must both be lists", Language.currentRunningLine);
+                    Language.error("zip args must both be lists", currentRunningLine);
                 ListInstance a = (ListInstance) arguments.get(0);
                 ListInstance b = (ListInstance) arguments.get(1);
-                return new SamirPairList(a, b);
+                return new SamirPairList(a, b, Language.this);
             }
             
         });
@@ -434,12 +434,12 @@ class Language {
             @Override
             public ListInstance call(List<Object> arguments) {
                 if(arguments.get(0) instanceof String == false)
-                    Language.error("first arg of split() must be a string", Language.currentRunningLine);
+                    Language.error("first arg of split() must be a string", currentRunningLine);
                 if(arguments.get(1) instanceof String == false || ((String) arguments.get(1)).length() != 1)
-                    Language.error("second arg of split() must be a string of length 1", Language.currentRunningLine);
+                    Language.error("second arg of split() must be a string of length 1", currentRunningLine);
                 String word = (String) arguments.get(0);
                 String split = (String) arguments.get(1);
-                return ListInstance.create_filled_list(word.split(split));
+                return ListInstance.create_filled_list(word.split(split), Language.this);
             }
             
         });
@@ -454,12 +454,12 @@ class Language {
                 if(arguments.get(0) instanceof String == false
                 || arguments.get(1) instanceof Double == false
                 || arguments.get(2) instanceof Double == false)
-                    Language.error("substring args must be (string, number, number)", Language.currentRunningLine);
+                    Language.error("substring args must be (string, number, number)", currentRunningLine);
                 String word = (String) arguments.get(0);
                 Double start = (Double) arguments.get(1);
                 Double end = (Double) arguments.get(2);
                 if(start % 1 != 0 || end % 1 != 0)
-                    Language.error("substring indices must be whole numbers", Language.currentRunningLine);
+                    Language.error("substring indices must be whole numbers", currentRunningLine);
                 return word.substring(start.intValue(), end.intValue());
             }
             
@@ -474,7 +474,7 @@ class Language {
             String source = new String(bytes, Charset.defaultCharset());
             Lexer lexer = new Lexer(source);
             ArrayList<Token> tokens = lexer.lex();
-            Parser parser = new Parser(tokens);
+            Parser parser = new Parser(tokens, this);
             List<Stmt> program = parser.parse();
             for (Stmt stmt : program) {
                 stmt.visit();
@@ -527,24 +527,24 @@ class Language {
     
     List<Object> checkStringIndex(Object index_object, Object string_object){
         if(index_object instanceof Double == false)
-            Language.error("1st argument of this string method must be a number", Language.currentRunningLine);
+            Language.error("1st argument of this string method must be a number", currentRunningLine);
         Double index = (Double) index_object;
 
         if(index % 1 != 0)
-            Language.error("1st argument must be a whole number", Language.currentRunningLine);
+            Language.error("1st argument must be a whole number", currentRunningLine);
 
         if(string_object instanceof String == false)
-            Language.error("2nd argument of this string method must be a string", Language.currentRunningLine);
+            Language.error("2nd argument of this string method must be a string", currentRunningLine);
         String string = (String) string_object;
 
         if(index >= string.length())
-            Language.error("index " + index.intValue() + " out of bounds for length " + string.length(), Language.currentRunningLine);
+            Language.error("index " + index.intValue() + " out of bounds for length " + string.length(), currentRunningLine);
         
         // Negative index:
         if(index < 0){
             Double actualIndex = index + string.length();
             if(actualIndex < 0)
-                Language.error("index " + index.intValue() + " out of bounds for length " + string.length(), Language.currentRunningLine);
+                Language.error("index " + index.intValue() + " out of bounds for length " + string.length(), currentRunningLine);
             index = actualIndex;
         }
 
@@ -713,16 +713,18 @@ class LiteralExpre extends Expre {
 
 class ListLiteral extends Expre {
     List<Expre> elements;
-    ListLiteral(Token token, List<Expre> elements){
+    Language lang;
+    ListLiteral(Token token, List<Expre> elements, Language lang){
         this.token = token;
         this.elements = elements;
+        this.lang = lang;
     }
     @Override
     ListInstance visit() {
         ArrayList<Object> elementsVisited = new ArrayList<>();
         for (Expre element : elements) 
             elementsVisited.add(element.visit());
-        ListInstance list =  new ListInstance(elementsVisited);
+        ListInstance list =  new ListInstance(elementsVisited, lang);
         list.environment.variables.put("size", (Double) ((double) elements.size()));
         return list;
     }
@@ -730,9 +732,11 @@ class ListLiteral extends Expre {
 
 class DictLiteral extends Expre {
     Map<Expre, Expre> map;
-    DictLiteral(Token token, Map<Expre, Expre> map){
+    Language lang;
+    DictLiteral(Token token, Map<Expre, Expre> map, Language lang){
         this.token = token;
         this.map = map;
+        this.lang = lang;
     }
     @Override
     Object visit() {
@@ -742,18 +746,20 @@ class DictLiteral extends Expre {
             Object value = pair.getValue().visit();
             output.put(key, value);
         }
-        return new DictInstance(output);
+        return new DictInstance(output, lang);
     }
 }
 
 class BinOpExpre extends Expre {
     Expre left_node;
     Expre right_node;
+    Language lang;
 
-    BinOpExpre(Expre left_node, Token op_token, Expre right_node){
+    BinOpExpre(Expre left_node, Token op_token, Expre right_node, Language lang){
         this.left_node = left_node;
         this.token = op_token;
         this.right_node = right_node;
+        this.lang = lang;
     }
 
     @Override
@@ -823,7 +829,7 @@ class BinOpExpre extends Expre {
             }
             else if(left instanceof ListInstance){
                 if(right instanceof ListInstance){
-                    ListInstance combined = new ListInstance(new ArrayList<>());
+                    ListInstance combined = new ListInstance(new ArrayList<>(), lang);
                     for (Object item : ((ListInstance)left).arrayList)
                         combined.arrayList.add(item);
                     for (Object item : ((ListInstance)right).arrayList)
@@ -918,13 +924,15 @@ class UnaryOpExpre extends Expre {
         }
 
 class Variable extends Expre {
-    Variable(Token token){
+    Language lang;
+    Variable(Token token, Language lang){
         this.token = token;
+        this.lang = lang;
     }
 
     @Override
     Object visit() {
-        return Language.environment.get(token);
+        return lang.environment.get(token);
     }
 }
 
@@ -932,11 +940,13 @@ class AssignExpre extends Expre {
     Expre right;
     Token opp;
     Token varName;
+    Language lang;
 
-    AssignExpre(Token varName, Expre right, Token opp){
+    AssignExpre(Token varName, Expre right, Token opp, Language lang){
         this.varName = varName;
         this.right = right;
         this.opp = opp;
+        this.lang = lang;
     }
     @Override
     Object visit() {
@@ -944,7 +954,7 @@ class AssignExpre extends Expre {
         Object newValue = null;
 
         Object rightVisited = right.visit();
-        Object leftVisited = Language.environment.get(varName);
+        Object leftVisited = lang.environment.get(varName);
 
         switch(opp.type){
             case TokenType.EQUALS -> {
@@ -976,7 +986,7 @@ class AssignExpre extends Expre {
         
                 else if(leftVisited instanceof ListInstance){
                     if(rightVisited instanceof ListInstance){
-                        ListInstance combined = new ListInstance(new ArrayList<>());
+                        ListInstance combined = new ListInstance(new ArrayList<>(), lang);
                         for (Object item : ((ListInstance)leftVisited).arrayList)
                             combined.arrayList.add(item);
                         for (Object item : ((ListInstance)rightVisited).arrayList)
@@ -991,7 +1001,7 @@ class AssignExpre extends Expre {
             }
         }
 
-        Language.environment.assign(varName, newValue);
+        lang.environment.assign(varName, newValue);
         return newValue;
     }
 
@@ -1077,12 +1087,14 @@ class Call extends Expre {
     Expre callee;
     Token paren;
     List<Expre> arguments;
+    Language lang;
 
-    Call(Expre callee, Token paren, List<Expre> arguments){
+    Call(Expre callee, Token paren, List<Expre> arguments, Language lang){
         this.callee = callee;
         this.paren = paren;
         this.arguments = arguments;
         this.token = callee.token;
+        this.lang = lang;
     }
 
     @Override
@@ -1090,17 +1102,17 @@ class Call extends Expre {
         Object callee = this.callee.visit();
         List<Object> arguments = new ArrayList<>();
 
-        if(Language.aboutToRunMethod){
-            Language.environment = Language.enviStack.pop();
-            Language.aboutToRunMethod = false;
+        if(lang.aboutToRunMethod){
+            lang.environment = lang.enviStack.pop();
+            lang.aboutToRunMethod = false;
         }
             
             
         for (Expre arg : this.arguments) 
             arguments.add(arg.visit());
         
-        if(Language.aboutToRunMethod){
-            Language.aboutToRunMethod = false;
+        if(lang.aboutToRunMethod){
+            lang.aboutToRunMethod = false;
         }
         
         if(callee instanceof SamirCallable == false)
@@ -1111,7 +1123,7 @@ class Call extends Expre {
         if(arguments.size() != thingToCall.arity())
             Language.error("Expected " + thingToCall.arity() + " args but got " + arguments.size(), paren.line);
 
-        Language.currentRunningLine = paren.line;
+        lang.currentRunningLine = paren.line;
 
         return thingToCall.call(arguments);
         
@@ -1219,11 +1231,13 @@ class MemberAccess extends Expre {
 
     Expre instanceVar;
     Expre memberVar;
+    Language lang;
 
-    MemberAccess(Expre instanceVar, Token dot, Expre memberVar){
+    MemberAccess(Expre instanceVar, Token dot, Expre memberVar, Language lang){
         this.instanceVar = instanceVar;
         this.token = dot;
         this.memberVar = memberVar;
+        this.lang = lang;
     }
 
     @Override
@@ -1239,15 +1253,15 @@ class MemberAccess extends Expre {
             Object value = instance.environment.variables.get(memberName);
             // See if member is method
             if(value instanceof SamirCallable){
-                Language.currentRunningLine = token.line;
-                Environment prev = Language.environment;
-                Language.enviStack.add(prev);
-                Language.environment = instance.environment;
-                Language.aboutToRunMethod = true;
+                lang.currentRunningLine = token.line;
+                Environment prev = lang.environment;
+                lang.enviStack.add(prev);
+                lang.environment = instance.environment;
+                lang.aboutToRunMethod = true;
                 Object callResult =  memberVar.visit();
     
-                while(Language.environment != prev)
-                    Language.environment = Language.enviStack.pop();
+                while(lang.environment != prev)
+                    lang.environment = lang.enviStack.pop();
                 return callResult;
                 
             }
@@ -1267,11 +1281,13 @@ class MemberAssign extends Expre {
     MemberAccess member;
     Expre newValue;
     Token opp;
+    Language lang;
 
-    MemberAssign(MemberAccess member, Expre newValue, Token opp){
+    MemberAssign(MemberAccess member, Expre newValue, Token opp, Language lang){
         this.member = member;
         this.newValue = newValue;
         this.opp = opp;
+        this.lang = lang;
     }
 
     Object visit(){
@@ -1318,7 +1334,7 @@ class MemberAssign extends Expre {
         
                 else if(leftVisited instanceof ListInstance){
                     if(rightVisited instanceof ListInstance){
-                        ListInstance combined = new ListInstance(new ArrayList<>());
+                        ListInstance combined = new ListInstance(new ArrayList<>(), lang);
                         for (Object item : ((ListInstance)leftVisited).arrayList)
                             combined.arrayList.add(item);
                         for (Object item : ((ListInstance)rightVisited).arrayList)
@@ -1347,16 +1363,18 @@ class MemberAssign extends Expre {
 class Lambda extends Expre {
     List<Token> parameters;
     Expre body;
+    Language lang;
 
-    Lambda(Token keyword, List<Token> parameters, Expre body){
+    Lambda(Token keyword, List<Token> parameters, Expre body, Language lang){
         this.token = keyword;
         this.parameters = parameters;
         this.body = body;
+        this.lang = lang;
     }
 
     @Override
     Object visit() {
-        return new SamirLambda(this, Language.environment);
+        return new SamirLambda(this, lang.environment, lang);
     }
 }
 
@@ -1419,10 +1437,12 @@ class Print extends Stmt {
 class VarDeclare extends Stmt {
     Token varName;
     Expre initializer;
+    Language lang;
 
-    VarDeclare(Token varName, Expre initializer){
+    VarDeclare(Token varName, Expre initializer, Language lang){
         this.varName = varName;
         this.initializer = initializer;
+        this.lang = lang;
     }
 
     @Override
@@ -1430,7 +1450,7 @@ class VarDeclare extends Stmt {
         Object value = null;
         if(initializer != null)
             value = initializer.visit();
-        Language.environment.define(varName.value.toString(), value);
+        lang.environment.define(varName.value.toString(), value);
         return null;
     }
 
@@ -1440,23 +1460,25 @@ class Block extends Stmt {
 
     List<Stmt> statements;
     Environment environment;
+    Language lang;
 
-    Block(List<Stmt> statements){
+    Block(List<Stmt> statements, Language lang){
         this.statements = statements;
+        this.lang = lang;
     }
 
     @Override
     Void visit() {
 
-        Environment prev = Language.environment;
-        Language.enviStack.add(prev);
-        Language.environment = new Environment(prev);
+        Environment prev = lang.environment;
+        lang.enviStack.add(prev);
+        lang.environment = new Environment(prev);
         
         for (Stmt stmt : statements) 
             stmt.visit();
         
-        while(Language.environment != prev)
-            Language.environment = Language.enviStack.pop();
+        while(lang.environment != prev)
+            lang.environment = lang.enviStack.pop();
         
         
         return null;
@@ -1515,13 +1537,15 @@ class ContinueException extends RuntimeException {
 class While extends Stmt {
     Expre condition;
     Stmt body;
-    While(Expre condition, Stmt body){
+    Language lang;
+    While(Expre condition, Stmt body, Language lang){
         this.condition = condition;
         this.body = body;
+        this.lang = lang;
     }
     @Override
     Void visit() {
-        Environment lasEnvi = Language.environment;
+        Environment lasEnvi = lang.environment;
         // Try block for the break statement:
         try {
             while (condition.visit().equals(true)){
@@ -1530,16 +1554,16 @@ class While extends Stmt {
                     body.visit();
                 }
                 catch(ContinueException e){
-                    while (Language.environment != lasEnvi) 
-                        Language.environment = Language.enviStack.pop();
+                    while (lang.environment != lasEnvi) 
+                        lang.environment = lang.enviStack.pop();
                 }
             }
 
                 
         }
         catch(BreakException e){
-            while (Language.environment != lasEnvi) 
-                Language.environment = Language.enviStack.pop();
+            while (lang.environment != lasEnvi) 
+                lang.environment = lang.enviStack.pop();
         }
 
     return null;
@@ -1550,24 +1574,26 @@ class For extends Stmt {
     Token identfier;
     Expre iterable;
     Stmt body;
+    Language lang;
     Token second_identfier;
-    For(Token identfier, Expre iterable, Stmt body, Token second_identfier){
+    For(Token identfier, Expre iterable, Stmt body, Token second_identfier, Language lang){
         this.identfier = identfier;
         this.iterable = iterable;
         this.body = body;
         this.second_identfier = second_identfier;
+        this.lang = lang;
     }
 
     @Override
     Void visit() {
 
     class Inner {
-        static void iterate(String string, Stmt body, Token identfier){
-            Environment lasEnvi = Language.environment;
+        static void iterate(String string, Stmt body, Token identfier, Language lang){
+            Environment lasEnvi = lang.environment;
             Environment newEnvi = new Environment(lasEnvi);
             newEnvi.define((String) identfier.value, null);
-            Language.enviStack.add(lasEnvi);
-            Language.environment = newEnvi;
+            lang.enviStack.add(lasEnvi);
+            lang.environment = newEnvi;
             
             // Try block for the break statement:
             try {
@@ -1578,10 +1604,10 @@ class For extends Stmt {
                         body.visit();
                     }
                     catch(ContinueException e){
-                        while (Language.environment != lasEnvi) 
-                            Language.environment = Language.enviStack.pop();
-                        Language.enviStack.add(lasEnvi);
-                        Language.environment = newEnvi;
+                        while (lang.environment != lasEnvi) 
+                            lang.environment = lang.enviStack.pop();
+                        lang.enviStack.add(lasEnvi);
+                        lang.environment = newEnvi;
 
 
                     }
@@ -1590,21 +1616,21 @@ class For extends Stmt {
                     
             }
             catch(BreakException e){
-                while (Language.environment != lasEnvi) 
-                    Language.environment = Language.enviStack.pop();
+                while (lang.environment != lasEnvi) 
+                    lang.environment = lang.enviStack.pop();
             }
 
-            while (Language.environment != lasEnvi) 
-                Language.environment = Language.enviStack.pop();
+            while (lang.environment != lasEnvi) 
+                lang.environment = lang.enviStack.pop();
 
         }
 
-        static void iterate(ListInstance list, Stmt body, Token identfier){
-            Environment lasEnvi = Language.environment;
+        static void iterate(ListInstance list, Stmt body, Token identfier, Language lang){
+            Environment lasEnvi = lang.environment;
             Environment newEnvi = new Environment(lasEnvi);
             newEnvi.define((String) identfier.value, null);
-            Language.enviStack.add(lasEnvi);
-            Language.environment = newEnvi;
+            lang.enviStack.add(lasEnvi);
+            lang.environment = newEnvi;
             
             // Try block for the break statement:
             try {
@@ -1615,34 +1641,34 @@ class For extends Stmt {
                         body.visit();
                     }
                     catch(ContinueException e){
-                        while (Language.environment != lasEnvi) 
-                            Language.environment = Language.enviStack.pop();
-                        Language.enviStack.add(lasEnvi);
-                        Language.environment = newEnvi;
+                        while (lang.environment != lasEnvi) 
+                            lang.environment = lang.enviStack.pop();
+                        lang.enviStack.add(lasEnvi);
+                        lang.environment = newEnvi;
                     }
                 }
 
                     
             }
             catch(BreakException e){
-                while (Language.environment != lasEnvi) 
-                    Language.environment = Language.enviStack.pop();
+                while (lang.environment != lasEnvi) 
+                    lang.environment = lang.enviStack.pop();
             }
 
-            while (Language.environment != lasEnvi) 
-                Language.environment = Language.enviStack.pop();
+            while (lang.environment != lasEnvi) 
+                lang.environment = lang.enviStack.pop();
 
         }
 
-        static void iterate(SamirPairList samir_pair_list, Stmt body, Token identfier, Token second_identfier){
+        static void iterate(SamirPairList samir_pair_list, Stmt body, Token identfier, Token second_identfier, Language lang){
             boolean unpack_pairs = second_identfier != null;
-            Environment lasEnvi = Language.environment;
+            Environment lasEnvi = lang.environment;
             Environment newEnvi = new Environment(lasEnvi);
             newEnvi.define((String) identfier.value, null);
             if(unpack_pairs)
                 newEnvi.define((String) second_identfier.value, null);
-            Language.enviStack.add(lasEnvi);
-            Language.environment = newEnvi;
+            lang.enviStack.add(lasEnvi);
+            lang.environment = newEnvi;
             
             // Try block for the break statement:
             try {
@@ -1658,22 +1684,22 @@ class For extends Stmt {
                         body.visit();
                     }
                     catch(ContinueException e){
-                        while (Language.environment != lasEnvi) 
-                            Language.environment = Language.enviStack.pop();
-                        Language.enviStack.add(lasEnvi);
-                        Language.environment = newEnvi;
+                        while (lang.environment != lasEnvi) 
+                            lang.environment = lang.enviStack.pop();
+                        lang.enviStack.add(lasEnvi);
+                        lang.environment = newEnvi;
                     }
                 }
 
                     
             }
             catch(BreakException e){
-                while (Language.environment != lasEnvi) 
-                    Language.environment = Language.enviStack.pop();
+                while (lang.environment != lasEnvi) 
+                    lang.environment = lang.enviStack.pop();
             }
 
-            while (Language.environment != lasEnvi) 
-                Language.environment = Language.enviStack.pop();
+            while (lang.environment != lasEnvi) 
+                lang.environment = lang.enviStack.pop();
 
         }
     }
@@ -1682,11 +1708,11 @@ class For extends Stmt {
     if((iterableVisited instanceof String || iterableVisited instanceof ListInstance) && second_identfier != null)
         Language.error("Can only use 2 variables in a for loop to iterate over PairList", identfier.line);
     if(iterableVisited instanceof String)
-        Inner.iterate( (String) iterableVisited, body, identfier);
+        Inner.iterate( (String) iterableVisited, body, identfier, lang);
     else if(iterableVisited instanceof ListInstance)
-        Inner.iterate((ListInstance) iterableVisited, body, identfier);
+        Inner.iterate((ListInstance) iterableVisited, body, identfier, lang);
     else if(iterableVisited instanceof SamirPairList)
-        Inner.iterate((SamirPairList) iterableVisited, body, identfier, second_identfier);
+        Inner.iterate((SamirPairList) iterableVisited, body, identfier, second_identfier, lang);
     else
         Language.error("can only iterate over Lists and strings", identfier.line);
 
@@ -1740,17 +1766,19 @@ class Function extends Stmt {
     Token name;
     List<Token> parameters;
     List<Stmt> body;
+    Language lang;
 
-    Function(Token name, List<Token> parameters, List<Stmt> body){
+    Function(Token name, List<Token> parameters, List<Stmt> body, Language lang){
         this.name = name;
         this.parameters = parameters;
         this.body = body;
+        this.lang = lang;
     }
 
     @Override
     Void visit() {
-        SamirFunction function = new SamirFunction(this, Language.environment);
-        Language.environment.define(name.value.toString(), function);
+        SamirFunction function = new SamirFunction(this, lang.environment, lang);
+        lang.environment.define(name.value.toString(), function);
         return null;
     }
 }
@@ -1800,16 +1828,18 @@ class ClassDeclre extends Stmt {
     Function constructer;
     Function to_string;
     Token name;
-    ClassDeclre(List<Stmt> classBody, Token name, Function constructer, Function to_string){
+    Language lang;
+    ClassDeclre(List<Stmt> classBody, Token name, Function constructer, Function to_string, Language lang){
         this.classBody = classBody;
         this.name = name;
         this.constructer = constructer;
         this.to_string = to_string;
+        this.lang = lang;
     }
 
     Void visit(){
-        SamirClass class_ = new SamirClass(this, Language.environment);
-        Language.environment.define(name.value.toString(), class_);
+        SamirClass class_ = new SamirClass(this, lang.environment, lang);
+        lang.environment.define(name.value.toString(), class_);
         return null;
     }
 }
@@ -1817,14 +1847,16 @@ class ClassDeclre extends Stmt {
 class EnumDecl extends Stmt {
     Token keyword;
     List<Token> identfiers;
-    EnumDecl(Token keyword, List<Token> identfiers){
+    Language lang;
+    EnumDecl(Token keyword, List<Token> identfiers, Language lang){
         this.keyword = keyword;
         this.identfiers = identfiers;
+        this.lang = lang;
     }
     @Override
     Void visit() {
         for (int i = 0; i < identfiers.size(); i++)
-            Language.environment.define(identfiers.get(i).value.toString(), Language.int_to_Double(i));
+            lang.environment.define(identfiers.get(i).value.toString(), Language.int_to_Double(i));
         return null;
     }
 }
