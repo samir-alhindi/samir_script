@@ -1,0 +1,94 @@
+class Lexer {
+    var pos = 0;
+    var source;
+    var tokens;
+    var current;
+
+    func _init(source){
+        self.source = source;
+        pos = -1;
+        advance();
+        tokens = List();
+    }
+
+    func lex(){
+
+        while current != "\0" do {
+
+            # Ignore whitespace:
+            if current == " " then
+                advance();
+            
+            else if current == "+" then{
+                add_token(TT_PLUS, "+");
+                advance();
+            }
+            else if current == "-" then{
+                add_token(TT_MINUS, "-");
+                advance();
+            }
+            else if current == "*" then{
+                add_token(TT_MULTIPLY, "*");
+                advance();
+            }
+            else if current == "/" then{
+                add_token(TT_DIV, "/");
+                advance();
+            }
+            else if current == "(" then {
+                add_token(TT_L_PAREN, "(");
+                advance();
+            }
+            else if current == ")" then {
+                add_token(TT_R_PAREN, ")");
+                advance();
+            }
+                
+            else if(isNumeric(current)) then {
+                make_number();
+            }
+            
+            else 
+                return Error(current + " is an invalid char");
+            
+        }
+
+        stop();
+        var end_token = Token(TT_EOF, "EOF");
+        tokens.add(end_token);
+        return tokens;
+    }
+
+    func advance(){
+        if pos + 1 >= len(source) then{
+            pos = pos + 1;
+            current = "\0";
+        }
+        else{
+            pos = pos + 1;
+            current = getChar(pos, source);
+        }
+        
+    }
+
+    func peek_next(){
+        if pos + 1 >= len(source) then
+            return "\0";
+        return getChar(pos + 1, source);
+    }
+
+    func add_token(type, value){
+        var token = Token(type, value);
+        tokens.add(token);
+    }
+
+    func make_number(){
+        var number_string = "";
+        while isNumeric(current) do {
+            number_string = number_string + current;
+            advance();
+        }
+        add_token(TT_NUMBER, num(number_string));
+    }
+
+}

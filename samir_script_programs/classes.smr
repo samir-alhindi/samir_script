@@ -1,5 +1,4 @@
 
-
 class Employee {
     var name;
     var age;
@@ -33,7 +32,7 @@ class Position {
     }
 
     func set_salary(new_salary){
-        if(new_salary > 0) then
+        if new_salary > 0 then
             self._average_salary = new_salary;
         else
             println "Please enter a positive number for the salary of: " + name;

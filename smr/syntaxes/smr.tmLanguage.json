@@ -1,0 +1,106 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "samir_script",
+	"patterns": [
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#func_declre"
+		},
+		{
+			"include": "#class_declre"
+		},
+		{
+			"include": "#call"
+		},
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#digits"
+		},
+		{
+			"include": "#opperators"
+		},
+		{
+			"include": "#reserved_words"
+		},
+		{
+			"include": "#identifiers"
+		}
+
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.smr",
+				"match": "\\b(if|while|for|return|func|match|elif|else|case|var|do|lambda|then|with|break|continue|in|print|println|import|as)\\b"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.double.smr",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.smr",
+					"match": "\\\\."
+				}
+			]
+		},
+		"comments":{
+			"name": "comment.line",
+			"begin": "#",
+			"end": "\n"
+		},
+		"digits":{
+			"name":"constant.numeric",
+			"match": "\\b(\\d+)\\b"
+		},
+		"opperators":{
+			"name": "keyword.operator",
+			"match": "\\b(\\+|-|=|\\*|/==)\\b"
+		},
+		"identifiers":{
+			"name": "support.variable",
+			"match": "\\b(\\w+)\\b"
+		},
+		"reserved_words":{
+				"name": "constant.language",
+				"match": "\\b(true|false|nil|self)\\b"
+		},
+		"func_declre":{
+			"name": "keyword.control.smr",
+			"match": "\\b(func)(\\s+)(\\w+)\\b",
+			"captures": {
+				"3":{
+					"name": "support.function"
+				}
+			}
+		},
+		"class_declre":{
+			"name": "keyword.control.smr",
+			"match": "\\b(class)(\\s+)(\\w+)\\b",
+			"captures": {
+				"3":{
+					"name": "support.class"
+				}
+			}
+			
+		},
+		"call":{
+			"name": "support.function",
+			"match": "\\b(\\w+)(\\()",
+			"captures": {
+				"1": {
+				"name": "support.function"
+				}
+			}
+		}
+	},
+	"scopeName": "source.smr"
+}

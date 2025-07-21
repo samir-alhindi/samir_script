@@ -1,0 +1,150 @@
+
+######
+###### Welcome to samir_script !
+######
+
+# We got dynamic typing:-
+var x = 5; # x is a number.
+x = true;  # x is now a boolean.
+x = "x is now a string.";
+
+# Strings:
+println "Word"[0];
+println "Negative index works backwards"[-1];
+
+# Control flow:-
+var condition = false;
+if condition then
+    println "Hello";
+elif 1 == 0 then
+    println "What's up";
+else {
+    println "Wow...";
+    println "Yup...";
+}
+
+# Loops:-
+var i = 0;
+while i < 5 do {
+    println i;
+    i += 1;
+}
+
+# Functions:-
+func squred(num){
+    return num * num;
+}
+
+println squred(3);
+
+# Native functions:-
+var number_str = "43.5";
+println isNumeric(number_str); # Good for safe casting.
+println num(number_str); # Casts it into number.
+println str(12);
+println input("Please enter a thing: ");
+println typeOf(true); # boolean.
+println substring("thing", 0, 3); # From index 0 (inclusive) to 3 (exclusive).
+println fileExists("non_existant.txt");
+# var contents =  read("non_existant.txt") # You can read files...
+# write("non_existant.txt", "Contents...") # Also write...
+println split("Hello my name is Mr. Fear.", " "); # Split string based on char 
+
+
+# Lambdas:-
+var product = lambda x, y -> x * y;
+println product(5, 6);
+
+# Clojures:-
+
+func make_counter(){
+    var i = 0;
+    func counter(){
+        println i;
+        i += 1;
+    }
+    return counter;
+}
+
+var my_counter = make_counter();
+my_counter(); # Prints 0.
+my_counter(); # Prints 1.
+
+# Currying:-
+var add = lambda x -> lambda y -> x + y;
+println add(2)(3);
+
+# Classes:-
+class Person {
+    var name;
+    var age;
+
+    # Constructer:-
+    func _init(name, age){
+        self.name = name;
+        self.age = age;
+    }
+
+    # Methods:-
+    func greeting(){
+        println "Hello, my name is " + name + " I am " + str(age) + " years old.";
+    }
+
+    # to string method:-
+    func _toString(){
+        return name + " : " + str(age);
+    }
+
+}
+
+var person = Person("Samir", 20);
+person.greeting();
+
+# Lists:-
+
+var things = [2.32, "Hello", true, nil];
+println things[0];
+things[3] = "Something else";
+println len(things);
+var my_copy = things.copy(); # Creates a shalow copy.
+
+# List methods:-
+var numbers = [1, 2, 3, 4, 5];
+println numbers.copy().map(lambda x -> x * x);
+println numbers.copy().filter(lambda x -> x % 2 == 0);
+
+var matrix = [
+    [1, 2, 3],
+    [4, 5, 6]
+    ];
+
+println matrix.reduce(lambda x, y -> x + y);
+
+# Dictionaries:-
+var pairs = {
+    "Samir" : 91,
+    nil : "nil !!!",
+    0 : false
+};
+
+println pairs[nil];
+
+# Tuple unpacking:-
+for key, value in pairs.items() do
+    println "(Key: " + str(key) + ", value: " + str(value) + ")";
+
+# For loops in general:-
+for item in [1, 2, 3, 4, 5] do
+    println item;
+
+# More awesome functions:-
+for i, item in enumarate(["thing", "Other thing", "Last thing"]) do
+    println "Item at index " + str(i) + " is: " + item;
+
+for first, second in zip(["name", "thing", "person", "yeah"], [1, 2]) do
+    println second;
+
+# Pair class:-
+var my_pair = Pair("first", 2);
+my_pair.second = "two";
+println my_pair;

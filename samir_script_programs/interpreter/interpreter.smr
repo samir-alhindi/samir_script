@@ -1,0 +1,19 @@
+import "lexer.smr" as lexer_file
+
+func eval(source){
+
+    var lexer = lexer_file.Lexer(source);
+    var tokens = lexer.lex();
+    if typeOf(tokens) == "Error" then {
+        println tokens.log;
+        continue;}
+
+    var parser = Parser(tokens);
+    var AST = parser.parse();
+    if parser.hadError then {
+        println parser.log;
+        continue;}
+
+    println AST.visit();
+
+}

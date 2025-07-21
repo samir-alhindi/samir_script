@@ -1,0 +1,25 @@
+{
+  "name": "smr",
+  "displayName": ".smr",
+  "description": "smr",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.102.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "smr",
+      "aliases": ["samir_script", "smr"],
+      "extensions": [".smr"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "smr",
+      "scopeName": "source.smr",
+      "path": "./syntaxes/smr.tmLanguage.json"
+    }]
+  }
+}

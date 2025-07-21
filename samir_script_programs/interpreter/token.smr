@@ -1,0 +1,23 @@
+var TT_NUMBER = 0;
+var TT_PLUS = 1;
+var TT_MINUS = 2;
+var TT_MULTIPLY = 3;
+var TT_DIV = 4;
+var TT_L_PAREN = 5;
+var TT_R_PAREN = 6;
+var TT_EOF;
+
+class Token {
+    var type;
+    var value;
+
+    func _init(type, value){
+        self.type = type;
+        self.value = value;
+    }
+
+    func _toString(){
+        return str(value);
+    }
+
+}

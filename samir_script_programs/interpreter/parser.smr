@@ -1,0 +1,214 @@
+class Parser {
+
+    var tokens;
+    var current;
+    var pos;
+
+    var hadError = false;
+    var log;
+
+    func _init(tokens){
+        self.tokens = tokens;
+        current = tokens.get(0);
+        pos = 0;
+    }
+
+    func parse(){
+        return expression();
+    }
+
+    func expression(){
+        var left = term();
+
+        while current.type == TT_MINUS or
+        current.type == TT_PLUS do {
+            var op_tok = current;
+            advance();
+            var right = term();
+            left = BinOpNode(left, op_tok, right);
+        }
+
+        return left;
+
+    }
+
+    func term(){
+        var left = unary();
+
+        while current.type == TT_MULTIPLY or
+        current.type == TT_DIV do {
+            var op_tok = current;
+            advance();
+            var right = unary();
+            left = BinOpNode(left, op_tok, right);
+        }
+
+        return left;
+    }
+
+    func unary(){
+        if current.type == TT_MINUS then {
+            var op = "-";
+            advance();
+            var right = unary();
+            return UnaryOpNode(op, right);
+        }
+
+        return primary();
+    }
+
+    func primary(){
+        if current.type == TT_NUMBER then {
+            var node = NumberNode(current.value);
+            advance();
+            return node;
+        }
+
+        elif current.type == TT_L_PAREN then {
+            advance();
+            var expre = expression();
+            if current.type != TT_R_PAREN then{
+                hadError = true;
+                log = "Expected closing ')'";
+            }
+            advance();
+            return GroupingNode(expre);
+        }
+
+        hadError = true;
+        log = "Invalid syntax";
+        return nil;
+    }
+
+    func advance(){
+        if pos + 1 >= tokens.size then{
+            hadError = true;
+            log = "invalid syntax";
+            return;
+        }
+        pos = pos + 1;
+        current = tokens.get(pos);
+    }
+
+}
+
+#########################
+# AST NODES
+#########################
+
+class NumberNode {
+    var value;
+
+    func _init(value){
+        self.value = value;
+    }
+
+    func _toString(){
+        return str(value);
+    }
+
+    func visit(){
+        return value;
+    }
+}
+
+class GroupingNode {
+    var expre;
+
+    func _init(expre){
+        self.expre = expre;
+    }
+
+    func _toString(){
+        return "(" + str(expre) + ")";
+    }
+
+    func visit(){
+        return expre.visit();
+    }
+
+    
+}
+
+class BinOpNode {
+    var op;
+    var left;
+    var right;
+
+    func _init(left, op, right){
+        self.left = left;
+        self.right = right;
+        self.op = op;
+    }
+
+    func _toString(){
+        return "(" + str(left) + str(op) + str(right) + ")";
+    }
+
+    func visit(){
+        var right_op = right.visit();
+        var left_op = left.visit();
+
+        if op.type == TT_PLUS then return left_op + right_op;
+        if op.type == TT_MINUS then return left_op - right_op;
+        if op.type == TT_MULTIPLY then return left_op * right_op;
+        if op.type == TT_DIV then return left_op / right_op;
+
+    }
+}
+
+class UnaryOpNode {
+    var op;
+    var right;
+
+    func _init(op, right){
+        self.op = op;
+        self.right = right;
+    }
+
+    func visit(){
+        if op == "-" then
+            return right.visit() * -1;    
+    }
+
+    func _toString(){
+        return str(op) + "(" + str(right) + ")" ;
+    }
+
+}
+
+#########################
+#ERROR HANDLING
+#########################
+
+class Error {
+    var log;
+    func _init(log){
+        self.log = log;
+    }
+}
+
+#########################
+#ENTRY POINT
+#########################
+
+
+while true do {
+
+    var source = input("> ");
+
+    var lexer = Lexer(source);
+    var tokens = lexer.lex();
+    if typeOf(tokens) == "Error" then {
+        println tokens.log;
+        continue;}
+
+    var parser = Parser(tokens);
+    var AST = parser.parse();
+    if parser.hadError then {
+        println parser.log;
+        continue;}
+
+    println AST.visit();
+
+}
