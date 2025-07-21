@@ -23,7 +23,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\welcome.smr");
+        Language lang = new Language("samir_script_programs\\import.smr");
         lang.run();
     }
 }
@@ -483,7 +483,7 @@ class Language {
         
         }
         catch(IOException d){
-            Language.error("File: " + samir_script_filepath + " not found", currentLine);
+            Language.error("File: " + samir_script_filepath + " not found", currentRunningLine);
         }
         
     }
@@ -1266,9 +1266,9 @@ class MemberAccess extends Expre {
             else
                 return value;
         }
-            
-
-        Language.error(memberName + " not found in class: " + instance.class_.class_.name.value, token.line);
+        
+        String instanceType = (instance instanceof Importinstance) ? "import" : "class";
+        Language.error(memberName + " not found in " +  instanceType + ": " + instance.class_.class_.name.value, token.line);
 
         // Unreachable code:
         return null;

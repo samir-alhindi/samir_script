@@ -74,11 +74,17 @@
 				"match": "\\b(true|false|nil|self)\\b"
 		},
 		"func_declre":{
-			"name": "keyword.control.smr",
-			"match": "\\b(func)(\\s+)(\\w+)\\b",
+			"name": "keyword.operator",
+			"match": "\\b(func)\\b\\s+\\b(\\w+)\\b\\s*\\([\\w*,*\\s*]*\\)\\s*->\\s*\\b(\\w+)\\b",
 			"captures": {
+				"1":{
+					"name": "keyword.control"
+				},
+				"2":{
+					"name":"support.function"
+				},
 				"3":{
-					"name": "support.function"
+					"name":"support.class"
 				}
 			}
 		},

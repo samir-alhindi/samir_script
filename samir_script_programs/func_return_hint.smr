@@ -1,0 +1,16 @@
+
+func add(a, b) -> number {
+    return a + b;
+}
+
+func greeting(name) -> nil {
+    println "Hello " + name;
+}
+
+func concatenate(word, char) -> string {
+    return word + char;
+}
+
+func get_list() -> List {
+    return [];
+}

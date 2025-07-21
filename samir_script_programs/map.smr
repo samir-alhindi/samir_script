@@ -13,6 +13,10 @@ func map(list, function){
     return output;
 }
 
+func add() -> number {
+    return a + b;
+}
+
 func sqr(num){
     return num * num;
 }

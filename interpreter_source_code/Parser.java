@@ -181,6 +181,14 @@ public class Parser{
             Language.error("Expected closing ')'", current.line);
         advance();
 
+        // optional Return type hint:-
+        if(currentIs(TokenType.ARROW)){
+            advance();
+            if( ! currentIs(TokenType.IDENTIFIER) && ! currentIs(TokenType.NIL))
+                Language.error("expected data type after '->'", current.line);
+            advance();
+        }
+
         if( ! currentIs(TokenType.L_CUR))
             Language.error("Expected '{' before function body", current.line -1, current.line);
         advance();
