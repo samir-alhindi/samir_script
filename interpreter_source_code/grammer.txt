@@ -17,7 +17,7 @@ importDecl    -> "import" STRING ("as" IDENTIFIER)? ;
 
 classMembers  -> funDecl | varDecl ;
 
-varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+varDecl        → "var" IDENTIFIER (":" IDENTIFIER)? ( "=" expression )? ";" ;
 
 funDecl        → "func" function ("->" IDENTIFIER)? ;
 function       → IDENTIFIER "(" parameters? ")" block ;

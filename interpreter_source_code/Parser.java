@@ -220,6 +220,14 @@ public class Parser{
         Token varName = current;
         advance();
 
+        // Optional type hint:
+        if(currentIs(TokenType.COLON)){
+            advance();
+            if( ! currentIs(TokenType.IDENTIFIER))
+                Language.error("expected data type after ':'", current.line);
+            advance();
+        }
+
         // Optional varibale initializer:
         Expre initializer = null;
         if(currentIs(TokenType.EQUALS)){

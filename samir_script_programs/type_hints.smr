@@ -3,10 +3,6 @@ func add(first:number,second:number,third:thing) -> number {
     return a + b;
 }
 
-class Employee {
-    
-}
-
 func greeting(name) -> nil {
     println "Hello " + name;
 }
@@ -18,3 +14,9 @@ func concatenate(word, char) -> string {
 func get_list() -> List {
     return [];
 }
+
+var x: number = 5;
+var y: number;
+var z = 7;
+println x;
+println y;

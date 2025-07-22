@@ -4,9 +4,9 @@
 
 class Lexer {
     var pos = 0;
-    var source;
-    var tokens;
-    var current;
+    var source: string;
+    var tokens: List;
+    var current: string;
 
     func _init(source: string) {
         self.source = source;
@@ -58,7 +58,7 @@ class Lexer {
         }
 
         stop();
-        var end_token = Token(TT_EOF, "EOF");
+        var end_token: Token = Token(TT_EOF, "EOF");
         tokens.add(end_token);
         return tokens;
     }
@@ -82,12 +82,12 @@ class Lexer {
     }
 
     func add_token(type: number, value: string){
-        var token = Token(type, value);
+        var token: Token = Token(type, value);
         tokens.add(token);
     }
 
     func make_number(){
-        var number_string = "";
+        var number_string: string = "";
         while isNumeric(current) do {
             number_string = number_string + current;
             advance();
@@ -111,8 +111,8 @@ var TT_R_PAREN = 6;
 var TT_EOF;
 
 class Token {
-    var type;
-    var value;
+    var type: number;
+    var value: string;
 
     func _init(type: number, value: string){
         self.type = type;
@@ -131,12 +131,12 @@ class Token {
 
 class Parser {
 
-    var tokens;
-    var current;
-    var pos;
+    var tokens: List;
+    var current: Token;
+    var pos: number;
 
-    var hadError = false;
-    var log;
+    var hadError: boolean = false;
+    var log: string;
 
     func _init(tokens: List){
         self.tokens = tokens;
@@ -149,13 +149,13 @@ class Parser {
     }
 
     func expression() -> Node {
-        var left = term();
+        var left: Node = term();
 
         while current.type == TT_MINUS or
         current.type == TT_PLUS do {
-            var op_tok = current;
+            var op_tok: Token = current;
             advance();
-            var right = term();
+            var right: Node = term();
             left = BinOpNode(left, op_tok, right);
         }
 
@@ -164,13 +164,13 @@ class Parser {
     }
 
     func term() -> Node {
-        var left = unary();
+        var left: Node = unary();
 
         while current.type == TT_MULTIPLY or
         current.type == TT_DIV do {
-            var op_tok = current;
+            var op_tok: Token = current;
             advance();
-            var right = unary();
+            var right: Node = unary();
             left = BinOpNode(left, op_tok, right);
         }
 
@@ -179,9 +179,9 @@ class Parser {
 
     func unary() -> Node {
         if current.type == TT_MINUS then {
-            var op = "-";
+            var op: string = "-";
             advance();
-            var right = unary();
+            var right: Node = unary();
             return UnaryOpNode(op, right);
         }
 
@@ -190,14 +190,14 @@ class Parser {
 
     func primary() -> Node {
         if current.type == TT_NUMBER then {
-            var node = NumberNode(current.value);
+            var node: Node = NumberNode(current.value);
             advance();
             return node;
         }
 
         elif current.type == TT_L_PAREN then {
             advance();
-            var expre = expression();
+            var expre: Node = expression();
             if current.type != TT_R_PAREN then{
                 hadError = true;
                 log = "Expected closing ')'";
@@ -228,7 +228,7 @@ class Parser {
 #########################
 
 class NumberNode {
-    var value;
+    var value: number;
 
     func _init(value: number){
         self.value = value;
@@ -244,9 +244,9 @@ class NumberNode {
 }
 
 class GroupingNode {
-    var expre;
+    var expre: Node;
 
-    func _init(expre){
+    func _init(expre: Node){
         self.expre = expre;
     }
 
@@ -266,7 +266,7 @@ class BinOpNode {
     var left;
     var right;
 
-    func _init(left, op, right){
+    func _init(left: variant, op: Token, right: variant){
         self.left = left;
         self.right = right;
         self.op = op;
@@ -289,10 +289,10 @@ class BinOpNode {
 }
 
 class UnaryOpNode {
-    var op;
-    var right;
+    var op: Token;
+    var right: Node;
 
-    func _init(op, right){
+    func _init(op: Token, right: Node){
         self.op = op;
         self.right = right;
     }
@@ -313,7 +313,7 @@ class UnaryOpNode {
 #########################
 
 class Error {
-    var log;
+    var log: string;
     func _init(log: string){
         self.log = log;
     }
@@ -326,16 +326,16 @@ class Error {
 
 while true do {
 
-    var source = input("> ");
+    var source: string = input("> ");
 
-    var lexer = Lexer(source);
-    var tokens = lexer.lex();
+    var lexer: Lexer = Lexer(source);
+    var tokens: List = lexer.lex();
     if typeOf(tokens) == "Error" then {
         println tokens.log;
         continue;}
 
-    var parser = Parser(tokens);
-    var AST = parser.parse();
+    var parser: Parser = Parser(tokens);
+    var AST: Node = parser.parse();
     if parser.hadError then {
         println parser.log;
         continue;}
