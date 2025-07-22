@@ -1,6 +1,10 @@
 
-func add(a, b) -> number {
+func add(first:number,second:number,third:thing) -> number {
     return a + b;
+}
+
+class Employee {
+    
 }
 
 func greeting(name) -> nil {

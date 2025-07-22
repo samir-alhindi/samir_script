@@ -8,7 +8,7 @@ class Lexer {
     var tokens;
     var current;
 
-    func _init(source){
+    func _init(source: string) {
         self.source = source;
         pos = -1;
         advance();
@@ -81,7 +81,7 @@ class Lexer {
         return getChar(pos + 1, source);
     }
 
-    func add_token(type, value){
+    func add_token(type: number, value: string){
         var token = Token(type, value);
         tokens.add(token);
     }
@@ -114,12 +114,12 @@ class Token {
     var type;
     var value;
 
-    func _init(type, value){
+    func _init(type: number, value: string){
         self.type = type;
         self.value = value;
     }
 
-    func _toString(){
+    func _toString() -> string{
         return str(value);
     }
 
@@ -138,17 +138,17 @@ class Parser {
     var hadError = false;
     var log;
 
-    func _init(tokens){
+    func _init(tokens: List){
         self.tokens = tokens;
         current = tokens.get(0);
         pos = 0;
     }
 
-    func parse(){
+    func parse() -> Node {
         return expression();
     }
 
-    func expression(){
+    func expression() -> Node {
         var left = term();
 
         while current.type == TT_MINUS or
@@ -163,7 +163,7 @@ class Parser {
 
     }
 
-    func term(){
+    func term() -> Node {
         var left = unary();
 
         while current.type == TT_MULTIPLY or
@@ -177,7 +177,7 @@ class Parser {
         return left;
     }
 
-    func unary(){
+    func unary() -> Node {
         if current.type == TT_MINUS then {
             var op = "-";
             advance();
@@ -188,7 +188,7 @@ class Parser {
         return primary();
     }
 
-    func primary(){
+    func primary() -> Node {
         if current.type == TT_NUMBER then {
             var node = NumberNode(current.value);
             advance();
@@ -230,11 +230,11 @@ class Parser {
 class NumberNode {
     var value;
 
-    func _init(value){
+    func _init(value: number){
         self.value = value;
     }
 
-    func _toString(){
+    func _toString() -> string {
         return str(value);
     }
 
@@ -250,11 +250,11 @@ class GroupingNode {
         self.expre = expre;
     }
 
-    func _toString(){
+    func _toString() -> string {
         return "(" + str(expre) + ")";
     }
 
-    func visit(){
+    func visit() -> variant {
         return expre.visit();
     }
 
@@ -272,11 +272,11 @@ class BinOpNode {
         self.op = op;
     }
 
-    func _toString(){
+    func _toString() -> string{
         return "(" + str(left) + str(op) + str(right) + ")";
     }
 
-    func visit(){
+    func visit() -> number {
         var right_op = right.visit();
         var left_op = left.visit();
 
@@ -297,12 +297,12 @@ class UnaryOpNode {
         self.right = right;
     }
 
-    func visit(){
+    func visit() -> number {
         if op == "-" then
             return right.visit() * -1;    
     }
 
-    func _toString(){
+    func _toString() -> string {
         return str(op) + "(" + str(right) + ")" ;
     }
 
@@ -314,7 +314,7 @@ class UnaryOpNode {
 
 class Error {
     var log;
-    func _init(log){
+    func _init(log: string){
         self.log = log;
     }
 }

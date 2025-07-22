@@ -164,12 +164,26 @@ public class Parser{
                 Language.error("Expected parameter name", current.line);
             parameters.add(current);
             advance();
+            // Check for type hint:
+            if(currentIs(TokenType.COLON)){
+                advance();
+                if( ! currentIs(TokenType.IDENTIFIER))
+                    Language.error("Expected data type after ':'", current.line);
+                advance();
+            }
             while(currentIs(TokenType.COMMA)){
                 advance();
                 if( ! currentIs(TokenType.IDENTIFIER))
                     Language.error("Expected parameter name", current.line);
                 parameters.add(current);
                 advance();
+                // Check for type hint
+                if(currentIs(TokenType.COLON)){
+                    advance();
+                    if( ! currentIs(TokenType.IDENTIFIER))
+                        Language.error("Expected data type after ':'", current.line);
+                    advance();
+                }
             }
 
             if(parameters.size() >= 255)

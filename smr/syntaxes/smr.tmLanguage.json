@@ -74,30 +74,46 @@
 				"match": "\\b(true|false|nil|self)\\b"
 		},
 		"func_declre":{
-			"name": "keyword.operator",
-			"match": "\\b(func)\\b\\s+\\b(\\w+)\\b\\s*\\([\\w*,*\\s*]*\\)\\s*->\\s*\\b(\\w+)\\b",
-			"captures": {
-				"1":{
-					"name": "keyword.control"
+			"name":"support.variable",
+			"begin": "\\b(func)\\b",
+			"end": "\\{",
+			"beginCaptures": {"1":{"name":"keyword.control"}},
+			"patterns": [
+				{
+					"match": ":\\s*(\\w+)",
+					"captures": {
+						"1":{"name":"support.class"}
+					}
 				},
-				"2":{
-					"name":"support.function"
+				{
+					"match": "(\\w+)\\s*\\(",
+					"captures": {
+						"1": {"name":"support.function"}
+					}
 				},
-				"3":{
-					"name":"support.class"
+				{
+					"match" : "->\\s*(\\w+)",
+					"captures": {
+						"1": {"name":"support.class"}
+					}
+				},
+				{
+					"match": "(\\,|->)",
+					"captures": {
+						"1":{"name":"keyword.operator"}
+					}
 				}
-			}
+			]
 		},
 		"class_declre":{
 			"name": "keyword.control.smr",
 			"match": "\\b(class)(\\s+)(\\w+)\\b",
 			"captures": {
 				"3":{
-					"name": "support.class"
+					"name":"support.class"
 				}
 			}
-			
-		},
+			},
 		"call":{
 			"name": "support.function",
 			"match": "\\b(\\w+)(\\()",

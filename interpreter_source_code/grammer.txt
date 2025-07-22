@@ -19,9 +19,9 @@ classMembers  -> funDecl | varDecl ;
 
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 
-funDecl        → "func" function ;
+funDecl        → "func" function ("->" IDENTIFIER)? ;
 function       → IDENTIFIER "(" parameters? ")" block ;
-parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
+parameters     → IDENTIFIER (":" IDENTIFIER)? ( "," IDENTIFIER (":" IDENTIFIER)?)* ;
 
 statement      → exprStmt
                | ifStmt
