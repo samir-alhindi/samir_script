@@ -13,11 +13,11 @@ class Employee {
     }
 
     func intro(){
-        println "My name is: $name \nI am $age years old.";
+        println "My name is: {name},\nI am {age} years old.";
     }
 
     func work(){
-        println "$name is working on $position";
+        println "{name} is working on {position}.";
     }
 }
 

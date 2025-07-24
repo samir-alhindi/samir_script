@@ -1,5 +1,5 @@
 
-public class Employee {
+public class Employee { 
 	private String name;
 	private int salary;
 

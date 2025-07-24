@@ -23,7 +23,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\string_bug.smr");
+        Language lang = new Language("samir_script_programs\\interpreter.smr");
         lang.run();
     }
 }

@@ -17,7 +17,7 @@ class Lexer {
 
     func lex(){
 
-        while current != "\0" do {
+        while current != "/0" do {
 
             # Ignore whitespace:
             if current == " " then
@@ -53,7 +53,7 @@ class Lexer {
             }
             
             else 
-                return Error(current + " is an invalid char");
+                return Error("{current} is an invalid char");
             
         }
 
@@ -66,7 +66,7 @@ class Lexer {
     func advance(){
         if pos + 1 >= len(source) then{
             pos = pos + 1;
-            current = "\0";
+            current = "/0";
         }
         else{
             pos = pos + 1;
@@ -77,7 +77,7 @@ class Lexer {
 
     func peek_next(){
         if pos + 1 >= len(source) then
-            return "\0";
+            return "/0";
         return getChar(pos + 1, source);
     }
 
@@ -251,7 +251,7 @@ class GroupingNode {
     }
 
     func _toString() -> string {
-        return "(" + str(expre) + ")";
+        return "({expre})";
     }
 
     func visit() -> variant {
@@ -273,7 +273,7 @@ class BinOpNode {
     }
 
     func _toString() -> string{
-        return "(" + str(left) + str(op) + str(right) + ")";
+        return "({left}{op}{right})";
     }
 
     func visit() -> number {
@@ -303,7 +303,7 @@ class UnaryOpNode {
     }
 
     func _toString() -> string {
-        return str(op) + "(" + str(right) + ")" ;
+        return "{op}({right})" ;
     }
 
 }

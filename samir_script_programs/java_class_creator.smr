@@ -1,10 +1,10 @@
 
 
 func create_java_class(class_name, variables_list) {
-    var contents = "" + ln;
+    var contents = "\n";
 
     # Creating class signature:
-    contents += "public class " + class_name + " {" + ln;
+    contents += "public class {class_name} \{ \n";
 
     # Creating member variables:
     var variables_dict = {};
@@ -14,40 +14,40 @@ func create_java_class(class_name, variables_list) {
     }
 
     for variable in variables_list do
-        contents += tab + "private " + variable + ";" + ln;
+        contents += "\tprivate {variable};\n";
     
-    contents += ln;
+    contents += "\n";
     
     # Create constructer:
-    contents += tab + class_name + "(";
+    contents += "\t{class_name}(";
     for variable in variables_list do
-        contents += variable + ", ";
+        contents += "{variable}, ";
     # Remove last comma:
     contents = substring(contents, 0, len(contents) - 2);
-    contents += "){" + ln;
+    contents += ")\{\n";
     
     for name in variables_dict.keys() do
-        contents += tab + tab + "this." + name + " = " + name + ";" + ln;
-    contents += tab + "}" + ln + ln;
+        contents += "\t\tthis.{name} = {name};\n";
+    contents += "\t}\n\n";
 
     # Setters:
     for name, type in variables_dict.items() do {
-        contents += tab + "public void set_" + name + "(" + type + " " + name + ")";
-        contents += "{" + ln + tab + tab + "this." + name + " = " + name + ";" + ln + tab + "}";
-        contents += ln;
+        contents += "\tpublic void set_{name}({type} {name})";
+        contents += "\{\n\t\tthis.{name} = {name};\n\t}";
+        contents += "\n";
     }
 
     contents += ln;
 
     # Getters:
     for name, type in variables_dict.items() do {
-        contents += tab + "public " + type + " get_" + name + "()";
-        contents += "{" + ln + tab + tab + "return " + name + ";" + ln + tab + "}";
-        contents += ln;
+        contents += "\tpublic {type} get_{name}()";
+        contents += "\{\n\t\treturn {name};\n\t}";
+        contents += "\n";
     }
     
-    contents += ln +  "}";
-    write(class_name + ".java", contents);
+    contents += "\n}";
+    write("{class_name}.java", contents);
 }
 
 

@@ -9,7 +9,7 @@ class Student {
     }
 
     func _toString(){
-        return "[" + name + " : " + id + "]";
+        return "[{name} : {id}]";
     }
 
 }

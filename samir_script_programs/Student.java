@@ -1,5 +1,5 @@
 
-public class Student {
+public class Student { 
 	private String name;
 	private double gpa;
 	private int total_credits;
