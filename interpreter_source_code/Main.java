@@ -23,7 +23,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\interpreter.smr");
+        Language lang = new Language("samir_script_programs\\short_prog.smr");
         lang.run();
     }
 }
@@ -461,6 +461,26 @@ class Language {
                 if(start % 1 != 0 || end % 1 != 0)
                     Language.error("substring indices must be whole numbers", currentRunningLine);
                 return word.substring(start.intValue(), end.intValue());
+            }
+            
+        });
+
+        globals.define("eval", new SamirCallable() {
+
+            @Override
+            public int arity() {return 1;}
+
+            @Override
+            public Object call(List<Object> arguments) {
+                if(arguments.get(0) instanceof String == false)
+                    Language.error("eval() arg must be a string", currentRunningLine);
+                String source = (String) arguments.get(0);
+                Lexer lexer = new Lexer(source);
+                lexer.line = currentRunningLine;
+                ArrayList<Token> tokens = lexer.lex();
+                Parser parser = new Parser(tokens, Language.this);
+                Expre expre = parser.expression();
+                return expre.visit();
             }
             
         });

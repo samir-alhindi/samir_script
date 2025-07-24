@@ -1,0 +1,6 @@
+
+
+var expre = eval("1 + 2 * 3");
+println expre;
+
+println eval("(lambda x -> x * x)(5)");
