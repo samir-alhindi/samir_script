@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,14 +18,14 @@ import java.util.Stack;
 public class Main {
     public static void main(String[] args) {
 
-        /*
+        
         String samir_script_filepath = args[0];
         Language lang = new Language(samir_script_filepath);
         lang.run();
-        */
+        
 
-        Language lang = new Language("samir_script_programs\\short_prog.smr");
-        lang.run();
+        //Language lang = new Language("samir_script_programs\\short_prog.smr");
+        //lang.run();
     }
 }
 
@@ -321,19 +322,21 @@ class Language {
             public Object call(List<Object> arguments) {
                 if(arguments.get(0) instanceof String == false)
                     Language.error("read() arg must be a file path", currentRunningLine);
+                String path = (String) arguments.get(0);
                 
                 // Check if file is in local dir:
-                String parent_dir = Paths.get(samir_script_filepath, "").getParent().toString();
-                String file_path = parent_dir + "\\" + arguments.get(0);
+                //String parent_dir = Paths.get(samir_script_filepath, "").getParent().toString();
+                //String file_path = parent_dir + "\\" + arguments.get(0);
                 
                 try{
-                    byte[] bytes = Files.readAllBytes(Paths.get(file_path));
+                    byte[] bytes = Files.readAllBytes(Paths.get(path));
                     String text = new String(bytes, Charset.defaultCharset());
                     return text;
                 }
                 catch(FileNotFoundException e){}
                 catch(IOException e){}
 
+                /*
                 // Ckeck if file is in abs dir:...
                 String path = (String) arguments.get(0);
                 try{
@@ -347,6 +350,7 @@ class Language {
                 catch(IOException e){
                     Language.error("could not find file in path: " + path, currentRunningLine);
                 }
+                    */
 
                 // unreachable:
                 return null;
@@ -367,20 +371,17 @@ class Language {
                 
                 String path = (String) arguments.get(0);
                 String content = Language.stringify(arguments.get(1));
-
-                String parent_dir = Paths.get(samir_script_filepath, "").getParent().toString();
-                String file_path = parent_dir + "\\" + path;
                 
-                File file = new File(file_path);
+                File file = new File(path);
                 try {
                     file.createNewFile();
                 } catch (IOException e) {
-                    System.out.println("couldn't create file: " + file_path);
+                    System.out.println("couldn't create file: " + path);
                 }
-                try (FileWriter writer = new FileWriter(file_path)) {
+                try (FileWriter writer = new FileWriter(path)) {
                     writer.write(content);
                 } catch (IOException e) {
-                    System.out.println("couldn't write to file: " + file_path);
+                    System.out.println("couldn't write to file: " + path);
                     e.printStackTrace();
                 }
                 return null;
@@ -766,11 +767,14 @@ class LiteralExpre extends Expre {
             // Else it is '\':
             else if(og_string.charAt(i) == '\\'){
                 i++;
+                if(i >= og_string.length())
+                    Language.error("escape char '\\' must be followed by another char (\\n,\\t,\\{)", token.line);
                 switch (og_string.charAt(i)) {
                     case 'n'-> output += System.lineSeparator();
                     case 't' -> output += '\t';
                     case '{' -> output += '{';
                     case '}' -> output += '}';
+                    case '\\' -> output += '\\';
                     default -> Language.error("invalid escape character: \\" + og_string.charAt(i), token.line);
                 }
                 i++;

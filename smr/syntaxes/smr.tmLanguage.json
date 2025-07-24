@@ -12,6 +12,9 @@
 			"include": "#func_declre"
 		},
 		{
+			"include": "#var_declre"
+		},
+		{
 			"include": "#class_declre"
 		},
 		{
@@ -49,6 +52,11 @@
 				{
 					"name": "constant.character.escape.smr",
 					"match": "\\\\."
+				},
+				{
+					"name":"constant.character.escape.smr",
+					"begin": "\\{",
+					"end": "\\}"
 				}
 			]
 		},
@@ -104,6 +112,15 @@
 					}
 				}
 			]
+		},
+		"var_declre":{
+			"name":"keyword.operator",
+			"match": "(\\bvar\\b)\\s+(\\w+)\\s*:\\s*(\\w+)",
+			"captures": {
+				"1":{"name":"keyword.control"},
+				"2":{"name":"support.variable"},
+				"3":{"name":"support.class"}
+			}
 		},
 		"class_declre":{
 			"name": "keyword.control.smr",
