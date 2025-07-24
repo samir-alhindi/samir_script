@@ -1,0 +1,23 @@
+
+
+var name: string = "Samir";
+var age: number = 20;
+class Person {
+    var name;
+}
+var person = Person();
+person.name = "Rayyan";
+
+println "Hello my name is {name}, I am {age} years old.";
+println "My name is: {person.name}";
+
+println "Look at this cool expression: {(lambda x, y -> x * y)(4, 5)}";
+
+println "My favorite character is \{age}";
+println "Line 1\nLine 2\nLine3";
+println "before tab\tafter tab";
+
+println "{name = 15}";
+println name;
+
+println "{";

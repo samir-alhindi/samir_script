@@ -23,7 +23,7 @@ public class Main {
         lang.run();
         */
 
-        Language lang = new Language("samir_script_programs\\interpreter.smr");
+        Language lang = new Language("samir_script_programs\\string_bug.smr");
         lang.run();
     }
 }
@@ -692,15 +692,75 @@ abstract class Expre {
 
 class LiteralExpre extends Expre {
     Object literal;
-    LiteralExpre(Token token, Object literal){
+    Language lang;
+    LiteralExpre(Token token, Object literal, Language lang){
         this.token = token;
         this.literal = literal;
+        this.lang = lang;
     }
 
     @Override
     Object visit() {
+        if(token.type.equals(TokenType.STRING))
+            return string();
         return literal;
+        
     }
+
+    String string(){
+
+        // No interpolation needed:-
+        String og_string = (String) literal;
+        if( ! og_string.contains("{") && ! og_string.contains("\\"))
+            return og_string;
+        
+        String output = "";
+        int i = 0;
+        while (i < og_string.length()) {
+            if(og_string.charAt(i) != '{' && og_string.charAt(i) != '\\'){
+                output += og_string.charAt(i);
+                i++;
+                continue;
+            }
+            // Else it is '{':
+            if(og_string.charAt(i) == '{'){
+                String expression = "";
+                do{
+                    i++;
+                    if(i >= og_string.length())
+                        Language.error("unterminated '{', Perhaps you want an escape character '\\{' instead", token.line);
+                    expression += og_string.charAt(i);
+                } while(og_string.charAt(i) != '}');
+
+                // We found the closing '}':
+                Lexer lexer = new Lexer(expression);
+                lexer.line = token.line;
+                ArrayList<Token> tokens = lexer.lex();
+                Parser parser = new Parser(tokens, lang);
+                Expre ast = parser.expression();
+                Object result = ast.visit();
+                output += Language.stringify(result);
+                // Move past the '}':
+                i++;
+            }
+            // Else it is '\':
+            else if(og_string.charAt(i) == '\\'){
+                i++;
+                switch (og_string.charAt(i)) {
+                    case 'n'-> output += System.lineSeparator();
+                    case 't' -> output += '\t';
+                    case '{' -> output += '{';
+                    case '}' -> output += '}';
+                    default -> Language.error("invalid escape character: \\" + og_string.charAt(i), token.line);
+                }
+                i++;
+            }
+
+        }
+
+        return output;
+    }
+    
 
     @Override
     public String toString() {

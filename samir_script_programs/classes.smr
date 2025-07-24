@@ -13,12 +13,11 @@ class Employee {
     }
 
     func intro(){
-        println "My name is: " + str(name) + ".";
-        println "I am " + str(age);
+        println "My name is: $name \nI am $age years old.";
     }
 
     func work(){
-        println str(name) + " is working on " + str(position);
+        println "$name is working on $position";
     }
 }
 
@@ -35,7 +34,7 @@ class Position {
         if new_salary > 0 then
             self._average_salary = new_salary;
         else
-            println "Please enter a positive number for the salary of: " + name;
+            println "Please enter a positive number for the salary of: $name" ;
     }
 
     func get_salary(){
@@ -46,3 +45,6 @@ class Position {
 var yahya = Employee("Yahya", 19, 5000, "Backend dev");
 var samir = Employee("Samir", 20, 6000, "Data scientist");
 var muhammad = Employee("Muhammad", 20, 5500, "Frontend dev");
+
+yahya.intro();
+yahya.work();

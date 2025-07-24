@@ -13,11 +13,11 @@ public class Parser{
     Parser(ArrayList<Token> tokens, Language lang){
         this.tokens = tokens;
         this.lang = lang;
+        pos = 0;
+        current = tokens.get(0);
     }
 
     List<Stmt> parse(){
-        pos = 0;
-        current = tokens.get(0);
         List<Stmt> statements = new ArrayList<>();
         while( ! currentIs(TokenType.EOF)){
             statements.add(declaration());
@@ -731,20 +731,20 @@ public class Parser{
 
         if(curType.equals(TokenType.TRUE)){
             advance();
-            return new LiteralExpre(tok, true);
+            return new LiteralExpre(tok, true, lang);
         }
         else if(curType.equals(TokenType.FALSE)){
             advance();
-            return new LiteralExpre(tok, false);
+            return new LiteralExpre(tok, false, lang);
         }
         else if(curType.equals(TokenType.NIL)){
             advance();
-            return new LiteralExpre(tok, null);
+            return new LiteralExpre(tok, null, lang);
         }
 
         else if(currentIs(TokenType.Double, TokenType.STRING)){
             advance();
-            return new LiteralExpre(tok, tok.value);
+            return new LiteralExpre(tok, tok.value, lang);
         }
             
         else if(currentIs(TokenType.IDENTIFIER)){

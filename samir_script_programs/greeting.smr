@@ -1,9 +1,7 @@
 
 
-print "Please enter your name: ";
-var name = inputStr;
+var name = input("Please enter your name: ");
 
-print "Where are you from: ";
-var nationality = inputStr;
+var nationality = input("Where are you from: ");
 
-print "Hello " + name + ", All the good coders come from " + nationality + ".";
+print "Hello $name, All the good coders come from $nationality.";
