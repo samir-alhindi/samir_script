@@ -4,7 +4,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,14 +17,15 @@ import java.util.Stack;
 public class Main {
     public static void main(String[] args) {
 
-        
+        /*
         String samir_script_filepath = args[0];
         Language lang = new Language(samir_script_filepath);
         lang.run();
+        */
         
 
-        //Language lang = new Language("samir_script_programs\\short_prog.smr");
-        //lang.run();
+        Language lang = new Language("samir_script_programs\\new_constrcuter.smr");
+        lang.run();
     }
 }
 
@@ -1198,7 +1198,7 @@ class Call extends Expre {
         }
         
         if(callee instanceof SamirCallable == false)
-            Language.error("Can only call functions and classes !", paren.line);
+            Language.error("Can only call functions, Lambdas and classes !", paren.line);
 
         SamirCallable thingToCall = (SamirCallable)callee;
 
@@ -1907,14 +1907,14 @@ class Break extends Stmt {
 
 class ClassDeclre extends Stmt {
     List<Stmt> classBody;
-    Function constructer;
+    List<Token> parameters;
     Function to_string;
     Token name;
     Language lang;
-    ClassDeclre(List<Stmt> classBody, Token name, Function constructer, Function to_string, Language lang){
+    ClassDeclre(List<Stmt> classBody, Token name, List<Token> parameters, Function to_string, Language lang){
         this.classBody = classBody;
         this.name = name;
-        this.constructer = constructer;
+        this.parameters = parameters;
         this.to_string = to_string;
         this.lang = lang;
     }

@@ -1,16 +1,5 @@
 
-class Employee {
-    var name;
-    var age;
-    var salary;
-    var position;
-
-    func _init(name, age, salary, position){
-        self.name = name;
-        self.age = age;
-        self.salary = salary;
-        self.position = position;
-    }
+class Employee(name: string, age: number, salary: number, position: string) {
 
     func intro(){
         println "My name is: {name},\nI am {age} years old.";
@@ -21,14 +10,7 @@ class Employee {
     }
 }
 
-class Position {
-    var name;
-    var _average_salary;
-
-    func _init(name, average_salary){
-        self.name = name;
-        self._average_salary = average_salary;
-    }
+class Position(name, average_salary) {
 
     func set_salary(new_salary){
         if new_salary > 0 then
@@ -48,3 +30,5 @@ var muhammad = Employee("Muhammad", 20, 5500, "Frontend dev");
 
 yahya.intro();
 yahya.work();
+
+samir.intro();

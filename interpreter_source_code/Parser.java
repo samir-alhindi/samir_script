@@ -110,23 +110,25 @@ public class Parser{
         Token name = current;
         advance();
 
+        if( ! currentIs(TokenType.L_PAR))
+            Language.error("Expected '(' after class name", name.line, current.line);
+        advance();
+
+        List<Token> parameters = parameters();
+
         if( ! currentIs(TokenType.L_CUR))
             Language.error("Expected '{' after class name", current.line - 1, current.line);
         advance();
 
         List<Stmt> classBody = new ArrayList<>();
-        Function constructer = null;
         Function to_string = null;
 
         while (currentIs(TokenType.FUNC, TokenType.VAR)){
             if(currentIs(TokenType.FUNC)){
                 advance();
                 Function method = (Function) function();
-                // Check if constructer:
-                if(method.name.value.equals("_init"))
-                    constructer = method;
                 // Check if toString():
-                else if(method.name.value.equals("_toString"))
+                if(method.name.value.equals("_toString"))
                     to_string = method;
                 else
                     classBody.add(method);
@@ -142,7 +144,7 @@ public class Parser{
             Language.error("Expected '}' after class '" + name.value + "' body", name.line);
         advance();
 
-        return new ClassDeclre(classBody, name, constructer, to_string, lang);
+        return new ClassDeclre(classBody, name, parameters, to_string, lang);
     }
 
 
@@ -156,9 +158,29 @@ public class Parser{
             Language.error("Expected '(' after function name", name.line, current.line);
         advance();
 
-        List<Token> parameters = new ArrayList<>();
+        List<Token> parameters = parameters();
 
-        
+        // optional Return type hint:-
+        if(currentIs(TokenType.ARROW)){
+            advance();
+            if( ! currentIs(TokenType.IDENTIFIER) && ! currentIs(TokenType.NIL))
+                Language.error("expected data type after '->'", current.line);
+            advance();
+        }
+
+        if( ! currentIs(TokenType.L_CUR))
+            Language.error("Expected '{' before function body", current.line -1, current.line);
+        advance();
+
+        List<Stmt> body = block();
+
+        return new Function(name, parameters, body, lang);
+
+
+    }
+
+    List<Token> parameters(){
+        var parameters = new ArrayList<Token>();
         if( ! currentIs(TokenType.R_PAR)){
             if( ! currentIs(TokenType.IDENTIFIER))
                 Language.error("Expected parameter name", current.line);
@@ -195,23 +217,7 @@ public class Parser{
             Language.error("Expected closing ')'", current.line);
         advance();
 
-        // optional Return type hint:-
-        if(currentIs(TokenType.ARROW)){
-            advance();
-            if( ! currentIs(TokenType.IDENTIFIER) && ! currentIs(TokenType.NIL))
-                Language.error("expected data type after '->'", current.line);
-            advance();
-        }
-
-        if( ! currentIs(TokenType.L_CUR))
-            Language.error("Expected '{' before function body", current.line -1, current.line);
-        advance();
-
-        List<Stmt> body = block();
-
-        return new Function(name, parameters, body, lang);
-
-
+        return parameters;
     }
 
     Stmt varDeclaration(){

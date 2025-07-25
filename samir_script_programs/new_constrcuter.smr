@@ -1,0 +1,12 @@
+
+class Person(name: string, age: number) {
+    func do_stuff(){
+        println "{name} is doing stuff.";
+    }
+    
+}
+
+var person = Person("Samir", 20);
+person.age();
+
+println person.do_stuff;

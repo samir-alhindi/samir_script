@@ -7,12 +7,12 @@ import java.util.Map;
 class SamirClass implements SamirCallable{
     Environment closure;
     ClassDeclre class_;
-    Function constructer;
+    List<Token> parameters;
     Function to_string;
     Language lang;
     SamirClass(ClassDeclre class_, Environment closure, Language lang){
         this.class_ = class_;
-        this.constructer = class_.constructer;
+        this.parameters = class_.parameters;
         this.to_string = class_.to_string;
         this.closure = closure;
         this.lang = lang;
@@ -25,9 +25,7 @@ class SamirClass implements SamirCallable{
 
     @Override
     public int arity() {
-        if(constructer != null)
-            return constructer.parameters.size();
-        return 0;
+        return parameters.size();
     }
 
     @Override
@@ -50,15 +48,15 @@ class SamirInstance{
         lang.environment = this.environment;
         List<Stmt> bodyStatements = class_.class_.classBody;
 
+
         environment.define("self", this);
         for (Stmt stmt : bodyStatements) {
             stmt.visit();
+
+        for (int i = 0; i < constructer_args.size(); i++)
+            this.environment.define(class_.parameters.get(i).value.toString(), constructer_args.get(i));
         }
-        if(class_.constructer != null){
-            class_.constructer.visit();
-            SamirCallable constructerToCall = (SamirCallable) environment.get(new Token(null, "_init", 0));
-            constructerToCall.call(constructer_args);
-        }
+
         if(class_.to_string != null){
             class_.to_string.visit();
             to_string_method_as_callable = (SamirCallable) environment.get(new Token(null, "_toString", 0));
