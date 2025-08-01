@@ -1,0 +1,7 @@
+
+var source: string = "var x = 5;";
+exec(source);
+println x;
+
+var loop: string = "for i in [1, 2, 3, 4, 5] do println i;";
+exec(loop);

@@ -1,9 +1,9 @@
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,15 +17,14 @@ import java.util.Stack;
 public class Main {
     public static void main(String[] args) {
 
-        /*
+        
         String samir_script_filepath = args[0];
         Language lang = new Language(samir_script_filepath);
         lang.run();
-        */
         
-
-        Language lang = new Language("samir_script_programs\\new_constrcuter.smr");
-        lang.run();
+        //Language lang = new Language("samir_script_programs\\to_do_list.smr");
+        //lang.run();
+        
     }
 }
 
@@ -324,35 +323,25 @@ class Language {
                     Language.error("read() arg must be a file path", currentRunningLine);
                 String path = (String) arguments.get(0);
                 
-                // Check if file is in local dir:
-                //String parent_dir = Paths.get(samir_script_filepath, "").getParent().toString();
-                //String file_path = parent_dir + "\\" + arguments.get(0);
-                
+                // Check if file is abs path:
                 try{
                     byte[] bytes = Files.readAllBytes(Paths.get(path));
                     String text = new String(bytes, Charset.defaultCharset());
                     return text;
-                }
-                catch(FileNotFoundException e){}
-                catch(IOException e){}
-
-                /*
-                // Ckeck if file is in abs dir:...
-                String path = (String) arguments.get(0);
-                try{
-                    byte[] bytes = Files.readAllBytes(Paths.get(path));
-                    String text = new String(bytes, Charset.defaultCharset());
-                    return text;
-                }
-                catch(FileNotFoundException e){
-                    Language.error("could not find file in path: " + path, currentRunningLine);
                 }
                 catch(IOException e){
-                    Language.error("could not find file in path: " + path, currentRunningLine);
+                    try{
+                        // Let's see if file is local:
+                        String parent_dir = Paths.get(samir_script_filepath, "").getParent().toString();
+                        String local_path = parent_dir + "\\" + arguments.get(0);
+                        byte[] bytes = Files.readAllBytes(Paths.get(local_path));
+                        String text = new String(bytes, Charset.defaultCharset());
+                        return text;
+                    }
+                    catch(IOException f){
+                        Language.error("Could not find file: " + path, currentRunningLine);
+                    }
                 }
-                    */
-
-                // unreachable:
                 return null;
 
             }
@@ -369,20 +358,19 @@ class Language {
                 if(arguments.get(0) instanceof String == false)
                     Language.error("write() arg must be a file path", currentRunningLine);
                 
-                String path = (String) arguments.get(0);
+                String string_path = (String) arguments.get(0);
                 String content = Language.stringify(arguments.get(1));
                 
-                File file = new File(path);
-                try {
-                    file.createNewFile();
-                } catch (IOException e) {
-                    System.out.println("couldn't create file: " + path);
+                Path path = Paths.get(string_path);
+                // For local files:
+                if( ! path.isAbsolute()){
+                    Path parent_dir = Paths.get(samir_script_filepath).getParent();
+                    path = parent_dir.resolve(path);
                 }
-                try (FileWriter writer = new FileWriter(path)) {
-                    writer.write(content);
+                try {
+                    Files.write(path, content.getBytes());
                 } catch (IOException e) {
-                    System.out.println("couldn't write to file: " + path);
-                    e.printStackTrace();
+                    Language.error("Couldn't write to file: " + path.toString(), currentRunningLine);
                 }
                 return null;
             }
@@ -484,6 +472,31 @@ class Language {
                 return expre.visit();
             }
             
+        });
+
+        globals.define("exec", new SamirCallable(){
+
+            @Override
+            public int arity() {return 1;}
+
+            @Override
+            public Void call(List<Object> arguments) {
+                if(arguments.get(0) instanceof String == false)
+                    Language.error("exec() arg must be a string", currentRunningLine);
+                if(Thread.currentThread().getStackTrace().length > 500)
+                    Language.error("exec() caused a stack overflow, Remove any circular dependency.", currentRunningLine);
+                String source = (String) arguments.get(0);
+                Lexer lexer = new Lexer(source);
+                lexer.line = currentRunningLine;
+                ArrayList<Token> tokens = lexer.lex();
+                Parser parser = new Parser(tokens, Language.this);
+                List<Stmt> program = parser.parse();
+                for (Stmt stmt : program)
+                    stmt.visit();
+                return null;
+                
+            }
+
         });
     }
 
@@ -1945,18 +1958,29 @@ class EnumDecl extends Stmt {
 
 class Import extends Stmt {
     Token keyword;
-    String path;
+    String string_path;
     Token identfier;
     Language lang;
-    Import(Token keyword, String path, Token identfier, Language lang){
+    Import(Token keyword, String string_path, Token identfier, Language lang){
         this.keyword = keyword;
-        this.path = path;
+        this.string_path = string_path;
         this.identfier = identfier;
         this.lang = lang;
     }
     @Override
     Void visit() {
-        Language new_lang = new Language(path);
+
+        if(Thread.currentThread().getStackTrace().length > 500)
+            Language.error("Please remove any circular dependency in file imports", keyword.line);
+
+        Path path = Paths.get(string_path);
+        // Local file path:
+        if( ! path.isAbsolute()){
+            Path parent_dir = Paths.get(lang.samir_script_filepath).getParent();
+            path = parent_dir.resolve(path);
+        }
+
+        Language new_lang = new Language(path.toString());
         new_lang.run();
         SamirInstance import_instance = new Importinstance(new_lang, identfier);
         lang.environment.define((String) identfier.value, import_instance);

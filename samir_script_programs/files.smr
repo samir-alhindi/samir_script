@@ -1,5 +1,5 @@
 
 
-var text = read("text.txt");
+var text = read("interpreter\\interpreter.smr");
 
 println text;

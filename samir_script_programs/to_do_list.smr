@@ -3,7 +3,6 @@ func load_save_data(){
     if fileExists("my_tasks.txt") then{
         var contents = read("my_tasks.txt");
         for line in split(contents, ln) do {
-            stop();
             if not isNumeric(line[0]) then
                 continue;
             var priority = num(line[0]);
@@ -56,14 +55,7 @@ func get_number_input(prompt){
     return num(user_input);
 }
 
-class Task {
-    var name;
-    var priority;
-    func _init(name, priority){
-        self.name = name;
-        self.priority = priority;
-    }
-
+class Task(name: string, priority: number) {
     func _toString(){
         return str(priority) + "- " + name;
     }

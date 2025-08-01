@@ -4,4 +4,5 @@
 1- Study MT129
 2- Get groceries
 2- exercise
+2- Eat salad
 3- Work on samir_script
