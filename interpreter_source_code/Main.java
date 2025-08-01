@@ -1,5 +1,3 @@
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -37,7 +35,6 @@ class Language {
     boolean aboutToRunMethod = false;
     int currentRunningLine = 1;
 
-    int currentLine = 0;
     String samir_script_filepath;
     Scanner scanner;
 
@@ -96,6 +93,11 @@ class Language {
             @Override
             public Object call(List<Object> arguments) {
                 return new SamirPair(arguments.get(0), arguments.get(1), Language.this);
+            }
+
+            @Override
+            public String toString() {
+                return "<class Pair>";
             }
             
         });
@@ -295,18 +297,16 @@ class Language {
                 if(arguments.get(0) instanceof String == false)
                     Language.error("fileExists() arg must be a file path", currentRunningLine);
                 
-                // Check if file is in local dir:
-                String parent_dir = Paths.get(samir_script_filepath, "").getParent().toString();
-                String file_path = parent_dir + "\\" + arguments.get(0);
-                File file = new File(file_path);
-                if(file.exists())
+                // Look in global dir:
+                String string_path = (String) arguments.get(0);
+                Path path = Paths.get(string_path);
+                if(path.isAbsolute() && Files.exists(path))
                     return true;
-                // Check if in abs dir:
-                File file_abs = new File((String)arguments.get(0)); 
-                if(file_abs.exists())
-                    return true;
-                return false;
                 
+                // Look in local dir:
+                Path parent_dir = Paths.get(samir_script_filepath).getParent();
+                path = parent_dir.resolve(path);
+                return Files.exists(path);
             }
             
         });
@@ -318,7 +318,7 @@ class Language {
             public int arity() {return 1;}
 
             @Override
-            public Object call(List<Object> arguments) {
+            public String call(List<Object> arguments) {
                 if(arguments.get(0) instanceof String == false)
                     Language.error("read() arg must be a file path", currentRunningLine);
                 String path = (String) arguments.get(0);
