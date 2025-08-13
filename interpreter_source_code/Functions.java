@@ -1,5 +1,10 @@
 import java.util.List;
 
+interface SamirCallable {
+    int arity();
+    Object call(List<Object> arguments);
+}
+
 class SamirFunction implements SamirCallable {
     final Function declaration;
     final Environment closure;
