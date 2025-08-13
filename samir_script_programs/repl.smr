@@ -1,0 +1,8 @@
+
+
+func read_(){
+    return input("> ");
+}
+
+while true do
+    println eval(read_());

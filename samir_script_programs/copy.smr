@@ -1,5 +1,5 @@
 
-func double_list(list, in_place){
+func double_list(list: List, in_place: boolean){
     var output = list if in_place else list.copy();
     var i = 0;
     while i < len(output) do{
@@ -17,15 +17,12 @@ println y;
 println x;
 
 
-class Test {
-    var num;
-}
+class Test(num: number) {}
 
 func double(test){
     test.num = 5;
 }
 
-var mine = Test();
-mine.num = 2;
+var mine = Test(4);
 double(mine);
 println mine.num;

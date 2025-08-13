@@ -1,12 +1,5 @@
 
-class Student {
-    var name;
-    var id;
-
-    func _init(name, id){
-        self.name = name;
-        self.id = id;
-    }
+class Student(name: string, id: number) {
 
     func _toString(){
         return "[{name} : {id}]";

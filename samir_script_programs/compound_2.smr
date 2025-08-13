@@ -1,6 +1,6 @@
 
 
-class Test {
+class Test() {
     var thing = "Hello";
     var otherThing = [true, nil, "hi"];
     var numberThing = 10;

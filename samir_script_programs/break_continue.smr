@@ -1,38 +1,30 @@
 
 func count(){
-    var i = 0;
-    while i <= 20 do {
+    for i in range(1, 21, 1) do {
         if i == 10 then {
             println "I hate 10 !!!!";
             break;
         }
         println i;
-        i = i + 1;
     }
 }
 
-#count();
-#println "Welp, someone hates the number 10...";
+count();
+println "Welp, someone hates the number 10...";
 
 func print_matrix(){
-    var i = 0;
-    while i <= 5 do {
-        var j = 0;
-        while j <= 5 do {
+    for i in range(1, 6, 1) do {
+        for j in range(1, 6, 1) do {
             if j > i then
                 break;
             print j;
-            j = j + 1;
         }
-        i = i + 1;
         println "";
     }
 }
 
 func print_evens(){
-    var i = -1;
-    while i <= 20 do {
-        i = i + 1;
+    for i in range(1, 21, 1) do {
         if i % 2 == 1 then
             continue;
         println i;
@@ -40,9 +32,7 @@ func print_evens(){
 }
 
 func print_everything_but_4(){
-    var i = 0;
-    while i <= 10 do {
-        i = i + 1;
+    for i in range(1, 11, 1) do {
         if i == 4 then
             continue;
         println i;

@@ -3,7 +3,7 @@
 var x = 5;
 var y = [1, 2, 3];
 var z = "Hello ";
-class Test {
+class Test() {
     var thing = 5;
 }
 var test = Test();

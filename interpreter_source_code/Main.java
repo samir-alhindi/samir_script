@@ -15,13 +15,17 @@ import java.util.Stack;
 public class Main {
     public static void main(String[] args) {
 
+        if(args.length == 1){
+            String samir_script_filepath = args[0];
+            Language lang = new Language(samir_script_filepath);
+            lang.run();
+        }
         
-        String samir_script_filepath = args[0];
-        Language lang = new Language(samir_script_filepath);
-        lang.run();
-        
-        //Language lang = new Language("samir_script_programs\\to_do_list.smr");
-        //lang.run();
+        // For debuging:
+        else{
+            Language lang = new Language("samir_script_programs\\debug.smr");
+            lang.run();
+        }
         
     }
 }
@@ -497,6 +501,29 @@ class Language {
                 
             }
 
+        });
+
+        globals.define("range", new SamirCallable() {
+
+            @Override
+            public int arity() {return 3;}
+
+            @Override
+            public Object call(List<Object> arguments) {
+                for (Object item : arguments)
+                    if(item instanceof Double == false)
+                        Language.error("range() args must all be numbers", currentRunningLine);
+                int from = ((Double) arguments.get(0)).intValue();
+                int to = ((Double) arguments.get(1)).intValue();
+                int step = ((Double) arguments.get(2)).intValue();
+                if(step == 0)
+                    Language.error("range() step cannot be 0", currentRunningLine);
+                var arraylist = new ArrayList<Double>();
+                for (; step > 0 ? from < to : to < from; from += step)
+                    arraylist.add(Language.int_to_Double(from));
+                return ListInstance.create_filled_list(arraylist.toArray(), Language.this);
+            }
+            
         });
     }
 

@@ -1,16 +1,12 @@
 
 
 func get_opp(char){
-    if char == "+" then
-        return lambda x, y -> x + y;
-    elif char == "-" then
-        return lambda x, y -> x - y;
-    elif char == "*" then
-        return lambda x, y -> x * y;
-    elif char == "/" then
-        return lambda x, y -> x / y;
-    else
-        exit("Please enter a valid opp !");
+    match char with
+        case "+" -> return lambda x, y -> x + y;
+        case "-" -> return lambda x, y -> x - y;
+        case "*" -> return lambda x, y -> x * y;
+        case "/" -> return lambda x, y -> x / y;
+        else -> exit("Please enter a valid opp !");
 }
 
 var num1;

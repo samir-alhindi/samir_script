@@ -2,7 +2,7 @@
 func load_save_data(){
     if fileExists("my_tasks.txt") then{
         var contents = read("my_tasks.txt");
-        for line in split(contents, ln) do {
+        for line in split(contents, "\n") do {
             if not isNumeric(line[0]) then
                 continue;
             var priority = num(line[0]);
@@ -15,11 +15,11 @@ func load_save_data(){
 func save_data(){
     sort_tasks();
     var contents = "";
-    contents += "---------------" + ln;
-    contents += "---All Tasks---" + ln;
-    contents += "---------------" + ln;
+    contents += "---------------\n";
+    contents += "---All Tasks---\n";
+    contents += "---------------\n";
     for task in all_tasks do
-        contents += str(task) + ln;
+        contents += str(task) + "\n";
     write("my_tasks.txt", contents);
 }
 
@@ -80,7 +80,7 @@ func cross_off_tasks(){
     }
     println "Please enter the index of the task:-";
     for i, task in enumarate(all_tasks) do
-        println str(i + 1) + "- " + task.name;
+        println "{i+1}- {task.name}";
     var index = get_number_input("> ");
     while index - 1 >= len(all_tasks) or index - 1 < 0 do {
         println "Please enter a valid index: ";
