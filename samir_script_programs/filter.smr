@@ -1,8 +1,8 @@
 func filter(list, rule){
     var output = List();
     var i = 0;
-    while i < list.size do {
-        var current = list.get(i);
+    while i < len(list) do {
+        var current = list[i];
         if rule(current) == true then
             output.add(current);
         i = i + 1;

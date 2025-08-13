@@ -5,11 +5,7 @@ func fact(num){
     return num * fact(num + 1);
 }
 
-class Buggy {
-
-    func _init(){
-        Buggy();
-    }
+class Buggy(){
 
 }
 

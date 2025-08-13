@@ -23,7 +23,7 @@ public class Main {
         
         // For debuging:
         else{
-            Language lang = new Language("samir_script_programs\\debug.smr");
+            Language lang = new Language("samir_script_programs\\debug_2.smr");
             lang.run();
         }
         
@@ -36,7 +36,6 @@ class Language {
     Environment environment = globals;
     Stack<Environment> enviStack = new Stack<>();
 
-    boolean aboutToRunMethod = false;
     int currentRunningLine = 1;
 
     String samir_script_filepath;
@@ -178,7 +177,7 @@ class Language {
                 else if(arg instanceof SamirPair)
                     return "pair";
                 else if(arg instanceof SamirInstance)
-                    return ((SamirInstance)arg).class_.class_.name.value.toString();
+                    return ((SamirInstance)arg).samir_class.declaration.name.value.toString();
                 else if(arg instanceof SamirFunction)
                     return "function";
                 else if(arg instanceof SamirLambda)
@@ -845,7 +844,6 @@ class ListLiteral extends Expre {
         for (Expre element : elements) 
             elementsVisited.add(element.visit());
         ListInstance list =  new ListInstance(elementsVisited, lang);
-        list.environment.variables.put("size", (Double) ((double) elements.size()));
         return list;
     }
 }
@@ -1221,19 +1219,10 @@ class Call extends Expre {
     Object visit() {
         Object callee = this.callee.visit();
         List<Object> arguments = new ArrayList<>();
-
-        if(lang.aboutToRunMethod){
-            lang.environment = lang.enviStack.pop();
-            lang.aboutToRunMethod = false;
-        }
             
             
         for (Expre arg : this.arguments) 
             arguments.add(arg.visit());
-        
-        if(lang.aboutToRunMethod){
-            lang.aboutToRunMethod = false;
-        }
         
         if(callee instanceof SamirCallable == false)
             Language.error("Can only call functions, Lambdas and classes !", paren.line);
@@ -1376,7 +1365,7 @@ class Get extends Expre {
         }
         
         String instanceType = (instance instanceof Importinstance) ? "import" : "class";
-        Language.error(memberName + " not found in " +  instanceType + ": " + instance.class_.class_.name.value, token.line);
+        Language.error(memberName + " not found in " +  instanceType + ": " + instance.class_name, token.line);
 
         // Unreachable code:
         return null;
@@ -1408,7 +1397,7 @@ class Set extends Expre {
         if(instance.environment.variables.containsKey(member.memberVar.value))
             leftVisited = instance.environment.get(member.memberVar);
         else
-            Language.error(member.memberVar.value + " not found in instance of class: " + instance.class_.class_.name.value, opp.line);
+            Language.error(member.memberVar.value + " not found in instance of class: " + instance.samir_class.declaration.name.value, opp.line);
 
         switch(opp.type){
             case TokenType.EQUALS -> {
@@ -1944,8 +1933,8 @@ class ClassDeclre extends Stmt {
     }
 
     Void visit(){
-        SamirClass class_ = new SamirClass(this, lang.environment, lang);
-        lang.environment.define(name.value.toString(), class_);
+        SamirClass samir_class = new SamirClass(this, lang.environment, lang);
+        lang.environment.define(name.value.toString(), samir_class);
         return null;
     }
 }

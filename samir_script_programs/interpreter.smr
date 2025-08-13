@@ -191,13 +191,13 @@ class Parser(tokens: List){
     }
 
     func advance(){
-        if pos + 1 >= tokens.size then{
+        if pos + 1 >= len(tokens) then{
             hadError = true;
-            log = "invalid syntax";
+            log = "invalid syntax (EOF)";
             return;
         }
         pos = pos + 1;
-        current = tokens.get(pos);
+        current = tokens[pos];
     }
 
 }
@@ -275,6 +275,8 @@ class Error(log: string){}
 while true do {
 
     var source: string = input("> ");
+    if source == "" then
+        continue;
 
     var lexer: Lexer = Lexer(source);
     var tokens: List = lexer.lex();

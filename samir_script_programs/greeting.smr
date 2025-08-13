@@ -4,4 +4,4 @@ var name = input("Please enter your name: ");
 
 var nationality = input("Where are you from: ");
 
-print "Hello $name, All the good coders come from $nationality.";
+print "Hello {name}, All the good coders come from {nationality}.";

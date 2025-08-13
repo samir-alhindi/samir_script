@@ -6,21 +6,21 @@ import java.util.Map;
 
 class SamirClass implements SamirCallable{
     Environment closure;
-    ClassDeclre class_;
+    ClassDeclre declaration;
     List<Token> parameters;
     Function to_string;
     Language lang;
-    SamirClass(ClassDeclre class_, Environment closure, Language lang){
-        this.class_ = class_;
-        this.parameters = class_.parameters;
-        this.to_string = class_.to_string;
+    SamirClass(ClassDeclre declaration, Environment closure, Language lang){
+        this.declaration = declaration;
+        this.parameters = declaration.parameters;
+        this.to_string = declaration.to_string;
         this.closure = closure;
         this.lang = lang;
     }
 
     @Override
     public String toString() {
-        return "<class " + class_.name.value + ">";
+        return "<class " + declaration.name.value + ">";
     }
 
     @Override
@@ -38,30 +38,28 @@ class SamirClass implements SamirCallable{
 
 class SamirInstance{
     Environment environment;
-    SamirClass class_;
-    SamirCallable to_string_method_as_callable;
+    SamirClass samir_class;
+    String class_name;
 
-    SamirInstance(SamirClass class_, List<Object> constructer_args, Language lang){
-        this.class_ = class_;
-        this.environment = new Environment(class_.closure);
+    SamirInstance(SamirClass samir_class, List<Object> constructer_args, Language lang){
+        this.samir_class = samir_class;
+        this.environment = new Environment(samir_class.closure);
+        this.class_name = samir_class.declaration.name.value.toString();
         Environment prev = lang.environment;
         lang.environment = this.environment;
-        List<Stmt> bodyStatements = class_.class_.classBody;
+        List<Stmt> bodyStatements = samir_class.declaration.classBody;
 
 
         environment.define("self", this);
         for (int i = 0; i < constructer_args.size(); i++)
-            this.environment.define(class_.parameters.get(i).value.toString(), constructer_args.get(i));
+            this.environment.define(samir_class.parameters.get(i).value.toString(), constructer_args.get(i));
         for (Stmt stmt : bodyStatements)
             stmt.visit();
 
+        if(samir_class.to_string != null)
+            samir_class.to_string.visit();
         
 
-        if(class_.to_string != null){
-            class_.to_string.visit();
-            to_string_method_as_callable = (SamirCallable) environment.get(new Token(null, "_toString", 0));
-        }
-            
         lang.environment = prev;
     }
 
@@ -73,13 +71,12 @@ class SamirInstance{
 
     @Override
     public String toString() {
-        if(this.class_.to_string == null)
-            return "<" + class_.class_.name.value + " instance " + this.hashCode() + ">";
-        return Language.stringify(to_string_method_as_callable.call(null));
+        if(this.samir_class.to_string == null)
+            return "<" + samir_class.declaration.name + " instance " + this.hashCode() + ">";
+        SamirCallable to_string = (SamirCallable) environment.variables.get("_toString");
+        return Language.stringify(to_string.call(null));
     }
 }
-
-interface NativeMethod {}
 
 class ListInstance extends SamirInstance {
 
@@ -90,9 +87,7 @@ class ListInstance extends SamirInstance {
         super(lang);
         this.arrayList = arrayList;
         this.lang = lang;
-        // This line exists so we can error report if the user tries to accsses a member that isn't in the List class:
-        this.class_ = new SamirClass(new ClassDeclre(null, new Token(null, "List", 0), null, null, lang), null, lang);
-        this.environment.define("size", 0.0);
+        this.class_name = "List";
 
         // Create append/add method for list object:
         this.environment.define("add", new SamirCallable(){
@@ -104,7 +99,6 @@ class ListInstance extends SamirInstance {
             public Void call(List<Object> arguments) {
 
                 arrayList.add(arguments.get(0));
-                changeSize(1);
                 return null;
             }
 
@@ -115,40 +109,6 @@ class ListInstance extends SamirInstance {
             
         });
 
-        // Create "set" method for list object:
-        this.environment.define("set", new SamirCallable(){
-
-            @Override
-            public int arity() {return 2;}
-
-            @Override
-            public Void call(List<Object> arguments) {
-                
-                int index = checkValidIndex(arguments.get(0));
-                arrayList.set(index, arguments.get(1));
-                return null;
-            }
-
-        });
-
-        // Create "get" method for list object:
-        this.environment.define("get", new SamirCallable() {
-
-            @Override
-            public int arity() {return 1;}
-
-            @Override
-            public Object call(List<Object> arguments) {
-                int index = checkValidIndex(arguments.get(0));
-                return arrayList.get(index);
-            }
-
-            @Override
-            public String toString() {
-                return "<function get>";
-            }
-            
-        });
 
         this.environment.define("removeAt", new SamirCallable(){
 
@@ -159,8 +119,7 @@ class ListInstance extends SamirInstance {
             public Object call(List<Object> arguments) {
                 int index = checkValidIndex(arguments.get(0));
                 Object removed = arrayList.get(index);
-                arrayList.remove(index);
-                changeSize(-1);
+                arrayList.remove(index);;
                 return removed;
         }});
 
@@ -172,8 +131,7 @@ class ListInstance extends SamirInstance {
             @Override
             public Object call(List<Object> arguments) {
                 if(arrayList.size() == 0)
-                    Language.error("Can't pop() from an empty list", lang.currentRunningLine);
-                changeSize(-1);
+                    Language.error("Can't pop() from an empty list", lang.currentRunningLine);;
                 return arrayList.removeLast();
             }
         });
@@ -186,8 +144,7 @@ class ListInstance extends SamirInstance {
             @Override
             public Object call(List<Object> arguments) {
                 if(arrayList.size() == 0)
-                    Language.error("Can't popFront() from an empty list", lang.currentRunningLine);
-                changeSize(-1);
+                    Language.error("Can't popFront() from an empty list", lang.currentRunningLine);;
                 return arrayList.removeFirst();
             }
         });
@@ -202,7 +159,6 @@ class ListInstance extends SamirInstance {
 
                 int index = checkValidIndex(arguments.get(0));
                 arrayList.add(index, arguments.get(1));
-                changeSize(1);
                 return null;
             }
 
@@ -253,40 +209,8 @@ class ListInstance extends SamirInstance {
             @Override
             public Void call(List<Object> arguments) {
                 arrayList.clear();
-                environment.assign(new Token(null,"size", 0), 0);
                 return null;
         }});
-
-    
-
-        this.environment.define("fillRange", new SamirCallable(){
-
-            @Override
-            public int arity() {return 3;}
-
-            @Override
-            public Void call(List<Object> arguments) {
-                Object arg1 = arguments.get(0);
-                Object arg2 = arguments.get(1);
-                Object arg3 = arguments.get(2);
-                if(arg1 instanceof Double == false || arg2 instanceof Double == false || arg3 instanceof Double == false)
-                    Language.error("all fillRange() args must be numbers", lang.currentRunningLine);
-                int from = ((Double) arg1).intValue();
-                int to = ((Double) arg2).intValue();
-                int step = ((Double) arg3).intValue();
-                int sizeChange = 0;
-                if(step > 0)
-                    for (   ; from < to; from += step, sizeChange ++)
-                        arrayList.add( (Double) (double) from);
-                else if(step < 0)
-                    for (; from > to; from += step, sizeChange ++)
-                        arrayList.add((Double) (double) from);
-                
-                changeSize(sizeChange);
-                return null;
-            }
-
-        });
 
         this.environment.define("sortCustom", new SamirCallable(){
 
@@ -422,12 +346,6 @@ class ListInstance extends SamirInstance {
         return index.intValue();
     }
 
-    void changeSize(int amount){
-        Object temp = environment.get(new Token(null, "size", 0));
-        Double oldSize = (Double) temp;
-        environment.assign(new Token(null, "size", 0), oldSize + amount);
-    }
-
     Double getSize(){
         return (Double) (double) arrayList.size();
     }
@@ -455,8 +373,7 @@ class DictInstance extends SamirInstance {
         super(lang);
         this.hashMap = hashMap;
         this.lang = lang;
-        // This line exists so we can error report if the user tries to accsses a member that isn't in the Dict class:
-        this.class_ = new SamirClass(new ClassDeclre(null, new Token(null, "Dict", 0), null, null, lang), null, lang);
+        class_name = "Dict";
 
         // Methods:
         this.environment.define("keys", new SamirCallable(){
@@ -503,7 +420,6 @@ class DictInstance extends SamirInstance {
 class SamirPairList {
     List<SamirPair> list;
     SamirPairList(DictInstance dict, Language lang){
-        super();
         list = new ArrayList<>();
         for (Map.Entry<Object, Object> entry : dict.hashMap.entrySet()){
             SamirPair pair = new SamirPair(entry.getKey(), entry.getValue(), lang);
@@ -513,7 +429,6 @@ class SamirPairList {
     }
 
     SamirPairList(ListInstance a, ListInstance b, Language lang){
-        super();
         list = new ArrayList<>();
         int size = Math.min(a.arrayList.size(), b.arrayList.size());
         for(int i = 0; i < size; i++)
@@ -541,6 +456,7 @@ class SamirPairList {
         super(lang);
         this.first = first;
         this.second = second;
+        this.class_name = "Pair";
         environment.define("first", first);
         environment.define("second", second);
     }
@@ -555,7 +471,6 @@ class SamirPairList {
     Importinstance(Language lang, Token import_name){
         super(lang);
         this.environment = lang.environment;
-        // This line exists so we can error report if the user tries to accsses a member that isn't in the file:
-        this.class_ = new SamirClass(new ClassDeclre(null, new Token(null, (String) import_name.value, 0), null, null, lang), null, lang); 
+        this.class_name = import_name.value.toString();
     }
  }

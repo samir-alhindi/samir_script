@@ -1,4 +1,4 @@
-import "samir_script_programs\\math.smr" as math
+import "math.smr" as math
 
 println math.cubed(3);
 println math.factorial(5);
