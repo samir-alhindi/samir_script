@@ -1,5 +1,11 @@
 
 
+class A(x){
+    func method(){
+        return x;
+    }
+}
+
 var funcs = [
     lambda x -> x * 2,
     lambda x -> x * x
@@ -9,5 +15,9 @@ func get_list(){
     return [1, 2, 3];
 }
 
-var test = get_list()[0];
-println test;
+#var a = A(A(A(A(funcs[1]))));
+#var letters = [a];
+
+#println letters[0].x.x.x.x;
+var a = A(5);
+println a.method();

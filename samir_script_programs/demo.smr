@@ -19,6 +19,6 @@ var my_nil = nil; # valid.
 
 # Statements:
 
-print num; print my_string;
-print my_bool; print my_other_other_bool;
-print initialize_me;
+println num; println my_string;
+println my_bool; println my_other_other_bool;
+println initialize_me;

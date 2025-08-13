@@ -1,8 +1,9 @@
 
 
-class Circle(diameter: number){
+class Circle(radius: number){
+    var diameter = radius * 2;
     func getArea(){
-        return PI * (diameter * (diameter / 2));
+        return PI * (radius * radius);
     }
 }
 

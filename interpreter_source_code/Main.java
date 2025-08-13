@@ -426,10 +426,8 @@ class Language {
 
             @Override
             public ListInstance call(List<Object> arguments) {
-                if(arguments.get(0) instanceof String == false)
-                    Language.error("first arg of split() must be a string", currentRunningLine);
-                if(arguments.get(1) instanceof String == false || ((String) arguments.get(1)).length() != 1)
-                    Language.error("second arg of split() must be a string of length 1", currentRunningLine);
+                if(arguments.get(0) instanceof String == false || arguments.get(0) instanceof String == false)
+                    Language.error("args of split() must be a string", currentRunningLine);
                 String word = (String) arguments.get(0);
                 String split = (String) arguments.get(1);
                 return ListInstance.create_filled_list(word.split(split), Language.this);
@@ -1349,13 +1347,13 @@ class Subscript extends Expre {
         }
 }
 
-class MemberAccess extends Expre {
+class Get extends Expre {
 
     Expre instanceVar;
-    Expre memberVar;
+    Token memberVar;
     Language lang;
 
-    MemberAccess(Expre instanceVar, Token dot, Expre memberVar, Language lang){
+    Get(Expre instanceVar, Token dot, Token memberVar, Language lang){
         this.instanceVar = instanceVar;
         this.token = dot;
         this.memberVar = memberVar;
@@ -1364,30 +1362,16 @@ class MemberAccess extends Expre {
 
     @Override
     Object visit() {
-        Object instance_no_cast = instanceVar.visit();
-        if(instance_no_cast instanceof SamirInstance == false)
+        Object object = instanceVar.visit();
+        if(object instanceof SamirInstance == false)
             Language.error("can only access members from class instances", token.line);
-        SamirInstance instance = (SamirInstance) instance_no_cast;
+        SamirInstance instance = (SamirInstance) object;
 
-        String memberName = memberVar.token.value.toString();
+        String memberName = memberVar.value.toString();
+        lang.currentRunningLine = token.line;
 
         if(instance.environment.variables.containsKey(memberName)){
             Object value = instance.environment.variables.get(memberName);
-            // See if member is method
-            if(value instanceof SamirCallable){
-                lang.currentRunningLine = token.line;
-                Environment prev = lang.environment;
-                lang.enviStack.add(prev);
-                lang.environment = instance.environment;
-                lang.aboutToRunMethod = true;
-                Object callResult =  memberVar.visit();
-    
-                while(lang.environment != prev)
-                    lang.environment = lang.enviStack.pop();
-                return callResult;
-                
-            }
-            else
                 return value;
         }
         
@@ -1399,13 +1383,13 @@ class MemberAccess extends Expre {
     }
 }
 
-class MemberAssign extends Expre {
-    MemberAccess member;
+class Set extends Expre {
+    Get member;
     Expre newValue;
     Token opp;
     Language lang;
 
-    MemberAssign(MemberAccess member, Expre newValue, Token opp, Language lang){
+    Set(Get member, Expre newValue, Token opp, Language lang){
         this.member = member;
         this.newValue = newValue;
         this.opp = opp;
@@ -1421,10 +1405,10 @@ class MemberAssign extends Expre {
 
         Object newValueObject = null;
 
-        if(instance.environment.variables.containsKey(member.memberVar.token.value))
-            leftVisited = instance.environment.get(member.memberVar.token);
+        if(instance.environment.variables.containsKey(member.memberVar.value))
+            leftVisited = instance.environment.get(member.memberVar);
         else
-            Language.error(member.memberVar.token.value + " not found in instance of class: " + instance.class_.class_.name.value, opp.line);
+            Language.error(member.memberVar.value + " not found in instance of class: " + instance.class_.class_.name.value, opp.line);
 
         switch(opp.type){
             case TokenType.EQUALS -> {
@@ -1472,7 +1456,7 @@ class MemberAssign extends Expre {
         }
 
         
-        instance.environment.variables.put(member.memberVar.token.value.toString(), newValueObject);
+        instance.environment.variables.put(member.memberVar.value.toString(), newValueObject);
         return newValueObject;
     }
 

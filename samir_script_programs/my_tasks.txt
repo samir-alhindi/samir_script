@@ -1,9 +1,5 @@
 ---------------
 ---All Tasks---
 ---------------
-1- Study MT129
-2- Get groceries
-2- exercise
-2- Eat salad
-3- Work on samir_script
-4- test
+1- Study MT132
+2- Clean up

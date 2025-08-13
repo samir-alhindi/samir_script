@@ -50,11 +50,11 @@ class SamirInstance{
 
 
         environment.define("self", this);
+        for (int i = 0; i < constructer_args.size(); i++)
+            this.environment.define(class_.parameters.get(i).value.toString(), constructer_args.get(i));
         for (Stmt stmt : bodyStatements)
             stmt.visit();
 
-        for (int i = 0; i < constructer_args.size(); i++)
-            this.environment.define(class_.parameters.get(i).value.toString(), constructer_args.get(i));
         
 
         if(class_.to_string != null){

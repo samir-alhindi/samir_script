@@ -489,9 +489,9 @@ public class Parser{
                 return new AssignExpre(varName, newValue, opp, lang);
             }
 
-            else if(expre instanceof MemberAccess){
-                MemberAccess memberToChange = (MemberAccess) expre;
-                return new MemberAssign(memberToChange, newValue, opp, lang);
+            else if(expre instanceof Get){
+                Get memberToChange = (Get) expre;
+                return new Set(memberToChange, newValue, opp, lang);
             }
 
             else if(expre instanceof Subscript)
@@ -650,9 +650,47 @@ public class Parser{
             return new UnaryOpExpre(right, opToken);
         }
 
-        return memberAaccess();
+        return call_subscript_get();
     }
 
+    Expre call_subscript_get(){
+        Expre expre = primary();
+        while(currentIs(TokenType.L_PAR, TokenType.L_BRACKET, TokenType.DOT)){
+            switch(current.type){
+                case L_PAR ->{
+                    advance();
+                    expre = finishCall(expre);
+                }
+                case L_BRACKET -> {
+                    Token bracket = current;
+                    advance();
+                    Expre index = expression();
+                    if(! currentIs(TokenType.R_BRACKET))
+                        Language.error("Expected closing ']' to end index", bracket.line);
+                    advance();
+                    expre = new Subscript(bracket, expre, index);
+                }
+                case DOT -> {
+                    Token dot = current;
+                    advance();
+                    if( ! currentIs(TokenType.IDENTIFIER))
+                        Language.error("Expected identifier after '.'", dot.line);
+                    Token member = current;
+                    advance();
+                    expre = new Get(expre, dot, member, lang);
+                }
+                default -> {
+                    // Unreachable:
+                    return null;
+                }
+                
+            }
+        }
+
+        return expre;
+    }
+
+    /*
     Expre memberAaccess(){
         Expre expre = call();
 
@@ -665,6 +703,7 @@ public class Parser{
 
         return expre;
     }
+        */
 
     Expre call(){
         Expre expre = subscript();
