@@ -1,12 +1,12 @@
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 abstract class Stmt{
     abstract Object visit();
-
 }
 
 class ExpressionStmt extends Stmt {
@@ -182,6 +182,7 @@ class For extends Stmt {
     Stmt body;
     Language lang;
     Token second_identfier;
+
     For(Token identfier, Expre iterable, Stmt body, Token second_identfier, Language lang){
         this.identfier = identfier;
         this.iterable = iterable;
@@ -192,140 +193,62 @@ class For extends Stmt {
 
     @Override
     Void visit() {
-
-    class Inner {
-        static void iterate(String string, Stmt body, Token identfier, Language lang){
-            Environment lasEnvi = lang.environment;
-            Environment newEnvi = new Environment(lasEnvi);
-            newEnvi.define((String) identfier.value, null);
-            lang.enviStack.add(lasEnvi);
-            lang.environment = newEnvi;
+        var iterable = this.iterable.visit();
+        var list = new ArrayList<Object>();
+        if(iterable instanceof String)
+            for (char c : ((String) iterable).toCharArray())
+                list.add(c + "");
+        else if(iterable instanceof ListInstance)
+            for (Object object : ((ListInstance) iterable).arrayList)
+                list.add(object);
+        else if (iterable instanceof SamirPairList)
+            for (SamirPair pair : ((SamirPairList) iterable).list)
+                list.add(pair);
+        else
+            Language.error("Can only iterate over strings, Lists, and PairLists", lang.line);
             
-            // Try block for the break statement:
-            try {
-                for(char c : string.toCharArray()){
-                    newEnvi.define((String) identfier.value, c + "");
-                    // Try block for the continue statement:
-                    try {
-                        body.visit();
-                    }
-                    catch(ContinueException e){
-                        while (lang.environment != lasEnvi) 
-                            lang.environment = lang.enviStack.pop();
-                        lang.enviStack.add(lasEnvi);
-                        lang.environment = newEnvi;
+        Environment lasEnvi = lang.environment;
+        Environment newEnvi = new Environment(lasEnvi);
+        lang.enviStack.add(lasEnvi);
+        lang.environment = newEnvi;
 
+        if((iterable instanceof String || iterable instanceof ListInstance) && second_identfier != null)
+            Language.error("Can only use 2 variables in a for loop to iterate over PairList", identfier.line);
+        
+        boolean unpacking = second_identfier != null;
 
-                    }
+        // Try block for the break statement:
+        try {
+            for(Object item : list){
+
+                newEnvi.define((String) identfier.value, item);
+                if(unpacking){
+                    newEnvi.define((String) identfier.value, ((SamirPair) item).first);
+                    newEnvi.define((String) second_identfier.value, ((SamirPair) item).second);
                 }
 
-                    
-            }
-            catch(BreakException e){
-                while (lang.environment != lasEnvi) 
-                    lang.environment = lang.enviStack.pop();
-            }
-
-            while (lang.environment != lasEnvi) 
-                lang.environment = lang.enviStack.pop();
-
-        }
-
-        static void iterate(ListInstance list, Stmt body, Token identfier, Language lang){
-            Environment lasEnvi = lang.environment;
-            Environment newEnvi = new Environment(lasEnvi);
-            newEnvi.define((String) identfier.value, null);
-            lang.enviStack.add(lasEnvi);
-            lang.environment = newEnvi;
-            
-            // Try block for the break statement:
-            try {
-                for(Object c : list.arrayList){
-                    newEnvi.define((String) identfier.value, c);
-                    // Try block for the continue statement:
-                    try {
-                        body.visit();
-                    }
-                    catch(ContinueException e){
-                        while (lang.environment != lasEnvi) 
-                            lang.environment = lang.enviStack.pop();
-                        lang.enviStack.add(lasEnvi);
-                        lang.environment = newEnvi;
-                    }
+                // Try block for the continue statement:
+                try {
+                    body.visit();
                 }
-
-                    
-            }
-            catch(BreakException e){
-                while (lang.environment != lasEnvi) 
-                    lang.environment = lang.enviStack.pop();
-            }
-
-            while (lang.environment != lasEnvi) 
-                lang.environment = lang.enviStack.pop();
-
-        }
-
-        static void iterate(SamirPairList samir_pair_list, Stmt body, Token identfier, Token second_identfier, Language lang){
-            boolean unpack_pairs = second_identfier != null;
-            Environment lasEnvi = lang.environment;
-            Environment newEnvi = new Environment(lasEnvi);
-            newEnvi.define((String) identfier.value, null);
-            if(unpack_pairs)
-                newEnvi.define((String) second_identfier.value, null);
-            lang.enviStack.add(lasEnvi);
-            lang.environment = newEnvi;
-            
-            // Try block for the break statement:
-            try {
-                for(SamirPair pair : samir_pair_list.list){
-                    if(unpack_pairs){
-                        newEnvi.define((String) identfier.value, pair.first);
-                        newEnvi.define((String) second_identfier.value, pair.second);
-                    }
-                    else
-                        newEnvi.define((String) identfier.value, pair);
-                    // Try block for the continue statement:
-                    try {
-                        body.visit();
-                    }
-                    catch(ContinueException e){
-                        while (lang.environment != lasEnvi) 
-                            lang.environment = lang.enviStack.pop();
-                        lang.enviStack.add(lasEnvi);
-                        lang.environment = newEnvi;
-                    }
+                catch(ContinueException e){
+                    while (lang.environment != lasEnvi) 
+                        lang.environment = lang.enviStack.pop();
+                    lang.enviStack.add(lasEnvi);
+                    lang.environment = newEnvi;
                 }
-
-                    
-            }
-            catch(BreakException e){
-                while (lang.environment != lasEnvi) 
-                    lang.environment = lang.enviStack.pop();
-            }
-
+            } 
+        }
+        catch(BreakException e){
             while (lang.environment != lasEnvi) 
                 lang.environment = lang.enviStack.pop();
-
         }
+
+        while (lang.environment != lasEnvi) 
+            lang.environment = lang.enviStack.pop();
+        
+        return null;
     }
-
-    Object iterableVisited = iterable.visit();
-    if((iterableVisited instanceof String || iterableVisited instanceof ListInstance) && second_identfier != null)
-        Language.error("Can only use 2 variables in a for loop to iterate over PairList", identfier.line);
-    if(iterableVisited instanceof String)
-        Inner.iterate( (String) iterableVisited, body, identfier, lang);
-    else if(iterableVisited instanceof ListInstance)
-        Inner.iterate((ListInstance) iterableVisited, body, identfier, lang);
-    else if(iterableVisited instanceof SamirPairList)
-        Inner.iterate((SamirPairList) iterableVisited, body, identfier, second_identfier, lang);
-    else
-        Language.error("can only iterate over Lists and strings", identfier.line);
-
-    return null;
-    }
-
-    
 }
 
 class Match extends Stmt {
