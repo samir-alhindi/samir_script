@@ -690,37 +690,6 @@ public class Parser{
         return expre;
     }
 
-    /*
-    Expre memberAaccess(){
-        Expre expre = call();
-
-        while (currentIs(TokenType.DOT)) {
-            Token dot = current;
-            advance();
-            Expre member = call();
-            expre = new MemberAccess(expre, dot, member, lang);
-        }
-
-        return expre;
-    }
-        */
-
-    Expre call(){
-        Expre expre = subscript();
-
-        while(true){
-            if(currentIs(TokenType.L_PAR)){
-                advance();
-                expre = finishCall(expre);
-            }
-            else{
-                break;
-            }
-        }
-
-        return expre;
-    }
-
     Expre finishCall(Expre callee){
         List<Expre> arguments = new ArrayList<>();
 
@@ -747,27 +716,6 @@ public class Parser{
         advance();
 
         return new Call(callee, current, arguments, lang);
-    }
-
-    Expre subscript(){
-        Expre expre = primary();
-
-        while(true){
-            if(currentIs(TokenType.L_BRACKET)){
-                Token bracket = current;
-                advance();
-                Expre index = expression();
-                if(! currentIs(TokenType.R_BRACKET))
-                    Language.error("Expected closing ']' to end index", bracket.line);
-                advance();
-                expre = new Subscript(bracket, expre, index);
-            }
-            else{
-                break;
-            }
-        }
-
-        return expre;
     }
 
     Expre primary(){
@@ -903,4 +851,4 @@ public class Parser{
     }
 
 
-    }
+}
