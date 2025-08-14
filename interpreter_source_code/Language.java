@@ -13,7 +13,7 @@ public class Language {
     Environment environment = globals;
     Stack<Environment> enviStack = new Stack<>();
 
-    int currentRunningLine = 1;
+    int line = 1;
 
     String samir_script_filepath;
     Scanner scanner;
@@ -28,18 +28,24 @@ public class Language {
         try {
             byte[] bytes = Files.readAllBytes(Paths.get(samir_script_filepath));
             String source = new String(bytes, Charset.defaultCharset());
-            Lexer lexer = new Lexer(source);
-            ArrayList<Token> tokens = lexer.lex();
-            Parser parser = new Parser(tokens, this);
-            List<Stmt> program = parser.parse();
+            List<Stmt> program = lex_then_parse(source, this);
             for (Stmt stmt : program) {
                 stmt.visit();
             }
         }
         catch(IOException d){
-            Language.error("File: " + samir_script_filepath + " not found", currentRunningLine);
+            Language.error("File: " + samir_script_filepath + " not found", line);
         }
         
+    }
+
+    static List<Stmt> lex_then_parse(String source, Language lang){
+            Lexer lexer = new Lexer(source);
+            lexer.line = lang.line;
+            ArrayList<Token> tokens = lexer.lex();
+            Parser parser = new Parser(tokens, lang);
+            List<Stmt> program = parser.parse();
+            return program;
     }
 
     static String stringify(Object object) {
@@ -79,24 +85,24 @@ public class Language {
     
     List<Object> checkStringIndex(Object index_object, Object string_object){
         if(index_object instanceof Double == false)
-            Language.error("1st argument of this string method must be a number", currentRunningLine);
+            Language.error("1st argument of this string method must be a number", line);
         Double index = (Double) index_object;
 
         if(index % 1 != 0)
-            Language.error("1st argument must be a whole number", currentRunningLine);
+            Language.error("1st argument must be a whole number", line);
 
         if(string_object instanceof String == false)
-            Language.error("2nd argument of this string method must be a string", currentRunningLine);
+            Language.error("2nd argument of this string method must be a string", line);
         String string = (String) string_object;
 
         if(index >= string.length())
-            Language.error("index " + index.intValue() + " out of bounds for length " + string.length(), currentRunningLine);
+            Language.error("index " + index.intValue() + " out of bounds for length " + string.length(), line);
         
         // Negative index:
         if(index < 0){
             Double actualIndex = index + string.length();
             if(actualIndex < 0)
-                Language.error("index " + index.intValue() + " out of bounds for length " + string.length(), currentRunningLine);
+                Language.error("index " + index.intValue() + " out of bounds for length " + string.length(), line);
             index = actualIndex;
         }
 

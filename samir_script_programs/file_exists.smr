@@ -1,3 +1,4 @@
 
 
 println fileExists("C:\\Users\\Samir\\Desktop\\Undertale Yellow.exe - Shortcut.lnk");
+println read("");

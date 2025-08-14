@@ -8,7 +8,7 @@ public class Main {
         }
         // For debuging:
         else{
-            Language lang = new Language("samir_script_programs\\debug_2.smr");
+            Language lang = new Language("samir_script_programs\\native_map.smr");
             lang.run();
         }
         

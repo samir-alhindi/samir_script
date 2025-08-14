@@ -493,7 +493,7 @@ class Call extends Expre {
         if(arguments.size() != thingToCall.arity())
             Language.error("Expected " + thingToCall.arity() + " args but got " + arguments.size(), paren.line);
 
-        lang.currentRunningLine = paren.line;
+        lang.line = paren.line;
 
         return thingToCall.call(arguments);
         
@@ -618,7 +618,7 @@ class Get extends Expre {
         SamirInstance instance = (SamirInstance) object;
 
         String memberName = memberVar.value.toString();
-        lang.currentRunningLine = token.line;
+        lang.line = token.line;
 
         if(instance.environment.variables.containsKey(memberName)){
             Object value = instance.environment.variables.get(memberName);

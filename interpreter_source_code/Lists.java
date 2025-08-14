@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 class ListInstance extends SamirInstance {
@@ -55,7 +56,7 @@ class ListInstance extends SamirInstance {
             @Override
             public Object call(List<Object> arguments) {
                 if(arrayList.size() == 0)
-                    Language.error("Can't pop() from an empty list", lang.currentRunningLine);;
+                    Language.error("Can't pop() from an empty list", lang.line);;
                 return arrayList.removeLast();
             }
         });
@@ -68,7 +69,7 @@ class ListInstance extends SamirInstance {
             @Override
             public Object call(List<Object> arguments) {
                 if(arrayList.size() == 0)
-                    Language.error("Can't popFront() from an empty list", lang.currentRunningLine);;
+                    Language.error("Can't popFront() from an empty list", lang.line);;
                 return arrayList.removeFirst();
             }
         });
@@ -95,14 +96,9 @@ class ListInstance extends SamirInstance {
 
             @Override
             public ListInstance call(List<Object> arguments) {
-                ListInstance new_list = new ListInstance(new ArrayList<>(), lang);
-                Object add_method_uncast = new_list.environment.variables.get("add");
-                SamirCallable add_method = (SamirCallable) add_method_uncast;
-                for (Object item : arrayList) {
-                    List<Object> args = new ArrayList<>();
-                    args.add(item);
-                    add_method.call(args);
-                }
+                ListInstance new_list = new ListInstance(new ArrayList<>(), lang);  
+                for (Object item : arrayList)
+                    new_list.arrayList.add(item);
                 return new_list;
             }
 
@@ -117,9 +113,7 @@ class ListInstance extends SamirInstance {
             public Object call(List<Object> arguments) {
                 int index1 = checkValidIndex(arguments.get(0));
                 int index2 = checkValidIndex(arguments.get(1));
-                Object temp = arrayList.get(index2);
-                arrayList.set(index2, arrayList.get(index1));
-                arrayList.set(index1, temp);
+                Collections.swap(arrayList, index1, index2);
                 return null;
             }
             
@@ -142,26 +136,23 @@ class ListInstance extends SamirInstance {
             public int arity() {return 1;}
 
             @Override
-            public Void call(List<Object> arguments) {
-                if(arguments.get(0) instanceof SamirCallable == false)
-                    Language.error("sortCustom() arg must be a callable", lang.currentRunningLine);
+            public ListInstance call(List<Object> arguments) {
+                NativeFunctions.check_interface(arguments.get(0), SamirCallable.class, "sortCustom() arg must be a callable", lang.line);
                 SamirCallable callable = (SamirCallable) arguments.get(0);
                 if(callable.arity() != 1)
-                    Language.error("sortCustom() arg must be a callable that takes exactly 1 arg", lang.currentRunningLine);
+                    Language.error("sortCustom() arg must be a callable that takes exactly 1 arg", lang.line);
+                
                 for (int i = 0; i < arrayList.size(); i++) {
                     for (int j = 0; j < arrayList.size() - 1; j++) {
                         Object a = callable.call(Language.to_list(arrayList.get(j)));
                         Object b = callable.call(Language.to_list(arrayList.get(j+1)));
                         if(a instanceof Double == false || b instanceof Double == false)
-                            Language.error("sortCustom() must return a number", lang.currentRunningLine);
-                        if((Double) a > (Double) b){
-                            Object temp = arrayList.get(j);
-                            arrayList.set(j, arrayList.get(j+1));
-                            arrayList.set(j+1, temp);
-                        }
+                            Language.error("sortCustom() must return a number", lang.line);
+                        if((Double) a > (Double) b)
+                            Collections.swap(arrayList, j, j+1);
                     }
                 }
-                return null;
+                return ListInstance.this;
             }
 
         });
@@ -173,11 +164,10 @@ class ListInstance extends SamirInstance {
 
             @Override
             public ListInstance call(List<Object> arguments) {
-                if(arguments.get(0) instanceof SamirCallable == false)
-                    Language.error("map() arg must be a callable (function name, lambda)", lang.currentRunningLine);
+                NativeFunctions.check_interface(arguments.get(0), SamirCallable.class, "map() arg must be a callable (function name, lambda)", lang.line);
                 SamirCallable callable = (SamirCallable) arguments.get(0);
                 if(callable.arity() != 1)
-                    Language.error("map() arg must be a callable that takes exactly 1 arg", lang.currentRunningLine);
+                    Language.error("map() arg must be a callable that takes exactly 1 arg", lang.line);
                 for (int i = 0; i < arrayList.size(); i++)
                     arrayList.set(i, callable.call(Arrays.asList(arrayList.get(i))));
                 return ListInstance.this;
@@ -192,16 +182,14 @@ class ListInstance extends SamirInstance {
 
             @Override
             public Object call(List<Object> arguments) {
-                if(arguments.get(0) instanceof SamirCallable == false)
-                    Language.error("filter() arg must be a callable (function name, lambda) ", lang.currentRunningLine);
+                NativeFunctions.check_interface(arguments.get(0), SamirCallable.class, "filter() arg must be a callable (function name, lambda)", lang.line);
                 SamirCallable callable = (SamirCallable) arguments.get(0);
                 if(callable.arity() != 1)
-                    Language.error("filter() arg must be a callable that takes exactly 1 arg", lang.currentRunningLine);
+                    Language.error("filter() arg must be a callable that takes exactly 1 arg", lang.line);
                 var output = new ArrayList<Object>();
                 for (Object item : arrayList){
                     Object result = callable.call(Arrays.asList(item));
-                    if(result instanceof Boolean == false)
-                        Language.error("filter() arg must be a callable that returns a boolean value (true or false)", lang.currentRunningLine);
+                    NativeFunctions.check_type(result, Boolean.class, "filter() arg must be a callable that returns a boolean value (true or false)", lang.line);
                     if(((Boolean) result).equals(true))
                         output.add(item);
                 }
@@ -218,13 +206,12 @@ class ListInstance extends SamirInstance {
 
             @Override
             public Object call(List<Object> arguments) {
-                if(arguments.get(0) instanceof SamirCallable == false)
-                    Language.error("reduce() arg must be a callable (function, lambda)", lang.currentRunningLine);
+                NativeFunctions.check_interface(arguments.get(0), SamirCallable.class, "reduce() arg must be a callable (function, lambda)", lang.line);
                 SamirCallable callable = (SamirCallable) arguments.get(0);
                 if(callable.arity() != 2)
-                    Language.error("reduce() arg must be a callable that takes 2 args", lang.currentRunningLine);
+                    Language.error("reduce() arg must be a callable that takes 2 args", lang.line);
                 if(arrayList.size() < 2)
-                    Language.error("List must be of at least length 2 in order to reduce", lang.currentRunningLine);
+                    Language.error("List must be of at least length 2 in order to reduce", lang.line);
                 Object output;
                 output = callable.call(Arrays.asList(arrayList.get(0), arrayList.get(1)));
                 for (int i = 2; i < arrayList.size(); i++)
@@ -233,8 +220,6 @@ class ListInstance extends SamirInstance {
             }
 
         });
-        
-        
     }
 
     @Override
@@ -249,21 +234,20 @@ class ListInstance extends SamirInstance {
     }
 
     int checkValidIndex(Object object){
-        if(object instanceof Double == false)
-            Language.error("argument of this List method must be a number", lang.currentRunningLine);
+        NativeFunctions.check_type(object, Double.class, "argument of this List method must be a number", lang.line);
         Double index = (Double) object;
 
         if(index % 1 != 0)
-            Language.error("argument must be a whole number", lang.currentRunningLine);
+            Language.error("argument must be a whole number", lang.line);
 
         if(index >= arrayList.size())
-            Language.error("index " + index.intValue() + " out of bounds for size " + arrayList.size(), lang.currentRunningLine);
+            Language.error("index " + index.intValue() + " out of bounds for size " + arrayList.size(), lang.line);
         
         // Negative index:
         if(index < 0){
             Double actualIndex = index + arrayList.size();
             if(actualIndex < 0)
-                Language.error("index " + index.intValue() + " out of bounds for size " + arrayList.size(), lang.currentRunningLine);
+                Language.error("index " + index.intValue() + " out of bounds for size " + arrayList.size(), lang.line);
             index = actualIndex;
         }
         

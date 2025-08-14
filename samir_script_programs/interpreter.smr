@@ -61,7 +61,7 @@ class Lexer(source: string){
         }
         else{
             pos = pos + 1;
-            current = getChar(pos, source);
+            current = source[pos];
         }
         
     }

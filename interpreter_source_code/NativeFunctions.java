@@ -8,9 +8,22 @@ import java.util.HashMap;
 import java.util.List;
 
 public class NativeFunctions {
-    // Native functions, classes and variables:
-    static void init(Environment globals, Language lang){
+
+    static void check_type(Object object, Class<?> type, String log, int line){
+        if(object == null || object.getClass() != type)
+            Language.error(log, line);
+    }
+
+    static void check_interface(Object object, Class<?> the_interface, String log, int line){
+        for (Class<?> c : object.getClass().getInterfaces())
+            if (c == the_interface)
+                return;
+        Language.error(log, line);
         
+    }
+
+    static void init(Environment globals, Language lang){
+
         // List class:
         globals.define("List", new SamirCallable(){
             
@@ -70,12 +83,6 @@ public class NativeFunctions {
         // PI:
         globals.define("PI", Math.PI);
 
-        // newline:
-        globals.define("ln", "\n");
-
-        // Tab:
-        globals.define("tab", "\t");
-
         // Take input:
         globals.define("input", new SamirCallable() {
             @Override
@@ -110,7 +117,7 @@ public class NativeFunctions {
                 if(Language.isNumeric(arg.toString()))
                     return Double.parseDouble(arg.toString());
                 else
-                    Language.error("Cannot cast " + arg.toString() + " to a number", lang.currentRunningLine);
+                    Language.error("Cannot cast " + arg.toString() + " to a number", lang.line);
 
                 // unreachable:
                 return null;
@@ -126,33 +133,22 @@ public class NativeFunctions {
             @Override
             public int arity() {return 1;}
             @Override
-            public Object call(List<Object> arguments) {
+            public String call(List<Object> arguments) {
                 Object arg = arguments.get(0);
-                if(arg instanceof String)
-                    return "string";
-                else if(arg instanceof Double || arg instanceof Integer)
-                    return "number";
-                else if(arg instanceof Boolean)
-                    return "boolean";
-                else if(arg instanceof ListInstance)
-                    return "List";
-                else if(arg instanceof SamirPair)
-                    return "pair";
-                else if(arg instanceof SamirInstance)
-                    return ((SamirInstance)arg).samir_class.declaration.name.value.toString();
-                else if(arg instanceof SamirFunction)
-                    return "function";
-                else if(arg instanceof SamirLambda)
-                    return "lambda";
-                else if(arg instanceof SamirClass)
-                    return "class";
-                else if(arg instanceof SamirPairList)
-                    return "pair list";
-                else if(arg == null)
-                    return "nil";
-                else
-                    return "native callable";
-
+                if(arg == null) return "nil";
+                return switch(arg){
+                    case String x -> "string";
+                    case Double d -> "number";
+                    case Boolean b -> "boolean";
+                    case ListInstance l -> "List";
+                    case SamirPair s -> "Pair";
+                    case SamirInstance s -> s.class_name;
+                    case SamirFunction f -> "function";
+                    case SamirLambda l -> "lambda";
+                    case SamirClass c -> "class";
+                    case SamirPairList p -> "PairList";
+                    default -> "native callable";
+                };
             }
         });
 
@@ -177,26 +173,8 @@ public class NativeFunctions {
             @Override
             public int arity() {return 0;}
             @Override
-            public Object call(List<Object> arguments) {return ((Long) System.currentTimeMillis()).doubleValue();}
+            public Double call(List<Object> arguments) {return ((Long) System.currentTimeMillis()).doubleValue();}
 
-        });
-
-        // string methods:
-
-        // getChar string method:
-        globals.define("getChar", new SamirCallable() {
-
-            @Override
-            public int arity() {return 2;}
-
-            @Override
-            public Object call(List<Object> arguments) {
-                List<Object> index_and_string = lang.checkStringIndex(arguments.get(0), arguments.get(1));
-                int index = (int) index_and_string.get(0);
-                String string = (String) index_and_string.get(1);
-                return "" + string.charAt(index);
-            }
-            
         });
 
         globals.define("len", new SamirCallable() {
@@ -207,18 +185,18 @@ public class NativeFunctions {
             @Override
             public Double call(List<Object> arguments) {
                 Object arg = arguments.get(0);
-                if(arg instanceof String)
-                    return Language.int_to_Double(((String)arg).length());
-                else if(arg instanceof ListInstance)
-                    return Language.int_to_Double(((ListInstance)arg).arrayList.size());
-                else if(arg instanceof DictInstance)
-                    return Language.int_to_Double(((DictInstance)arg).hashMap.size());
-                else if(arg instanceof SamirPairList)
-                    return Language.int_to_Double(((SamirPairList) arg).list.size());
+                int result = switch(arg){
+                    case String s -> s.length();
+                    case ListInstance l -> l.arrayList.size();
+                    case DictInstance d -> d.hashMap.size();
+                    case SamirPairList p -> p.list.size();
+                    default -> -1;
+                };
+
+                if (result == -1)
+                    Language.error("len() argument must be a list, string or Dict", lang.line);
                 
-                Language.error("len() argument must be a list, string or Dict", lang.currentRunningLine);
-                // unreachable code:
-                return null;
+                return Language.int_to_Double(result);
             }
             
         });
@@ -231,7 +209,7 @@ public class NativeFunctions {
             @Override
             public Void call(List<Object> arguments) {
                 if(arguments.get(0).equals(0.0))
-                    System.exit(0);;
+                    System.exit(0);
                 System.out.println("Error: " + arguments.get(0));
                 System.exit(1);
                 return null;
@@ -239,7 +217,7 @@ public class NativeFunctions {
             
         });
 
-        
+        // Debug function:
         globals.define("stop", new SamirCallable() {
 
             @Override
@@ -259,11 +237,11 @@ public class NativeFunctions {
 
             @Override
             public Boolean call(List<Object> arguments) {
-                if(arguments.get(0) instanceof String == false)
-                    Language.error("fileExists() arg must be a file path", lang.currentRunningLine);
+                Object arg = arguments.get(0);
+                check_type(arg, String.class, "fileExists() arg must be a file path", lang.line);
                 
                 // Look in global dir:
-                String string_path = (String) arguments.get(0);
+                String string_path = (String) arg;
                 Path path = Paths.get(string_path);
                 if(path.isAbsolute() && Files.exists(path))
                     return true;
@@ -284,9 +262,9 @@ public class NativeFunctions {
 
             @Override
             public String call(List<Object> arguments) {
-                if(arguments.get(0) instanceof String == false)
-                    Language.error("read() arg must be a file path", lang.currentRunningLine);
-                String path = (String) arguments.get(0);
+                Object arg = arguments.get(0);
+                check_type(arg, String.class, "read() arg must be a file path", lang.line);
+                String path = (String) arg;
                 
                 // Check if file is abs path:
                 try{
@@ -304,7 +282,7 @@ public class NativeFunctions {
                         return text;
                     }
                     catch(IOException f){
-                        Language.error("Could not find file: " + path, lang.currentRunningLine);
+                        Language.error("Could not find file: " + path, lang.line);
                     }
                 }
                 return null;
@@ -320,10 +298,10 @@ public class NativeFunctions {
 
             @Override
             public Void call(List<Object> arguments) {
-                if(arguments.get(0) instanceof String == false)
-                    Language.error("write() arg must be a file path", lang.currentRunningLine);
+                Object arg = arguments.get(0);
+                check_type(arg, String.class, "write() arg must be a file path", lang.line);
                 
-                String string_path = (String) arguments.get(0);
+                String string_path = (String) arg;
                 String content = Language.stringify(arguments.get(1));
                 
                 Path path = Paths.get(string_path);
@@ -335,7 +313,7 @@ public class NativeFunctions {
                 try {
                     Files.write(path, content.getBytes());
                 } catch (IOException e) {
-                    Language.error("Couldn't write to file: " + path.toString(), lang.currentRunningLine);
+                    Language.error("Couldn't write to file: " + path.toString(), lang.line);
                 }
                 return null;
             }
@@ -350,8 +328,7 @@ public class NativeFunctions {
             @Override
             public Object call(List<Object> arguments) {
                 Object arg = arguments.get(0);
-                if(arg instanceof ListInstance == false)
-                    Language.error("enumarate() arg must be a list", lang.currentRunningLine);
+                check_type(arg, ListInstance.class, "enumarate() arg must be a list", lang.line);
                 ListInstance listInstance = (ListInstance) arg;
                 // Generate indices:
                 Double[] indices_array = new Double[listInstance.arrayList.size()];
@@ -370,9 +347,8 @@ public class NativeFunctions {
 
             @Override
             public Object call(List<Object> arguments) {
-                if(arguments.get(0) instanceof ListInstance == false
-                || arguments.get(1) instanceof ListInstance == false)
-                    Language.error("zip args must both be lists", lang.currentRunningLine);
+                check_type(arguments.get(0), ListInstance.class, "first zip arg must be a list", lang.line);
+                check_type(arguments.get(1), ListInstance.class, "second zip arg must be be list", lang.line);
                 ListInstance a = (ListInstance) arguments.get(0);
                 ListInstance b = (ListInstance) arguments.get(1);
                 return new SamirPairList(a, b, lang);
@@ -387,8 +363,8 @@ public class NativeFunctions {
 
             @Override
             public ListInstance call(List<Object> arguments) {
-                if(arguments.get(0) instanceof String == false || arguments.get(0) instanceof String == false)
-                    Language.error("args of split() must be a string", lang.currentRunningLine);
+                check_type(arguments.get(0), String.class, "first arg of split() must be a string", lang.line);
+                check_type(arguments.get(1), String.class, "second arg of split() must be a string", lang.line);
                 String word = (String) arguments.get(0);
                 String split = (String) arguments.get(1);
                 return ListInstance.create_filled_list(word.split(split), lang);
@@ -403,15 +379,14 @@ public class NativeFunctions {
 
             @Override
             public Object call(List<Object> arguments) {
-                if(arguments.get(0) instanceof String == false
-                || arguments.get(1) instanceof Double == false
-                || arguments.get(2) instanceof Double == false)
-                    Language.error("substring args must be (string, number, number)", lang.currentRunningLine);
+                check_type(arguments.get(0), String.class, "first substring() arg must be a string", lang.line);
+                check_type(arguments.get(1), String.class, "second substring() arg must be a number", lang.line);
+                check_type(arguments.get(2), String.class, "third substring() arg must be a number", lang.line);
                 String word = (String) arguments.get(0);
                 Double start = (Double) arguments.get(1);
                 Double end = (Double) arguments.get(2);
                 if(start % 1 != 0 || end % 1 != 0)
-                    Language.error("substring indices must be whole numbers", lang.currentRunningLine);
+                    Language.error("substring indices must be whole numbers", lang.line);
                 return word.substring(start.intValue(), end.intValue());
             }
             
@@ -424,11 +399,10 @@ public class NativeFunctions {
 
             @Override
             public Object call(List<Object> arguments) {
-                if(arguments.get(0) instanceof String == false)
-                    Language.error("eval() arg must be a string", lang.currentRunningLine);
+                check_type(arguments.get(0), String.class, "eval() arg must be a string", lang.line);
                 String source = (String) arguments.get(0);
                 Lexer lexer = new Lexer(source);
-                lexer.line = lang.currentRunningLine;
+                lexer.line = lang.line;
                 ArrayList<Token> tokens = lexer.lex();
                 Parser parser = new Parser(tokens, lang);
                 Expre expre = parser.expression();
@@ -444,20 +418,14 @@ public class NativeFunctions {
 
             @Override
             public Void call(List<Object> arguments) {
-                if(arguments.get(0) instanceof String == false)
-                    Language.error("exec() arg must be a string", lang.currentRunningLine);
+                check_type(arguments.get(0), String.class, "exec() arg must be a string", lang.line);
                 if(Thread.currentThread().getStackTrace().length > 500)
-                    Language.error("exec() caused a stack overflow, Remove any circular dependency.", lang.currentRunningLine);
+                    Language.error("exec() caused a stack overflow, Remove any circular dependency.", lang.line);
                 String source = (String) arguments.get(0);
-                Lexer lexer = new Lexer(source);
-                lexer.line = lang.currentRunningLine;
-                ArrayList<Token> tokens = lexer.lex();
-                Parser parser = new Parser(tokens, lang);
-                List<Stmt> program = parser.parse();
-                for (Stmt stmt : program)
+                List<Stmt> statements = Language.lex_then_parse(source, lang);
+                for (Stmt stmt : statements)
                     stmt.visit();
                 return null;
-                
             }
 
         });
@@ -469,14 +437,13 @@ public class NativeFunctions {
 
             @Override
             public Object call(List<Object> arguments) {
-                for (Object item : arguments)
-                    if(item instanceof Double == false)
-                        Language.error("range() args must all be numbers", lang.currentRunningLine);
+                for (int i = 0; i <= 2; i++)
+                    check_type(arguments.get(i), Double.class, "arg number " + (i+1) + " of range() must be a number", lang.line);
                 int from = ((Double) arguments.get(0)).intValue();
                 int to = ((Double) arguments.get(1)).intValue();
                 int step = ((Double) arguments.get(2)).intValue();
                 if(step == 0)
-                    Language.error("range() step cannot be 0", lang.currentRunningLine);
+                    Language.error("range() step cannot be 0", lang.line);
                 var arraylist = new ArrayList<Double>();
                 for (; step > 0 ? from < to : to < from; from += step)
                     arraylist.add(Language.int_to_Double(from));
