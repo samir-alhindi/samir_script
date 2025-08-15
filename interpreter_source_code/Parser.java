@@ -128,7 +128,7 @@ public class Parser{
                 advance();
                 Function method = (Function) function();
                 // Check if toString():
-                if(method.name.value.equals("_toString"))
+                if(method.name.value.equals("__str__"))
                     to_string = method;
                 else
                     classBody.add(method);

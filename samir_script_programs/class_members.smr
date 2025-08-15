@@ -1,0 +1,13 @@
+
+
+class Product(title: string, price: number){
+    func __str__(){
+        return "{title}: {price}";
+    }
+}
+
+var product = Product("apple", 2.5);
+var product2 = Product("Bread", 5.0);
+var product3 = Product("Milk", 3.25);
+
+println Product.get_all_instances();

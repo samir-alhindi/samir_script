@@ -1,17 +1,38 @@
+import java.util.ArrayList;
 import java.util.List;
 
-class SamirClass implements SamirCallable{
+class SamirClass extends SamirInstance implements SamirCallable{
     Environment closure;
     ClassDeclre declaration;
     List<Token> parameters;
     Function to_string;
     Language lang;
+    ListInstance all_Instances;
     SamirClass(ClassDeclre declaration, Environment closure, Language lang){
+        super(lang);
+        this.class_name = declaration.name.value.toString();
         this.declaration = declaration;
         this.parameters = declaration.parameters;
         this.to_string = declaration.to_string;
         this.closure = closure;
         this.lang = lang;
+        all_Instances = new ListInstance(new ArrayList<>(), lang);
+
+        environment.define("name", class_name);
+        environment.define("get_all_instances", new SamirCallable(){
+
+            @Override
+            public int arity() {
+                return 0;
+            }
+
+            @Override
+            public ListInstance call(List<Object> arguments) {
+                return all_Instances;
+            }
+
+        });
+
     }
 
     @Override
@@ -27,7 +48,9 @@ class SamirClass implements SamirCallable{
     @Override
     public Object call(List<Object> arguments) {
         // Check stack overflow:
-        return new SamirInstance(this, arguments, lang);
+        SamirInstance instance = new SamirInstance(this, arguments, lang);
+        all_Instances.arrayList.add(instance);
+        return instance;
     }
     
 }
@@ -68,8 +91,8 @@ class SamirInstance{
     @Override
     public String toString() {
         if(this.samir_class.to_string == null)
-            return "<" + samir_class.declaration.name + " instance " + this.hashCode() + ">";
-        SamirCallable to_string = (SamirCallable) environment.variables.get("_toString");
+            return "<" + samir_class.class_name + " instance " + this.hashCode() + ">";
+        SamirCallable to_string = (SamirCallable) environment.variables.get("__str__");
         return Language.stringify(to_string.call(null));
     }
 }

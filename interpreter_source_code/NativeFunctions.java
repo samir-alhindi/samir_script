@@ -142,10 +142,10 @@ public class NativeFunctions {
                     case Boolean b -> "boolean";
                     case ListInstance l -> "List";
                     case SamirPair s -> "Pair";
+                    case SamirClass c -> "class";
                     case SamirInstance s -> s.class_name;
                     case SamirFunction f -> "function";
                     case SamirLambda l -> "lambda";
-                    case SamirClass c -> "class";
                     case SamirPairList p -> "PairList";
                     default -> "native callable";
                 };
@@ -380,8 +380,8 @@ public class NativeFunctions {
             @Override
             public Object call(List<Object> arguments) {
                 check_type(arguments.get(0), String.class, "first substring() arg must be a string", lang.line);
-                check_type(arguments.get(1), String.class, "second substring() arg must be a number", lang.line);
-                check_type(arguments.get(2), String.class, "third substring() arg must be a number", lang.line);
+                check_type(arguments.get(1), Double.class, "second substring() arg must be a number", lang.line);
+                check_type(arguments.get(2), Double.class, "third substring() arg must be a number", lang.line);
                 String word = (String) arguments.get(0);
                 Double start = (Double) arguments.get(1);
                 Double end = (Double) arguments.get(2);
