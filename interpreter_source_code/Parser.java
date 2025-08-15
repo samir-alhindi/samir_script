@@ -771,61 +771,50 @@ public class Parser{
         }
 
         else if(curType.equals(TokenType.L_CUR)){
-
-            class Inner {
-                Token tok;
-                Inner(Token tok){
-                    this.tok = tok;
-                }
-
-                HashMap<Expre, Expre> dictContents(){
-
-                    AbstractMap.SimpleEntry<Expre, Expre> pair = keyValuePair();
-                    HashMap<Expre, Expre> output = new HashMap<>();
-                    output.put(pair.getKey(), pair.getValue());
-
-                    while(! currentIs(TokenType.R_CUR)){
-                        if( ! currentIs(TokenType.COMMA))
-                            Language.error("Expected ',' between Dict elements", tok.line);
-                        advance();
-                        pair = keyValuePair();
-                        output.put(pair.getKey(), pair.getValue());
-                    }
-
-                    advance();
-                    return output;
-                }
-                AbstractMap.SimpleEntry<Expre, Expre> keyValuePair(){
-                    Expre key = Parser.this.expression();
-                    if(! currentIs(TokenType.COLON))
-                        Language.error("key value pairs must be separated by ':'", tok.line);
-                    advance();
-                    Expre value = Parser.this.expression();
-
-                    return new AbstractMap.SimpleEntry<Expre, Expre>(key, value);
-                    
-                }
-            }
-
-
             Token token = current;
             advance();
             HashMap<Expre, Expre> hashMap;
             if( ! currentIs(TokenType.R_CUR)){
-                Inner inner = new Inner(current);
-                hashMap = inner.dictContents();
+                hashMap = dict_contents(token);
                 return new DictLiteral(token, hashMap, lang);
             }
-            if(currentIs(TokenType.R_CUR)){
+            else if(currentIs(TokenType.R_CUR)){
                 advance();
                 return new DictLiteral(token, new HashMap<>(), lang);
             }
-                
-
         }
 
         Language.error("Invalid syntax !", current.line);
         return null;
+    }
+
+    HashMap<Expre, Expre> dict_contents(Token tok){
+
+        AbstractMap.SimpleEntry<Expre, Expre> pair = key_value_pair(tok);
+        HashMap<Expre, Expre> output = new HashMap<>();
+        output.put(pair.getKey(), pair.getValue());
+
+        while(! currentIs(TokenType.R_CUR)){
+            if( ! currentIs(TokenType.COMMA))
+                Language.error("Expected ',' between Dict elements", tok.line);
+            advance();
+            pair = key_value_pair(tok);
+            output.put(pair.getKey(), pair.getValue());
+        }
+
+        advance();
+        return output;
+    }
+
+    AbstractMap.SimpleEntry<Expre, Expre> key_value_pair(Token tok){
+        Expre key = expression();
+        if(! currentIs(TokenType.COLON))
+            Language.error("key value pairs must be separated by ':'", tok.line);
+        advance();
+        Expre value = expression();
+
+        return new AbstractMap.SimpleEntry<Expre, Expre>(key, value);
+        
     }
 
 

@@ -9,7 +9,7 @@ var names = [
 
 var i = 0;
 while i < len(names) do{
-    println str(i + 1) + "- " + names.get(i);
+    println str(i + 1) + "- " + names[i];
     i = i + 1;
 }
 
