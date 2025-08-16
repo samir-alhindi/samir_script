@@ -1,4 +1,6 @@
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 class SamirClass extends SamirInstance implements SamirCallable{
@@ -6,6 +8,7 @@ class SamirClass extends SamirInstance implements SamirCallable{
     ClassDeclre declaration;
     List<Token> parameters;
     Function to_string;
+    Function eq;
     Language lang;
     ListInstance all_Instances;
     SamirClass(ClassDeclre declaration, Environment closure, Language lang){
@@ -14,6 +17,7 @@ class SamirClass extends SamirInstance implements SamirCallable{
         this.declaration = declaration;
         this.parameters = declaration.parameters;
         this.to_string = declaration.to_string;
+        this.eq = declaration.eq;
         this.closure = closure;
         this.lang = lang;
         all_Instances = new ListInstance(new ArrayList<>(), lang);
@@ -78,6 +82,8 @@ class SamirInstance{
 
         if(samir_class.to_string != null)
             samir_class.to_string.visit();
+        if(samir_class.eq != null)
+            samir_class.eq.visit();
         
 
         lang.environment = prev;
@@ -95,6 +101,18 @@ class SamirInstance{
             return "<" + samir_class.class_name + " instance " + this.hashCode() + ">";
         SamirCallable to_string = (SamirCallable) environment.variables.get("__str__");
         return Language.stringify(to_string.call(null));
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(this.samir_class.eq == null)
+            return super.equals(obj);
+        SamirCallable eq = (SamirCallable) environment.variables.get("__eq__");
+        if(eq.arity() != 1)
+            Language.error("__eq__() must take exactly 1 argument", samir_class.lang.line);
+        Object result = eq.call(Arrays.asList(obj));
+        NativeFunctions.check_type(result, Boolean.class, "__eq__() must return a boolean value", samir_class.lang.line);
+        return (Boolean) result;
     }
 }
 

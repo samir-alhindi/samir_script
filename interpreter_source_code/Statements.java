@@ -356,13 +356,15 @@ class ClassDeclre extends Stmt {
     List<Stmt> classBody;
     List<Token> parameters;
     Function to_string;
+    Function eq;
     Token name;
     Language lang;
-    ClassDeclre(List<Stmt> classBody, Token name, List<Token> parameters, Function to_string, Language lang){
+    ClassDeclre(List<Stmt> classBody, Token name, List<Token> parameters, Function to_string, Function eq, Language lang){
         this.classBody = classBody;
         this.name = name;
         this.parameters = parameters;
         this.to_string = to_string;
+        this.eq = eq;
         this.lang = lang;
     }
 

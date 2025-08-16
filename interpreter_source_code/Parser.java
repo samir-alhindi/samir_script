@@ -122,14 +122,18 @@ public class Parser{
 
         List<Stmt> classBody = new ArrayList<>();
         Function to_string = null;
+        Function eq = null;
 
         while (currentIs(TokenType.FUNC, TokenType.VAR)){
             if(currentIs(TokenType.FUNC)){
                 advance();
                 Function method = (Function) function();
-                // Check if toString():
+                // Check if __str__():
                 if(method.name.value.equals("__str__"))
                     to_string = method;
+                // Check if __eq__():
+                else if(method.name.value.equals("__eq__"))
+                    eq = method;
                 else
                     classBody.add(method);
             }
@@ -144,7 +148,7 @@ public class Parser{
             Language.error("Expected '}' after class '" + name.value + "' body", name.line);
         advance();
 
-        return new ClassDeclre(classBody, name, parameters, to_string, lang);
+        return new ClassDeclre(classBody, name, parameters, to_string, eq, lang);
     }
 
 

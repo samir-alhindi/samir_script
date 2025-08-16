@@ -143,8 +143,8 @@ public class NativeFunctions {
                     case ListInstance l -> "List";
                     case SamirPair s -> "Pair";
                     case SamirClass c -> "class";
-                    case SamirInstance s -> s.class_name;
                     case SamirFunction f -> "function";
+                    case SamirInstance s -> s.class_name;
                     case SamirLambda l -> "lambda";
                     case SamirPairList p -> "PairList";
                     default -> "native callable";

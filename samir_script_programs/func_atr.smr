@@ -1,0 +1,32 @@
+
+
+func add(x, y){
+    return x + y;
+}
+
+func greet(){
+    println "Hello";
+}
+
+println add.arity;
+println greet.arity;
+
+println add.name;
+println greet.name;
+
+func make_counter(){
+    var i = 0;
+    func counter(){
+        println i;
+        i += 1;
+    }
+    return counter;
+}
+
+var my_counter = make_counter();
+
+println my_counter.get_closure();
+my_counter();
+println my_counter.get_closure();
+
+println add.parameter_names;

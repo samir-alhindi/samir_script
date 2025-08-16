@@ -1,3 +1,4 @@
+import java.util.HashMap;
 import java.util.List;
 
 interface SamirCallable {
@@ -5,14 +6,39 @@ interface SamirCallable {
     Object call(List<Object> arguments);
 }
 
-class SamirFunction implements SamirCallable {
+class SamirFunction extends SamirInstance implements SamirCallable {
     final Function declaration;
     final Environment closure;
     Language lang;
+    String[] parameter_names;
     SamirFunction(Function declaration, Environment closure, Language lang){
+        super(lang);
         this.declaration = declaration;
         this.closure = closure;
         this.lang = lang;
+        class_name = "function";
+
+        parameter_names = new String[declaration.parameters.size()];
+        for (int i = 0; i < declaration.parameters.size(); i++)
+            parameter_names[i]= declaration.parameters.get(i).value.toString();
+        
+
+        environment.define("arity", arity());
+        environment.define("name", declaration.name.value.toString());
+        environment.define("get_closure", new SamirCallable() {
+
+            @Override
+            public int arity() {return 0;}
+
+            @Override
+            public Object call(List<Object> arguments) {
+                return new DictInstance(new HashMap<>(closure.variables), lang);
+            }
+            
+        });
+
+        environment.define("parameter_names", ListInstance.create_filled_list(parameter_names, lang));
+
     }
     @Override
     public int arity() {
@@ -23,8 +49,8 @@ class SamirFunction implements SamirCallable {
 
         Environment environment = new Environment(closure);
 
-        for (int i = 0; i < declaration.parameters.size(); i++) {
-            String paraName = declaration.parameters.get(i).value.toString();
+        for (int i = 0; i < parameter_names.length; i++) {
+            String paraName = parameter_names[i];
             Object argValue = arguments.get(i);
             environment.define(paraName, argValue);
         }

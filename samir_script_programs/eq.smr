@@ -1,0 +1,18 @@
+
+class Person(name: string, age: number, id: number){
+    
+    func __str__(){
+        return "{name}:{id}";
+    }
+
+    func __eq__(other: Person){
+        return other.id == self.id;
+    }
+}
+
+var person1 = Person("Samir", 20, 23465288);
+var person2 = Person("Rayyan", 15, 12348765);
+var person3 = Person("Not Samir", 20, 23465288);
+
+println person1 == person2; # false.
+println person1 == person3; # true.
