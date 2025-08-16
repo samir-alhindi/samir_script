@@ -449,7 +449,30 @@ public class NativeFunctions {
                     arraylist.add(Language.int_to_Double(from));
                 return ListInstance.create_filled_list(arraylist.toArray(), lang);
             }
-            
+        });
+
+        globals.define("globals", new SamirCallable(){
+
+            @Override
+            public int arity() {return 0;}
+
+            @Override
+            public Object call(List<Object> arguments) {
+                return new DictInstance(new HashMap<>(globals.variables), lang);
+            }
+
+        });
+
+        globals.define("locals", new SamirCallable(){
+
+            @Override
+            public int arity() {return 0;}
+
+            @Override
+            public Object call(List<Object> arguments) {
+                return new DictInstance(new HashMap<>(lang.environment.variables), lang);
+            }
+
         });
     }
 

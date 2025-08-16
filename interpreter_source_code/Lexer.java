@@ -105,6 +105,11 @@ public class Lexer {
                     if(isNewlineChar(current))
                         line += 1;
                     advance();
+                    if(current == '\\' && currentFollowedBy('"')){
+                        advance();
+                        string += '"';
+                        advance();
+                    }
                 }
                 if(current == '\0')
                     Language.error("unterminated string", stringStart);

@@ -58,6 +58,9 @@ public class Language {
           }
           return text;
         }
+
+        if(object instanceof SamirCallable && object.getClass().isAnonymousClass())
+            return "<native callable>";
     
         return object.toString();
       }

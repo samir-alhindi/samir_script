@@ -1,0 +1,16 @@
+
+
+class Dollars(amount: number){}
+class Pounds(amount: number){}
+
+func to_pennies(dollars: Dollars) -> number{
+    if dollars.instance_of(Dollars) then
+        return dollars.amount * 100;
+    else
+        return -1; # Fail code.
+}
+
+var my_money = Dollars(120);
+println to_pennies(my_money);
+
+println to_pennies(Pounds(150));

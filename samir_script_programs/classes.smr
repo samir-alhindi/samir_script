@@ -8,6 +8,10 @@ class Employee(name: string, age: number, salary: number, position: string) {
     func work(){
         println "{name} is working on {position}.";
     }
+
+    func __str__(){
+        return "{name}:{position}";
+    }
 }
 
 class Position(name, average_salary) {
@@ -32,3 +36,5 @@ yahya.intro();
 yahya.work();
 
 samir.intro();
+
+println samir.class_("Maria", 8, 3000, "Design");

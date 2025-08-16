@@ -70,6 +70,7 @@ class SamirInstance{
 
 
         environment.define("self", this);
+        environment.define("class_", samir_class);
         for (int i = 0; i < constructer_args.size(); i++)
             this.environment.define(samir_class.parameters.get(i).value.toString(), constructer_args.get(i));
         for (Stmt stmt : bodyStatements)

@@ -1,0 +1,14 @@
+
+
+func sum(x: number, y: number) -> number {
+    println locals();
+    return x + y;
+}
+
+func greet(name: string) -> nil {
+    println locals();
+    println "Hello, {name}.";
+}
+
+sum(3, 4);
+greet("Yahya");
