@@ -56,7 +56,7 @@ class ListInstance extends SamirInstance {
             @Override
             public Object call(List<Object> arguments) {
                 if(arrayList.size() == 0)
-                    Language.error("Can't pop() from an empty list", lang.line);;
+                    Language.error("Can't pop() from an empty list", lang.line, lang.cur_file_name);
                 return arrayList.removeLast();
             }
         });
@@ -69,7 +69,7 @@ class ListInstance extends SamirInstance {
             @Override
             public Object call(List<Object> arguments) {
                 if(arrayList.size() == 0)
-                    Language.error("Can't popFront() from an empty list", lang.line);;
+                    Language.error("Can't popFront() from an empty list", lang.line, lang.cur_file_name);;
                 return arrayList.removeFirst();
             }
         });
@@ -137,17 +137,17 @@ class ListInstance extends SamirInstance {
 
             @Override
             public ListInstance call(List<Object> arguments) {
-                NativeFunctions.check_interface(arguments.get(0), SamirCallable.class, "sortCustom() arg must be a callable", lang.line);
+                NativeFunctions.check_interface(arguments.get(0), SamirCallable.class, "sortCustom() arg must be a callable", lang.line, lang.cur_file_name);
                 SamirCallable callable = (SamirCallable) arguments.get(0);
                 if(callable.arity() != 1)
-                    Language.error("sortCustom() arg must be a callable that takes exactly 1 arg", lang.line);
+                    Language.error("sortCustom() arg must be a callable that takes exactly 1 arg", lang.line, lang.cur_file_name);
                 
                 for (int i = 0; i < arrayList.size(); i++) {
                     for (int j = 0; j < arrayList.size() - 1; j++) {
                         Object a = callable.call(Language.to_list(arrayList.get(j)));
                         Object b = callable.call(Language.to_list(arrayList.get(j+1)));
                         if(a instanceof Double == false || b instanceof Double == false)
-                            Language.error("sortCustom() must return a number", lang.line);
+                            Language.error("sortCustom() must return a number", lang.line, lang.cur_file_name);
                         if((Double) a > (Double) b)
                             Collections.swap(arrayList, j, j+1);
                     }
@@ -164,10 +164,10 @@ class ListInstance extends SamirInstance {
 
             @Override
             public ListInstance call(List<Object> arguments) {
-                NativeFunctions.check_interface(arguments.get(0), SamirCallable.class, "map() arg must be a callable (function name, lambda)", lang.line);
+                NativeFunctions.check_interface(arguments.get(0), SamirCallable.class, "map() arg must be a callable (function name, lambda)", lang.line, lang.cur_file_name);
                 SamirCallable callable = (SamirCallable) arguments.get(0);
                 if(callable.arity() != 1)
-                    Language.error("map() arg must be a callable that takes exactly 1 arg", lang.line);
+                    Language.error("map() arg must be a callable that takes exactly 1 arg", lang.line, lang.cur_file_name);
                 for (int i = 0; i < arrayList.size(); i++)
                     arrayList.set(i, callable.call(Arrays.asList(arrayList.get(i))));
                 return ListInstance.this;
@@ -182,14 +182,14 @@ class ListInstance extends SamirInstance {
 
             @Override
             public Object call(List<Object> arguments) {
-                NativeFunctions.check_interface(arguments.get(0), SamirCallable.class, "filter() arg must be a callable (function name, lambda)", lang.line);
+                NativeFunctions.check_interface(arguments.get(0), SamirCallable.class, "filter() arg must be a callable (function name, lambda)", lang.line, lang.cur_file_name);
                 SamirCallable callable = (SamirCallable) arguments.get(0);
                 if(callable.arity() != 1)
-                    Language.error("filter() arg must be a callable that takes exactly 1 arg", lang.line);
+                    Language.error("filter() arg must be a callable that takes exactly 1 arg", lang.line, lang.cur_file_name);
                 var output = new ArrayList<Object>();
                 for (Object item : arrayList){
                     Object result = callable.call(Arrays.asList(item));
-                    NativeFunctions.check_type(result, Boolean.class, "filter() arg must be a callable that returns a boolean value (true or false)", lang.line);
+                    NativeFunctions.check_type(result, Boolean.class, "filter() arg must be a callable that returns a boolean value (true or false)", lang.line, lang.cur_file_name);
                     if(((Boolean) result).equals(true))
                         output.add(item);
                 }
@@ -206,12 +206,12 @@ class ListInstance extends SamirInstance {
 
             @Override
             public Object call(List<Object> arguments) {
-                NativeFunctions.check_interface(arguments.get(0), SamirCallable.class, "reduce() arg must be a callable (function, lambda)", lang.line);
+                NativeFunctions.check_interface(arguments.get(0), SamirCallable.class, "reduce() arg must be a callable (function, lambda)", lang.line, lang.cur_file_name);
                 SamirCallable callable = (SamirCallable) arguments.get(0);
                 if(callable.arity() != 2)
-                    Language.error("reduce() arg must be a callable that takes 2 args", lang.line);
+                    Language.error("reduce() arg must be a callable that takes 2 args", lang.line, lang.cur_file_name);
                 if(arrayList.size() < 2)
-                    Language.error("List must be of at least length 2 in order to reduce", lang.line);
+                    Language.error("List must be of at least length 2 in order to reduce", lang.line, lang.cur_file_name);
                 Object output;
                 output = callable.call(Arrays.asList(arrayList.get(0), arrayList.get(1)));
                 for (int i = 2; i < arrayList.size(); i++)
@@ -234,20 +234,20 @@ class ListInstance extends SamirInstance {
     }
 
     int checkValidIndex(Object object){
-        NativeFunctions.check_type(object, Double.class, "argument of this List method must be a number", lang.line);
+        NativeFunctions.check_type(object, Double.class, "argument of this List method must be a number", lang.line, lang.cur_file_name);
         Double index = (Double) object;
 
         if(index % 1 != 0)
-            Language.error("argument must be a whole number", lang.line);
+            Language.error("argument must be a whole number", lang.line, lang.cur_file_name);
 
         if(index >= arrayList.size())
-            Language.error("index " + index.intValue() + " out of bounds for size " + arrayList.size(), lang.line);
+            Language.error("index " + index.intValue() + " out of bounds for size " + arrayList.size(), lang.line, lang.cur_file_name);
         
         // Negative index:
         if(index < 0){
             Double actualIndex = index + arrayList.size();
             if(actualIndex < 0)
-                Language.error("index " + index.intValue() + " out of bounds for size " + arrayList.size(), lang.line);
+                Language.error("index " + index.intValue() + " out of bounds for size " + arrayList.size(), lang.line, lang.cur_file_name);
             index = actualIndex;
         }
         

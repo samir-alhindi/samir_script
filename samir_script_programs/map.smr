@@ -1,15 +1,9 @@
 
 
-func map(list, function){
-    var i = 0;
-    var output = List();
-    while i < list.size do {
-        var current = list.get(i);
-        var result = function(current);
-        output.add(result);
-        i = i + 1;
-    }
-
+func map(function: callable, list: List) -> List {
+    var output = [];
+    for item in list do 
+        output.add(function(item));
     return output;
 }
 

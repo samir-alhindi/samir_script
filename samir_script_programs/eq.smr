@@ -6,7 +6,7 @@ class Person(name: string, age: number, id: number){
     }
 
     func __eq__(other: Person){
-        return other.id == self.id;
+        return  self.id == other.id;
     }
 }
 

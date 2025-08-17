@@ -1,0 +1,16 @@
+
+
+func map(function: callable, list: List) -> List {
+    var output: List = [];
+    for item in list do 
+        output.add(function(item));
+    return output;
+}
+
+func filter(predicate: callable, list: List) -> List{
+    var output: List = [];
+    for item in list do
+        if predicate(item) then
+            output.add(item);
+    return output;
+}

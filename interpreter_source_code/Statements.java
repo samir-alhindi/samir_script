@@ -110,7 +110,7 @@ class If extends Stmt {
 
             Object result = condition.visit();
             if( result instanceof Boolean == false)
-                Language.error("if statement condition should result in a boolean value", condition.token.line);
+                Language.error("if statement condition should result in a boolean value", condition.token.line, condition.token.file_name);
             if(result.equals(true)){
                 thenBranch.visit();
                 return null;
@@ -205,7 +205,7 @@ class For extends Stmt {
             for (SamirPair pair : ((SamirPairList) iterable).list)
                 list.add(pair);
         else
-            Language.error("Can only iterate over strings, Lists, and PairLists", lang.line);
+            Language.error("Can only iterate over strings, Lists, and PairLists", identfier.line ,identfier.file_name);
             
         Environment lasEnvi = lang.environment;
         Environment newEnvi = new Environment(lasEnvi);
@@ -213,7 +213,7 @@ class For extends Stmt {
         lang.environment = newEnvi;
 
         if((iterable instanceof String || iterable instanceof ListInstance) && second_identfier != null)
-            Language.error("Can only use 2 variables in a for loop to iterate over PairList", identfier.line);
+            Language.error("Can only use 2 variables in a for loop to iterate over PairList", identfier.line, identfier.file_name);
         
         boolean unpacking = second_identfier != null;
 
@@ -269,7 +269,7 @@ class Match extends Stmt {
     Void visit() {
         Object mainExpreVisitd = mainExpre.visit();
         if(mainExpreVisitd == null)
-            Language.error("Can't match null", keyword.line);
+            Language.error("Can't match null", keyword.line, keyword.file_name);
         for (Map.Entry<Expre, Stmt> entry : branches.entrySet()) {
             Expre condition = entry.getKey();
             Stmt stmt = entry.getValue();
@@ -407,7 +407,7 @@ class Import extends Stmt {
     Void visit() {
 
         if(Thread.currentThread().getStackTrace().length > 500)
-            Language.error("Please remove any circular dependency in file imports", keyword.line);
+            Language.error("Please remove any circular dependency in file imports", keyword.line, keyword.file_name);
 
         Path path = Paths.get(string_path);
         // Local file path:
@@ -416,10 +416,21 @@ class Import extends Stmt {
             path = parent_dir.resolve(path);
         }
 
-        Language new_lang = new Language(path.toString());
-        new_lang.run();
-        SamirInstance import_instance = new Importinstance(new_lang, identfier);
-        lang.environment.define((String) identfier.value, import_instance);
+        List<Stmt> all_statements = Language.lex_then_parse(Language.read_source(string_path, lang), lang, path.getFileName().toString());
+
+        Environment prev = lang.environment;
+        if(identfier != null){
+            Importinstance import_obejct = new Importinstance(lang, identfier);
+            lang.environment.define(identfier.value.toString(), import_obejct);
+            lang.environment = import_obejct.environment;
+        }
+
+        // Add all declarations:-
+            for (Stmt stmt : all_statements) 
+                if(stmt instanceof ClassDeclre || stmt instanceof Function || stmt instanceof VarDeclare || stmt instanceof EnumDecl || stmt instanceof Import)
+                    stmt.visit();
+        
+        lang.environment = prev;
         return null;
     }
 }

@@ -1,4 +1,3 @@
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -109,9 +108,9 @@ class SamirInstance{
             return super.equals(obj);
         SamirCallable eq = (SamirCallable) environment.variables.get("__eq__");
         if(eq.arity() != 1)
-            Language.error("__eq__() must take exactly 1 argument", samir_class.lang.line);
+            Language.error("__eq__() must take exactly 1 argument", samir_class.lang.line, samir_class.declaration.name.file_name);
         Object result = eq.call(Arrays.asList(obj));
-        NativeFunctions.check_type(result, Boolean.class, "__eq__() must return a boolean value", samir_class.lang.line);
+        NativeFunctions.check_type(result, Boolean.class, "__eq__() must return a boolean value", samir_class.lang.line, samir_class.lang.cur_file_name);
         return (Boolean) result;
     }
 }
@@ -119,7 +118,6 @@ class SamirInstance{
  class Importinstance extends SamirInstance {
     Importinstance(Language lang, Token import_name){
         super(lang);
-        this.environment = lang.environment;
         this.class_name = import_name.value.toString();
     }
  }

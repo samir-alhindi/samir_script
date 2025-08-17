@@ -14,6 +14,7 @@ public class Language {
     Stack<Environment> enviStack = new Stack<>();
 
     int line = 1;
+    String cur_file_name;
 
     String samir_script_filepath;
     Scanner scanner;
@@ -25,22 +26,26 @@ public class Language {
 
     void run(){
         NativeFunctions.init(globals, this);
-        try {
-            byte[] bytes = Files.readAllBytes(Paths.get(samir_script_filepath));
-            String source = new String(bytes, Charset.defaultCharset());
-            List<Stmt> program = lex_then_parse(source, this);
-            for (Stmt stmt : program) {
-                stmt.visit();
-            }
-        }
-        catch(IOException d){
-            Language.error("File: " + samir_script_filepath + " not found", line);
-        }
-        
+        String source = read_source(samir_script_filepath, this);
+        List<Stmt> program = lex_then_parse(source, this, Paths.get(samir_script_filepath).getFileName().toString());
+        for (Stmt stmt : program) 
+            stmt.visit();
     }
 
-    static List<Stmt> lex_then_parse(String source, Language lang){
-            Lexer lexer = new Lexer(source);
+    static String read_source(String path, Language lang){
+        String source = null;
+        try{
+            byte[] bytes = Files.readAllBytes(Paths.get(path));
+            source = new String(bytes, Charset.defaultCharset());
+        }
+        catch(IOException d){
+            Language.error("File: " + path + " not found", lang.line, path);
+        }
+        return source;
+    }
+
+    static List<Stmt> lex_then_parse(String source, Language lang, String file_name){
+            Lexer lexer = new Lexer(source, file_name);
             lexer.line = lang.line;
             ArrayList<Token> tokens = lexer.lex();
             Parser parser = new Parser(tokens, lang);
@@ -65,8 +70,8 @@ public class Language {
         return object.toString();
       }
 
-      static void error(String log, int line){
-        System.out.printf("Error at line %d: %s", line + 1, log);
+      static void error(String log, int line, String file){
+        System.out.printf("Error in file: %s at line %d: %s", file, line + 1, log);
         System.exit(1);
     }
 
@@ -88,24 +93,24 @@ public class Language {
     
     List<Object> checkStringIndex(Object index_object, Object string_object){
         if(index_object instanceof Double == false)
-            Language.error("1st argument of this string method must be a number", line);
+            Language.error("1st argument of this string method must be a number", line, cur_file_name);
         Double index = (Double) index_object;
 
         if(index % 1 != 0)
-            Language.error("1st argument must be a whole number", line);
+            Language.error("1st argument must be a whole number", line, cur_file_name);
 
         if(string_object instanceof String == false)
-            Language.error("2nd argument of this string method must be a string", line);
+            Language.error("2nd argument of this string method must be a string", line, cur_file_name);
         String string = (String) string_object;
 
         if(index >= string.length())
-            Language.error("index " + index.intValue() + " out of bounds for length " + string.length(), line);
+            Language.error("index " + index.intValue() + " out of bounds for length " + string.length(), line, cur_file_name);
         
         // Negative index:
         if(index < 0){
             Double actualIndex = index + string.length();
             if(actualIndex < 0)
-                Language.error("index " + index.intValue() + " out of bounds for length " + string.length(), line);
+                Language.error("index " + index.intValue() + " out of bounds for length " + string.length(), line, cur_file_name);
             index = actualIndex;
         }
 

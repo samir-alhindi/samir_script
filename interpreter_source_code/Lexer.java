@@ -3,6 +3,7 @@ import java.util.ArrayList;
 public class Lexer {
 
     String source;
+    String file_name;
     int pos = 0;
     int line = 0;
     char current;
@@ -14,14 +15,15 @@ public class Lexer {
     "func", "false", "true", "nil", "print", "println", "do", "while", "return", "class", "break", "continue",
     "lambda", "match", "with", "case", "for", "in", "enum", "import", "as"};
 
-    Lexer(String source){
+    Lexer(String source, String file_name){
         this.source = source;
+        this.file_name = file_name;
     }
 
     ArrayList<Token> lex (){
 
         if(source.length() == 0)
-            Language.error("empty file !", 0);
+            Language.error("empty file !", 0, file_name);
 
         tokens.clear();
         current = source.charAt(0);
@@ -89,7 +91,7 @@ public class Lexer {
                     }
                     //Error cases:
                     else if(current == '.' && found_dot)
-                        Language.error("Number can't have more than 1 dot !!!", line);
+                        Language.error("Number can't have more than 1 dot !!!", line, file_name);
                     
                 }
                 Double num_val = Double.valueOf(num_str);
@@ -112,7 +114,7 @@ public class Lexer {
                     }
                 }
                 if(current == '\0')
-                    Language.error("unterminated string", stringStart);
+                    Language.error("unterminated string", stringStart, file_name);
                 addToken(TokenType.STRING, string);
                 advance();
             }
@@ -256,7 +258,7 @@ public class Lexer {
             }
 
             //Check if word is keyword and tokenize it:
-            Token token = new Token(null, line);
+            Token token = new Token(null, line, file_name);
             if(is_keyword(word)){
                 switch (word) {
                     case "var" -> token.type = TokenType.VAR;
@@ -296,7 +298,7 @@ public class Lexer {
         }
 
         else
-            Language.error(current + "Is Illegal char !!!", line);
+            Language.error(current + "Is Illegal char !!!", line, file_name);
 
         }
 
@@ -311,12 +313,12 @@ public class Lexer {
     //Helper lexing methods:
 
     private void addToken(TokenType tokenType){
-        Token token = new Token(tokenType, line);
+        Token token = new Token(tokenType, line, file_name);
         tokens.add(token);
     }
 
     private void addToken(TokenType tokenType, Object value){
-        Token token = new Token(tokenType, value, line);
+        Token token = new Token(tokenType, value, line, file_name);
         tokens.add(token);
     }
 

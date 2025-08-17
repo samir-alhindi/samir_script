@@ -29,7 +29,7 @@ public class Environment implements Cloneable{
         }
 
 
-        Language.error( "Undefined variable '" + name.value.toString() + "'", name.line);
+        Language.error( "Undefined variable '" + name.value.toString() + "'", name.line, name.file_name);
     }
 
     Object get(Token identifier){
@@ -40,7 +40,7 @@ public class Environment implements Cloneable{
         if(outer != null)
             return outer.get(identifier);
         
-        Language.error("variable '" + identifier.value + "' has NOT been defined", identifier.line);
+        Language.error("variable '" + identifier.value + "' has NOT been defined", identifier.line, identifier.file_name);
         return null;
     }
 
