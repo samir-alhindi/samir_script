@@ -25,7 +25,8 @@ public class Language {
     }
 
     void run(){
-        NativeFunctions.init(globals, this);
+        NativeFunctions natives = new NativeFunctions(globals, this);
+        natives.init();
         String source = read_source(samir_script_filepath, this);
         List<Stmt> program = lex_then_parse(source, this, Paths.get(samir_script_filepath).getFileName().toString());
         for (Stmt stmt : program) 

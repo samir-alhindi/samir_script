@@ -2,12 +2,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-class SamirClass extends SamirInstance implements SamirCallable{
+class SamirClass extends SamirInstance {
     Environment closure;
     ClassDeclre declaration;
     List<Token> parameters;
     Function to_string;
     Function eq;
+    Function call;
     Language lang;
     ListInstance all_Instances;
     SamirClass(ClassDeclre declaration, Environment closure, Language lang){
@@ -17,6 +18,7 @@ class SamirClass extends SamirInstance implements SamirCallable{
         this.parameters = declaration.parameters;
         this.to_string = declaration.to_string;
         this.eq = declaration.eq;
+        this.call = declaration.call;
         this.closure = closure;
         this.lang = lang;
         all_Instances = new ListInstance(new ArrayList<>(), lang);
@@ -58,7 +60,7 @@ class SamirClass extends SamirInstance implements SamirCallable{
     
 }
 
-class SamirInstance{
+class SamirInstance implements SamirCallable{
     Environment environment;
     SamirClass samir_class;
     String class_name;
@@ -83,6 +85,8 @@ class SamirInstance{
             samir_class.to_string.visit();
         if(samir_class.eq != null)
             samir_class.eq.visit();
+        if(samir_class.call != null)
+            samir_class.call.visit();
         
 
         lang.environment = prev;
@@ -112,6 +116,23 @@ class SamirInstance{
         Object result = eq.call(Arrays.asList(obj));
         NativeFunctions.check_type(result, Boolean.class, "__eq__() must return a boolean value", samir_class.lang.line, samir_class.lang.cur_file_name);
         return (Boolean) result;
+    }
+
+
+    // For class that have the "__call__" method:-
+    @Override
+    public int arity() {
+        if(samir_class.call == null)
+            Language.error("cannot call instance of class '" + class_name + "' because it doesn't implement __call__() ", samir_class.lang.line, samir_class.lang.cur_file_name);
+        return ((SamirCallable) environment.variables.get("__call__")).arity();
+    }
+
+
+    @Override
+    public Object call(List<Object> arguments) {
+        SamirCallable call = (SamirCallable) environment.variables.get("__call__");
+        return call.call(arguments);
+        
     }
 }
 

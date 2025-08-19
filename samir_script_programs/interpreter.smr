@@ -3,81 +3,73 @@
 #########################
 
 class Lexer(source: string){
-    var pos = 0;
+
+    var pos: number = 0;
     var tokens: List = [];
     var current: String = source[0];
-    func lex(){
+
+    func __call__() -> List {
 
         while current != "/0" do {
 
-            # Ignore whitespace:
-            if current == " " then
-                advance();
-            
-            else if current == "+" then{
-                add_token(TT_PLUS, "+");
-                advance();
-            }
-            else if current == "-" then{
-                add_token(TT_MINUS, "-");
-                advance();
-            }
-            else if current == "*" then{
-                add_token(TT_MULTIPLY, "*");
-                advance();
-            }
-            else if current == "/" then{
-                add_token(TT_DIV, "/");
-                advance();
-            }
-            else if current == "(" then {
-                add_token(TT_L_PAREN, "(");
-                advance();
-            }
-            else if current == ")" then {
-                add_token(TT_R_PAREN, ")");
-                advance();
-            }
-                
-            else if(isNumeric(current)) then {
-                make_number();
-            }
-            
-            else 
-                return Error("{current} is an invalid char");
-            
+            match current with
+                case " " ->
+                    advance(); # Ignore whitespace.
+                case "+" -> {
+                    add_token(TT_PLUS, "+");
+                    advance();
+                }
+                case "-" -> {
+                    add_token(TT_MINUS, "-");
+                    advance();
+                }
+                case "*" -> {
+                    add_token(TT_MULTIPLY, "*");
+                    advance();
+                }
+                case "/" -> {
+                    add_token(TT_DIV, "/");
+                    advance();
+                }
+                case "(" -> {
+                    add_token(TT_L_PAREN, "(");
+                    advance();
+                }
+                case ")" -> {
+                    add_token(TT_R_PAREN, ")");
+                    advance();
+                }
+                else {
+                    if isNumeric(current) then 
+                        make_number();
+                    else 
+                        return Error("{current} is an invalid char");
+                }
         }
 
-        stop();
         var end_token: Token = Token(TT_EOF, "EOF");
         tokens.add(end_token);
         return tokens;
     }
 
-    func advance(){
+    func advance() -> nil {
         if pos + 1 >= len(source) then{
-            pos = pos + 1;
+            pos += 1;
             current = "/0";
         }
         else{
-            pos = pos + 1;
+            pos += 1;
             current = source[pos];
         }
         
     }
 
-    func peek_next(){
-        if pos + 1 >= len(source) then
-            return "/0";
-        return getChar(pos + 1, source);
-    }
-
-    func add_token(type: number, value: string){
+    func add_token(type: number, value: string) -> nil {
         var token: Token = Token(type, value);
         tokens.add(token);
     }
 
-    func make_number(){
+    func make_number() -> nil{
         var number_string: string = "";
         while isNumeric(current) do {
             number_string = number_string + current;
@@ -85,7 +77,6 @@ class Lexer(source: string){
         }
         add_token(TT_NUMBER, num(number_string));
     }
-
 }
 
 #########################
@@ -123,7 +114,7 @@ class Parser(tokens: List){
     var hadError: boolean = false;
     var log: string;
 
-    func parse() -> Node {
+    func __call__() -> Node {
         return expression();
     }
 
@@ -196,7 +187,7 @@ class Parser(tokens: List){
             log = "invalid syntax (EOF)";
             return;
         }
-        pos = pos + 1;
+        pos += 1;
         current = tokens[pos];
     }
 
@@ -212,7 +203,7 @@ class NumberNode(value: number){
         return str(value);
     }
 
-    func visit(){
+    func visit() -> number {
         return value;
     }
 }
@@ -240,11 +231,11 @@ class BinOpNode(left: variant, op: Token, right: variant){
         var right_op = right.visit();
         var left_op = left.visit();
 
-        if op.type == TT_PLUS then return left_op + right_op;
-        if op.type == TT_MINUS then return left_op - right_op;
-        if op.type == TT_MULTIPLY then return left_op * right_op;
-        if op.type == TT_DIV then return left_op / right_op;
-
+        match op.type with
+            case TT_PLUS -> return left_op + right_op;
+            case TT_MINUS -> return left_op - right_op;
+            case TT_MULTIPLY -> return left_op * right_op;
+            case TT_DIV -> return left_op / right_op;
     }
 }
 
@@ -278,17 +269,18 @@ while true do {
     if source == "" then
         continue;
 
-    var lexer: Lexer = Lexer(source);
-    var tokens: List = lexer.lex();
+    var tokens: List = Lexer(source)();
     if typeOf(tokens) == "Error" then {
         println tokens.log;
-        continue;}
+        continue;
+    }
 
     var parser: Parser = Parser(tokens);
-    var AST: Node = parser.parse();
+    var AST: Node = parser();
     if parser.hadError then {
         println parser.log;
-        continue;}
+        continue;
+    }
 
     println AST.visit();
 

@@ -1,0 +1,35 @@
+
+class BinCalc(x: number, y: number){
+
+    func __call__(op: string) -> number {
+        match op with
+            case "+" -> return x + y;
+            case "-" -> return x - y;
+            case "*" -> return x * y;
+            case "/" -> return x / y;
+            case "%" -> return x % y;
+            case "**" -> return _pow(y);
+    }
+
+    func _pow(y){
+        if y < 0 then return 1 / _pow(abs(y));
+        elif y == 0 then return 1;
+        else return x * _pow(y-1);
+    }
+
+    func __eq__(other: BinCalc){
+        return (self.x == other.x) and (self.y == other.y);
+    }
+
+    func __str__(){
+        return "({x},{y})";
+    }
+}
+
+var calc = BinCalc(5, 6);
+var calc2 = BinCalc(2, 2);
+println calc2("**");
+
+println pow(2, -1);
+
+println sqrt(0.1);
