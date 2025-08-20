@@ -193,7 +193,7 @@ class ListInstance extends SamirInstance {
                     if(((Boolean) result).equals(true))
                         output.add(item);
                 }
-                return ListInstance.create_filled_list(output.toArray(), lang);
+                return ListInstance.create_filled_list(output, lang);
             }
 
         });
@@ -258,7 +258,19 @@ class ListInstance extends SamirInstance {
         return (Double) (double) arrayList.size();
     }
 
-    static ListInstance create_filled_list(Object[] items, Language lang){
+    static <T> ListInstance create_filled_list(Iterable<T> items, Language lang){
+        ListInstance list = new ListInstance(new ArrayList<>(), lang);
+        Object add_method_uncast = list.environment.variables.get("add");
+        SamirCallable add_method = (SamirCallable) add_method_uncast;
+        for (Object item : items) {
+            List<Object> arg = new ArrayList<>();
+            arg.add(item);
+            add_method.call(arg);
+        }
+        return list;
+    }
+
+    static <T> ListInstance create_filled_list(T[] items, Language lang){
         ListInstance list = new ListInstance(new ArrayList<>(), lang);
         Object add_method_uncast = list.environment.variables.get("add");
         SamirCallable add_method = (SamirCallable) add_method_uncast;

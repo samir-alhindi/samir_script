@@ -71,9 +71,10 @@ public class Language {
         return object.toString();
       }
 
-      static void error(String log, int line, String file){
+      static Object error(String log, int line, String file){
         System.out.printf("Error in file: %s at line %d: %s", file, line + 1, log);
         System.exit(1);
+        return null;
     }
 
     static void error(String log, int fromLine, int toLine){
@@ -130,5 +131,21 @@ public class Language {
         list.add(object);
         return list;
     }
-        
+
+    static String typeOf(Object arg){
+        if(arg == null) return "nil";
+        return switch(arg){
+            case String x -> "string";
+            case Double d -> "number";
+            case Boolean b -> "boolean";
+            case ListInstance l -> "List";
+            case SamirPair s -> "Pair";
+            case SamirClass c -> "class";
+            case SamirFunction f -> "function";
+            case SamirInstance s -> s.class_name;
+            case SamirLambda l -> "lambda";
+            case SamirPairList p -> "PairList";
+            default -> "native callable";
+    };
+}
 }

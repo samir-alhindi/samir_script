@@ -21,7 +21,7 @@ class DictInstance extends SamirInstance {
 
             @Override
             public ListInstance call(List<Object> arguments) {
-                return ListInstance.create_filled_list(hashMap.keySet().toArray(), lang);
+                return ListInstance.create_filled_list(hashMap.keySet(), lang);
             }
         });
 

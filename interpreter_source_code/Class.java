@@ -2,7 +2,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-class SamirClass extends SamirInstance {
+@SuppressWarnings("unused")
+class SamirClass extends SamirInstance implements SamirCallable{
     Environment closure;
     ClassDeclre declaration;
     List<Token> parameters;
@@ -108,7 +109,7 @@ class SamirInstance implements SamirCallable{
 
     @Override
     public boolean equals(Object obj) {
-        if(this.samir_class.eq == null)
+        if(samir_class == null || samir_class.eq == null)
             return super.equals(obj);
         SamirCallable eq = (SamirCallable) environment.variables.get("__eq__");
         if(eq.arity() != 1)

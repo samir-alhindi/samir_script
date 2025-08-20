@@ -8,21 +8,29 @@ func greet(name: string){
     println "Hello, {name}.";
 }
 
-var add_five = add.bind(5);
-var greet_samir = greet.bind("Samir");
+println func_name(greet);
+println arity(greet);
+println arity(add);
 
-println add_five(6);
-greet_samir();
-
-println add(2, 5);
-println add.bind(5).bind(9)();
-
-func hello(){
-    println "Hello";
+func outer(){
+    func inner(){
+    }
+    return inner;
 }
 
-var square_list = map.bind(lambda n -> n * n);
-var get_evens = filter.bind(lambda p -> p % 2 == 0);
+var my_lambda = (lambda x -> lambda y -> x + y)(5);
+println get_closure(greet);
+println get_closure(outer());
 
-println square_list([1, 2, 3, 4, 5]);
-println get_evens(range(0, 11, 1));
+println parameter_names(add);
+
+var add_five: function = bind(add, 5);
+var eight: function = bind(add_five, 3);
+println eight();
+
+var greet_samir: function = bind(greet, "Samir");
+greet_samir();
+println get_closure(my_lambda);
+
+var other_lambda: Lambda = lambda x -> 5;
+println parameter_names(lambda x, arg, yes -> "Hello");

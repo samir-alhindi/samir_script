@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 interface SamirCallable {
@@ -7,57 +6,19 @@ interface SamirCallable {
     Object call(List<Object> arguments);
 }
 
-class SamirFunction extends SamirInstance implements SamirCallable {
+class SamirFunction implements SamirCallable {
     final Function declaration;
     final Environment closure;
     Language lang;
     List<String> parameter_names;
     SamirFunction(Function declaration, Environment closure, Language lang){
-        super(lang);
         this.declaration = declaration;
         this.closure = closure;
         this.lang = lang;
-        class_name = "function";
 
         parameter_names = new ArrayList<>();
         for (int i = 0; i < declaration.parameters.size(); i++)
             parameter_names.add(declaration.parameters.get(i).value.toString());
-        
-
-        environment.define("arity", arity());
-        environment.define("name", declaration.name.value.toString());
-        environment.define("get_closure", new SamirCallable() {
-
-            @Override
-            public int arity() {return 0;}
-
-            @Override
-            public Object call(List<Object> arguments) {
-                return new DictInstance(new HashMap<>(closure.variables), lang);
-            }
-            
-        });
-
-        environment.define("parameter_names", ListInstance.create_filled_list(parameter_names.toArray(), lang));
-
-        environment.define("bind", new SamirCallable() {
-
-            @Override
-            public int arity() {return 1;}
-
-            @Override
-            public SamirFunction call(List<Object> arguments) {
-                if(SamirFunction.this.arity() == 0)
-                    Language.error("cannot bind the function '" + declaration.name.value + "' if it takes zero parameters.", lang.line, lang.cur_file_name);
-                Environment new_closure = new Environment(closure);
-                Function new_declre = new Function(declaration.name, declaration.parameters.subList(1, declaration.parameters.size()), declaration.body, lang);
-                SamirFunction new_func = new SamirFunction(new_declre, new_closure, lang);
-                new_closure.define(parameter_names.get(0), arguments.get(0));
-                return new_func;
-            }
-            
-        });
-
     }
     @Override
     public int arity() {
@@ -123,10 +84,15 @@ class SamirLambda implements SamirCallable {
     final Lambda declaration;
     final Environment closure;
     Language lang;
+    List<String> parameter_names;
     SamirLambda(Lambda declaration, Environment closure, Language lang){
         this.declaration = declaration;
         this.closure = closure;
         this.lang = lang;
+
+        parameter_names = new ArrayList<>();
+        for (int i = 0; i < declaration.parameters.size(); i++)
+            parameter_names.add(declaration.parameters.get(i).value.toString());
     }
     @Override
     public int arity() {
@@ -138,8 +104,8 @@ class SamirLambda implements SamirCallable {
 
         Environment environment = new Environment(closure);
 
-        for (int i = 0; i < declaration.parameters.size(); i++) {
-            String paraName = declaration.parameters.get(i).value.toString();
+        for (int i = 0; i < parameter_names.size(); i++) {
+            String paraName = parameter_names.get(i);
             Object argValue = arguments.get(i);
             environment.define(paraName, argValue);
         }

@@ -39,7 +39,7 @@ class Lexer(source: string){
                     add_token(TT_R_PAREN, ")");
                     advance();
                 }
-                else {
+                else -> {
                     if isNumeric(current) then 
                         make_number();
                     else 

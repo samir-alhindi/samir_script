@@ -8,7 +8,7 @@ public class Main {
         }
         // For debuging:
         else{
-            Language lang = new Language("samir_script_programs\\call.smr");
+            Language lang = new Language("samir_script_programs\\bind.smr");
             lang.run();
         }
         

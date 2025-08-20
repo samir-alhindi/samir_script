@@ -16,28 +16,32 @@ public class NativeFunctions {
         this.lang = lang;
     }
 
-    void check_type(Object object, Class<?> type, String log){
+    <T> T check_type(Object object, Class<T> type, String log){
         if(object == null || object.getClass() != type)
             Language.error(log, lang.line, lang.cur_file_name);
+        return (T) object;
     }
 
-    static void check_type(Object object, Class<?> type, String log, int line, String file_name){
+    static <T> T check_type(Object object, Class<?> type, String log, int line, String file_name){
         if(object == null || object.getClass() != type)
             Language.error(log, line, file_name);
+        return (T) object;
     }
 
-    static void check_interface(Object object, Class<?> the_interface, String log, int line, String file_name){
+    static <T> T check_interface(Object object, Class<?> the_interface, String log, int line, String file_name){
             for (Class<?> c : object.getClass().getInterfaces())
                 if (c == the_interface)
-                    return;
+                    return (T) object;
             Language.error(log, line, file_name);
+            return null;
         }
 
-    void check_interface(Object object, Class<?> the_interface, String log){
+    <T> T check_interface(Object object, Class<T> the_interface, String log){
         for (Class<?> c : object.getClass().getInterfaces())
             if (c == the_interface)
-                return;
+                return (T) object;
         Language.error(log, lang.line, lang.cur_file_name);
+        return null;
         
     }
 
@@ -153,23 +157,11 @@ public class NativeFunctions {
             public int arity() {return 1;}
             @Override
             public String call(List<Object> arguments) {
-                Object arg = arguments.get(0);
-                if(arg == null) return "nil";
-                return switch(arg){
-                    case String x -> "string";
-                    case Double d -> "number";
-                    case Boolean b -> "boolean";
-                    case ListInstance l -> "List";
-                    case SamirPair s -> "Pair";
-                    case SamirClass c -> "class";
-                    case SamirFunction f -> "function";
-                    case SamirInstance s -> s.class_name;
-                    case SamirLambda l -> "lambda";
-                    case SamirPairList p -> "PairList";
-                    default -> "native callable";
+                    return Language.typeOf(arguments.get(0));
                 };
             }
-        });
+
+        );
 
         // Check if value is a digit (012345...):
         globals.define("isNumeric", new SamirCallable() {
@@ -257,10 +249,9 @@ public class NativeFunctions {
             @Override
             public Boolean call(List<Object> arguments) {
                 Object arg = arguments.get(0);
-                check_type(arg, String.class, "fileExists() arg must be a file path");
+                String string_path = check_type(arg, String.class, "fileExists() arg must be a file path");
                 
                 // Look in global dir:
-                String string_path = (String) arg;
                 Path path = Paths.get(string_path);
                 if(path.isAbsolute() && Files.exists(path))
                     return true;
@@ -282,8 +273,7 @@ public class NativeFunctions {
             @Override
             public String call(List<Object> arguments) {
                 Object arg = arguments.get(0);
-                check_type(arg, String.class, "read() arg must be a file path");
-                String path = (String) arg;
+                String path = check_type(arg, String.class, "read() arg must be a file path");
                 
                 // Check if file is abs path:
                 try{
@@ -318,9 +308,8 @@ public class NativeFunctions {
             @Override
             public Void call(List<Object> arguments) {
                 Object arg = arguments.get(0);
-                check_type(arg, String.class, "write() arg must be a file path");
+                String string_path =  check_type(arg, String.class, "write() arg must be a file path");
                 
-                String string_path = (String) arg;
                 String content = Language.stringify(arguments.get(1));
                 
                 Path path = Paths.get(string_path);
@@ -347,8 +336,7 @@ public class NativeFunctions {
             @Override
             public Object call(List<Object> arguments) {
                 Object arg = arguments.get(0);
-                check_type(arg, ListInstance.class, "enumarate() arg must be a list");
-                ListInstance listInstance = (ListInstance) arg;
+                ListInstance listInstance = check_type(arg, ListInstance.class, "enumarate() arg must be a list");
                 // Generate indices:
                 Double[] indices_array = new Double[listInstance.arrayList.size()];
                 for(int i = 0; i < listInstance.arrayList.size(); i++)
@@ -366,10 +354,8 @@ public class NativeFunctions {
 
             @Override
             public Object call(List<Object> arguments) {
-                check_type(arguments.get(0), ListInstance.class, "first zip arg must be a list");
-                check_type(arguments.get(1), ListInstance.class, "second zip arg must be be list");
-                ListInstance a = (ListInstance) arguments.get(0);
-                ListInstance b = (ListInstance) arguments.get(1);
+                ListInstance a =  check_type(arguments.get(0), ListInstance.class, "first zip arg must be a list");
+                ListInstance b = check_type(arguments.get(1), ListInstance.class, "second zip arg must be be list");
                 return new SamirPairList(a, b, lang);
             }
             
@@ -382,10 +368,8 @@ public class NativeFunctions {
 
             @Override
             public ListInstance call(List<Object> arguments) {
-                check_type(arguments.get(0), String.class, "first arg of split() must be a string");
-                check_type(arguments.get(1), String.class, "second arg of split() must be a string");
-                String word = (String) arguments.get(0);
-                String split = (String) arguments.get(1);
+                String word = check_type(arguments.get(0), String.class, "first arg of split() must be a string");
+                String split = check_type(arguments.get(1), String.class, "second arg of split() must be a string");
                 return ListInstance.create_filled_list(word.split(split), lang);
             }
             
@@ -398,12 +382,9 @@ public class NativeFunctions {
 
             @Override
             public Object call(List<Object> arguments) {
-                check_type(arguments.get(0), String.class, "first substring() arg must be a string");
-                check_type(arguments.get(1), Double.class, "second substring() arg must be a number");
-                check_type(arguments.get(2), Double.class, "third substring() arg must be a number");
-                String word = (String) arguments.get(0);
-                Double start = (Double) arguments.get(1);
-                Double end = (Double) arguments.get(2);
+                String word = check_type(arguments.get(0), String.class, "first substring() arg must be a string");
+                Double start = check_type(arguments.get(1), Double.class, "second substring() arg must be a number");
+                Double end = check_type(arguments.get(2), Double.class, "third substring() arg must be a number");
                 if(start % 1 != 0 || end % 1 != 0)
                     Language.error("substring indices must be whole numbers", lang.line, lang.cur_file_name);
                 return word.substring(start.intValue(), end.intValue());
@@ -418,8 +399,7 @@ public class NativeFunctions {
 
             @Override
             public Object call(List<Object> arguments) {
-                check_type(arguments.get(0), String.class, "eval() arg must be a string");
-                String source = (String) arguments.get(0);
+                String source = check_type(arguments.get(0), String.class, "eval() arg must be a string");
                 Lexer lexer = new Lexer(source, lang.cur_file_name);
                 lexer.line = lang.line;
                 ArrayList<Token> tokens = lexer.lex();
@@ -437,10 +417,9 @@ public class NativeFunctions {
 
             @Override
             public Void call(List<Object> arguments) {
-                check_type(arguments.get(0), String.class, "exec() arg must be a string");
+                String source = check_type(arguments.get(0), String.class, "exec() arg must be a string");
                 if(Thread.currentThread().getStackTrace().length > 500)
                     Language.error("exec() caused a stack overflow, Remove any circular dependency.", lang.line, lang.cur_file_name);
-                String source = (String) arguments.get(0);
                 List<Stmt> statements = Language.lex_then_parse(source, lang, lang.cur_file_name);
                 for (Stmt stmt : statements)
                     stmt.visit();
@@ -456,11 +435,9 @@ public class NativeFunctions {
 
             @Override
             public Object call(List<Object> arguments) {
-                for (int i = 0; i <= 2; i++)
-                    check_type(arguments.get(i), Double.class, "arg number " + (i+1) + " of range() must be a number");
-                int from = ((Double) arguments.get(0)).intValue();
-                int to = ((Double) arguments.get(1)).intValue();
-                int step = ((Double) arguments.get(2)).intValue();
+                int from = check_type(arguments.get(0), Double.class, "arg number 1 of range() must be a number").intValue();
+                int to = check_type(arguments.get(1), Double.class, "arg number 2 of range() must be a number").intValue();;
+                int step = check_type(arguments.get(2), Double.class, "arg number 3 of range() must be a number").intValue();
                 if(step == 0)
                     Language.error("range() step cannot be 0", lang.line, lang.cur_file_name);
                 var arraylist = new ArrayList<Double>();
@@ -501,8 +478,8 @@ public class NativeFunctions {
 
             @Override
             public Double call(List<Object> arguments) {
-                check_type(arguments.get(0), Double.class, "abs() arg must be a number");
-                return Math.abs( (Double) arguments.get(0));
+                Double num = check_type(arguments.get(0), Double.class, "abs() arg must be a number");
+                return Math.abs(num);
             }
 
         });
@@ -514,9 +491,9 @@ public class NativeFunctions {
 
             @Override
             public Object call(List<Object> arguments) {
-                check_type(arguments.get(0), Double.class, "1st abs() arg must be a number");
-                check_type(arguments.get(1), Double.class, "2nd abs() arg must be a number");
-                return Math.pow((Double)arguments.get(0), (Double)arguments.get(1));
+                Double base = check_type(arguments.get(0), Double.class, "1st abs() arg must be a number");
+                Double power = check_type(arguments.get(1), Double.class, "2nd abs() arg must be a number");
+                return Math.pow(base, power);
             }
 
         });
@@ -528,13 +505,106 @@ public class NativeFunctions {
 
             @Override
             public Double call(List<Object> arguments) {
-                Double arg = (Double) arguments.get(0);
-                check_type(arg, Double.class, "sqrt() arg must be a number");
-                if(arg < 0)
+                Double num = check_type(arguments.get(0), Double.class, "sqrt() arg must be a number");
+                if(num < 0)
                     Language.error("can't square root of negtaive number", lang.line, lang.cur_file_name);
-                return Math.sqrt((Double)arg);
+                return Math.sqrt(num);
             }
 
+        });
+
+        globals.define("arity", new SamirCallable(){
+
+            @Override
+            public int arity() {return 1;}
+
+            @Override
+            public Double call(List<Object> arguments) {
+                SamirCallable callable = check_interface(arguments.get(0), SamirCallable.class, "arity() takes a callable (function, lambda, or class)");
+                return Language.int_to_Double(callable.arity());
+            }
+            
+        });
+
+        globals.define("func_name", new SamirCallable(){
+
+            @Override
+            public int arity() {return 1;}
+
+            @Override
+            public String call(List<Object> arguments) {
+                SamirFunction func = check_type(arguments.get(0), SamirFunction.class, "func_name() arg must be a function");
+                return func.declaration.name.value.toString();
+            }
+
+        });
+
+        globals.define("get_closure", new SamirCallable(){
+
+            @Override
+            public int arity() {return 1;}
+
+            @Override
+            public DictInstance call(List<Object> arguments) {
+                Object arg = arguments.get(0);
+                return switch(arg){
+                    case SamirFunction f -> new DictInstance(new HashMap<>(f.closure.variables), lang);
+                    case SamirLambda l -> new DictInstance(new HashMap<>(l.closure.variables), lang);
+                    default -> (DictInstance) Language.error("Cannot get closure for the type: " + Language.typeOf(arg), lang.line, lang.cur_file_name);
+                };
+            }
+        });
+
+        globals.define("parameter_names", new SamirCallable(){
+
+            @Override
+            public int arity() {return 1;}
+
+            @Override
+            public ListInstance call(List<Object> arguments) {
+                Object arg = arguments.get(0);
+                switch(arg){
+                    case SamirFunction f -> {return ListInstance.create_filled_list(f.parameter_names, lang);}
+                    case SamirLambda l -> {return ListInstance.create_filled_list(l.parameter_names, lang);}
+                    default -> {return (ListInstance) Language.error("Cannot get parameter names for type: " + Language.typeOf(arg), lang.line, lang.cur_file_name);}
+                }
+            }
+
+        });
+
+        globals.define("bind", new SamirCallable() {
+
+            @Override
+            public int arity() {return 2;}
+
+            @Override
+            public SamirCallable call(List<Object> arguments) {
+                Object arg = arguments.get(0);
+                Object bound = arguments.get(1);
+                switch(arg){
+                    case SamirFunction f -> {
+                        if(f.arity() == 0)
+                            Language.error("cannot bind the function '" + f.declaration.name.value + "' if it takes zero parameters.", lang.line, lang.cur_file_name);
+                        Environment new_closure = new Environment(f.closure);
+                        Function new_declre = new Function(f.declaration.name, f.declaration.parameters.subList(1, f.declaration.parameters.size()), f.declaration.body, lang);
+                        SamirFunction new_func = new SamirFunction(new_declre, new_closure, lang);
+                        new_closure.define(f.parameter_names.get(0), bound);
+                        return new_func;
+                    }
+                    case SamirLambda l -> {
+                        if(l.arity() == 0)
+                            Language.error("cannot bind a lambda if it takes zero parameters.", lang.line, lang.cur_file_name);
+                        Environment new_closure = new Environment(l.closure);
+                        Lambda new_declre = new Lambda(l.declaration.token, l.declaration.parameters.subList(1, l.declaration.parameters.size()), l.declaration.body, lang);
+                        SamirLambda new_lambda = new SamirLambda(new_declre, new_closure, lang);
+                        new_closure.define(l.parameter_names.get(0), bound);
+                        return new_lambda;
+                    }
+                    default -> {
+                        return (SamirCallable) Language.error("bind() arg must be a function or lambda, Not a:"+Language.typeOf(arg), lang.line, lang.cur_file_name);
+                    }
+                }
+            }
         });
     }
 
