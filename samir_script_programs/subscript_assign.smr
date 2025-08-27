@@ -9,7 +9,12 @@ while i < len(x) do{
     i += 1;
 }
 
+println x;
 println y;
 
 y = y[-5] = "X";
 println y;
+
+var list = {"key":"value"}.items();
+println list[0] = Pair(1, 2);
+println list[0];

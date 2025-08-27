@@ -10,21 +10,21 @@ import java.util.List;
 public class NativeFunctions {
 
     Environment globals;
-    Language lang;
-    NativeFunctions(Environment globals, Language lang){
+    Runtime lang;
+    NativeFunctions(Environment globals, Runtime lang){
         this.globals = globals;
         this.lang = lang;
     }
 
     <T> T check_type(Object object, Class<T> type, String log){
         if(object == null || object.getClass() != type)
-            Language.error(log, lang.line, lang.cur_file_name);
+            Runtime.error(log, lang.line, lang.cur_file_name);
         return (T) object;
     }
 
     static <T> T check_type(Object object, Class<?> type, String log, int line, String file_name){
         if(object == null || object.getClass() != type)
-            Language.error(log, line, file_name);
+            Runtime.error(log, line, file_name);
         return (T) object;
     }
 
@@ -32,7 +32,7 @@ public class NativeFunctions {
             for (Class<?> c : object.getClass().getInterfaces())
                 if (c == the_interface)
                     return (T) object;
-            Language.error(log, line, file_name);
+            Runtime.error(log, line, file_name);
             return null;
         }
 
@@ -40,7 +40,7 @@ public class NativeFunctions {
         for (Class<?> c : object.getClass().getInterfaces())
             if (c == the_interface)
                 return (T) object;
-        Language.error(log, lang.line, lang.cur_file_name);
+        Runtime.error(log, lang.line, lang.cur_file_name);
         return null;
         
     }
@@ -113,7 +113,7 @@ public class NativeFunctions {
             @Override
             public Object call(List<Object> arguments) {
                 Object arg = arguments.get(0);
-                System.out.print(Language.stringify(arg));
+                System.out.print(Util.stringify(arg));
                 String input = lang.scanner.nextLine();
                 return input;
             }
@@ -127,7 +127,7 @@ public class NativeFunctions {
             @Override
             public Object call(List<Object> arguments) {
                 Object arg = arguments.get(0);
-                return Language.stringify(arg);}
+                return Util.stringify(arg);}
         });
 
         // cast to number function:
@@ -137,10 +137,10 @@ public class NativeFunctions {
             @Override
             public Object call(List<Object> arguments) {
                 Object arg = arguments.get(0);
-                if(Language.isNumeric(arg.toString()))
+                if(Util.isNumeric(arg.toString()))
                     return Double.parseDouble(arg.toString());
                 else
-                    Language.error("Cannot cast " + arg.toString() + " to a number", lang.line, lang.cur_file_name);
+                    Runtime.error("Cannot cast " + arg.toString() + " to a number", lang.line, lang.cur_file_name);
 
                 // unreachable:
                 return null;
@@ -157,7 +157,7 @@ public class NativeFunctions {
             public int arity() {return 1;}
             @Override
             public String call(List<Object> arguments) {
-                    return Language.typeOf(arguments.get(0));
+                    return Util.typeOf(arguments.get(0));
                 };
             }
 
@@ -173,7 +173,7 @@ public class NativeFunctions {
                 if(arg instanceof Double)
                     return true;
                 else if(arg instanceof String)
-                    return Language.isNumeric(arg.toString());
+                    return Util.isNumeric(arg.toString());
                 else
                     return false;
             }
@@ -205,9 +205,9 @@ public class NativeFunctions {
                 };
 
                 if (result == -1)
-                    Language.error("len() argument must be a list, string or Dict", lang.line, lang.cur_file_name);
+                    Runtime.error("len() argument must be a list, string or Dict", lang.line, lang.cur_file_name);
                 
-                return Language.int_to_Double(result);
+                return Util.int_to_Double(result);
             }
             
         });
@@ -291,7 +291,7 @@ public class NativeFunctions {
                         return text;
                     }
                     catch(IOException f){
-                        Language.error("Could not find file: " + path, lang.line, lang.cur_file_name);
+                        Runtime.error("Could not find file: " + path, lang.line, lang.cur_file_name);
                     }
                 }
                 return null;
@@ -310,7 +310,7 @@ public class NativeFunctions {
                 Object arg = arguments.get(0);
                 String string_path =  check_type(arg, String.class, "write() arg must be a file path");
                 
-                String content = Language.stringify(arguments.get(1));
+                String content = Util.stringify(arguments.get(1));
                 
                 Path path = Paths.get(string_path);
                 // For local files:
@@ -321,7 +321,7 @@ public class NativeFunctions {
                 try {
                     Files.write(path, content.getBytes());
                 } catch (IOException e) {
-                    Language.error("Couldn't write to file: " + path.toString(), lang.line, lang.cur_file_name);
+                    Runtime.error("Couldn't write to file: " + path.toString(), lang.line, lang.cur_file_name);
                 }
                 return null;
             }
@@ -340,7 +340,7 @@ public class NativeFunctions {
                 // Generate indices:
                 Double[] indices_array = new Double[listInstance.arrayList.size()];
                 for(int i = 0; i < listInstance.arrayList.size(); i++)
-                    indices_array[i] = Language.int_to_Double(i);
+                    indices_array[i] = Util.int_to_Double(i);
                 ListInstance indices_list = ListInstance.create_filled_list(indices_array, lang);
                 return new SamirPairList(indices_list, listInstance, lang);
             }
@@ -386,7 +386,7 @@ public class NativeFunctions {
                 Double start = check_type(arguments.get(1), Double.class, "second substring() arg must be a number");
                 Double end = check_type(arguments.get(2), Double.class, "third substring() arg must be a number");
                 if(start % 1 != 0 || end % 1 != 0)
-                    Language.error("substring indices must be whole numbers", lang.line, lang.cur_file_name);
+                    Runtime.error("substring indices must be whole numbers", lang.line, lang.cur_file_name);
                 return word.substring(start.intValue(), end.intValue());
             }
             
@@ -419,8 +419,8 @@ public class NativeFunctions {
             public Void call(List<Object> arguments) {
                 String source = check_type(arguments.get(0), String.class, "exec() arg must be a string");
                 if(Thread.currentThread().getStackTrace().length > 500)
-                    Language.error("exec() caused a stack overflow, Remove any circular dependency.", lang.line, lang.cur_file_name);
-                List<Stmt> statements = Language.lex_then_parse(source, lang, lang.cur_file_name);
+                    Runtime.error("exec() caused a stack overflow, Remove any circular dependency.", lang.line, lang.cur_file_name);
+                List<Stmt> statements = Util.lex_then_parse(source, lang, lang.cur_file_name);
                 for (Stmt stmt : statements)
                     stmt.visit();
                 return null;
@@ -439,10 +439,10 @@ public class NativeFunctions {
                 int to = check_type(arguments.get(1), Double.class, "arg number 2 of range() must be a number").intValue();;
                 int step = check_type(arguments.get(2), Double.class, "arg number 3 of range() must be a number").intValue();
                 if(step == 0)
-                    Language.error("range() step cannot be 0", lang.line, lang.cur_file_name);
+                    Runtime.error("range() step cannot be 0", lang.line, lang.cur_file_name);
                 var arraylist = new ArrayList<Double>();
                 for (; step > 0 ? from < to : to < from; from += step)
-                    arraylist.add(Language.int_to_Double(from));
+                    arraylist.add(Util.int_to_Double(from));
                 return ListInstance.create_filled_list(arraylist.toArray(), lang);
             }
         });
@@ -507,7 +507,7 @@ public class NativeFunctions {
             public Double call(List<Object> arguments) {
                 Double num = check_type(arguments.get(0), Double.class, "sqrt() arg must be a number");
                 if(num < 0)
-                    Language.error("can't square root of negtaive number", lang.line, lang.cur_file_name);
+                    Runtime.error("can't square root of negtaive number", lang.line, lang.cur_file_name);
                 return Math.sqrt(num);
             }
 
@@ -521,7 +521,7 @@ public class NativeFunctions {
             @Override
             public Double call(List<Object> arguments) {
                 SamirCallable callable = check_interface(arguments.get(0), SamirCallable.class, "arity() takes a callable (function, lambda, or class)");
-                return Language.int_to_Double(callable.arity());
+                return Util.int_to_Double(callable.arity());
             }
             
         });
@@ -550,7 +550,7 @@ public class NativeFunctions {
                 return switch(arg){
                     case SamirFunction f -> new DictInstance(new HashMap<>(f.closure.variables), lang);
                     case SamirLambda l -> new DictInstance(new HashMap<>(l.closure.variables), lang);
-                    default -> (DictInstance) Language.error("Cannot get closure for the type: " + Language.typeOf(arg), lang.line, lang.cur_file_name);
+                    default -> (DictInstance) Runtime.error("Cannot get closure for the type: " + Util.typeOf(arg), lang.line, lang.cur_file_name);
                 };
             }
         });
@@ -566,7 +566,7 @@ public class NativeFunctions {
                 switch(arg){
                     case SamirFunction f -> {return ListInstance.create_filled_list(f.parameter_names, lang);}
                     case SamirLambda l -> {return ListInstance.create_filled_list(l.parameter_names, lang);}
-                    default -> {return (ListInstance) Language.error("Cannot get parameter names for type: " + Language.typeOf(arg), lang.line, lang.cur_file_name);}
+                    default -> {return (ListInstance) Runtime.error("Cannot get parameter names for type: " + Util.typeOf(arg), lang.line, lang.cur_file_name);}
                 }
             }
 
@@ -584,7 +584,7 @@ public class NativeFunctions {
                 switch(arg){
                     case SamirFunction f -> {
                         if(f.arity() == 0)
-                            Language.error("cannot bind the function '" + f.declaration.name.value + "' if it takes zero parameters.", lang.line, lang.cur_file_name);
+                            Runtime.error("cannot bind the function '" + f.declaration.name.value + "' if it takes zero parameters.", lang.line, lang.cur_file_name);
                         Environment new_closure = new Environment(f.closure);
                         Function new_declre = new Function(f.declaration.name, f.declaration.parameters.subList(1, f.declaration.parameters.size()), f.declaration.body, lang);
                         SamirFunction new_func = new SamirFunction(new_declre, new_closure, lang);
@@ -593,7 +593,7 @@ public class NativeFunctions {
                     }
                     case SamirLambda l -> {
                         if(l.arity() == 0)
-                            Language.error("cannot bind a lambda if it takes zero parameters.", lang.line, lang.cur_file_name);
+                            Runtime.error("cannot bind a lambda if it takes zero parameters.", lang.line, lang.cur_file_name);
                         Environment new_closure = new Environment(l.closure);
                         Lambda new_declre = new Lambda(l.declaration.token, l.declaration.parameters.subList(1, l.declaration.parameters.size()), l.declaration.body, lang);
                         SamirLambda new_lambda = new SamirLambda(new_declre, new_closure, lang);
@@ -601,7 +601,7 @@ public class NativeFunctions {
                         return new_lambda;
                     }
                     default -> {
-                        return (SamirCallable) Language.error("bind() arg must be a function or lambda, Not a:"+Language.typeOf(arg), lang.line, lang.cur_file_name);
+                        return (SamirCallable) Runtime.error("bind() arg must be a function or lambda, Not a:"+Util.typeOf(arg), lang.line, lang.cur_file_name);
                     }
                 }
             }

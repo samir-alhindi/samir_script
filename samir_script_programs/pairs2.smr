@@ -17,3 +17,6 @@ while i < len(all_pairs) do {
     println all_pairs[i];
     i += 1;
 }
+
+println "----";
+println all_pairs[-2];

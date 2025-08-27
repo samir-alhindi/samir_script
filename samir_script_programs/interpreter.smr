@@ -40,7 +40,7 @@ class Lexer(source: string){
                     advance();
                 }
                 else -> {
-                    if isNumeric(current) then 
+                    if isNumeric(current) then
                         make_number();
                     else 
                         return Error("{current} is an invalid char");

@@ -32,9 +32,9 @@ class Print extends Stmt {
     Void visit(){
         Object value = expresion.visit();
         if(printType.type.equals(TokenType.PRINT_LN))
-            System.out.println(Language.stringify(value));
+            System.out.println(Util.stringify(value));
         else if(printType.type.equals(TokenType.PRINT))
-            System.out.print(Language.stringify(value));
+            System.out.print(Util.stringify(value));
         return null;
     }
 
@@ -43,9 +43,9 @@ class Print extends Stmt {
 class VarDeclare extends Stmt {
     Token varName;
     Expre initializer;
-    Language lang;
+    Runtime lang;
 
-    VarDeclare(Token varName, Expre initializer, Language lang){
+    VarDeclare(Token varName, Expre initializer, Runtime lang){
         this.varName = varName;
         this.initializer = initializer;
         this.lang = lang;
@@ -66,9 +66,9 @@ class Block extends Stmt {
 
     List<Stmt> statements;
     Environment environment;
-    Language lang;
+    Runtime lang;
 
-    Block(List<Stmt> statements, Language lang){
+    Block(List<Stmt> statements, Runtime lang){
         this.statements = statements;
         this.lang = lang;
     }
@@ -110,7 +110,7 @@ class If extends Stmt {
 
             Object result = condition.visit();
             if( result instanceof Boolean == false)
-                Language.error("if statement condition should result in a boolean value", condition.token.line, condition.token.file_name);
+                Runtime.error("if statement condition should result in a boolean value", condition.token.line, condition.token.file_name);
             if(result.equals(true)){
                 thenBranch.visit();
                 return null;
@@ -143,8 +143,8 @@ class ContinueException extends RuntimeException {
 class While extends Stmt {
     Expre condition;
     Stmt body;
-    Language lang;
-    While(Expre condition, Stmt body, Language lang){
+    Runtime lang;
+    While(Expre condition, Stmt body, Runtime lang){
         this.condition = condition;
         this.body = body;
         this.lang = lang;
@@ -180,10 +180,10 @@ class For extends Stmt {
     Token identfier;
     Expre iterable;
     Stmt body;
-    Language lang;
+    Runtime lang;
     Token second_identfier;
 
-    For(Token identfier, Expre iterable, Stmt body, Token second_identfier, Language lang){
+    For(Token identfier, Expre iterable, Stmt body, Token second_identfier, Runtime lang){
         this.identfier = identfier;
         this.iterable = iterable;
         this.body = body;
@@ -205,7 +205,7 @@ class For extends Stmt {
             for (SamirPair pair : ((SamirPairList) iterable).list)
                 list.add(pair);
         else
-            Language.error("Can only iterate over strings, Lists, and PairLists", identfier.line ,identfier.file_name);
+            Runtime.error("Can only iterate over strings, Lists, and PairLists", identfier.line ,identfier.file_name);
             
         Environment lasEnvi = lang.environment;
         Environment newEnvi = new Environment(lasEnvi);
@@ -213,7 +213,7 @@ class For extends Stmt {
         lang.environment = newEnvi;
 
         if((iterable instanceof String || iterable instanceof ListInstance) && second_identfier != null)
-            Language.error("Can only use 2 variables in a for loop to iterate over PairList", identfier.line, identfier.file_name);
+            Runtime.error("Can only use 2 variables in a for loop to iterate over PairList", identfier.line, identfier.file_name);
         
         boolean unpacking = second_identfier != null;
 
@@ -269,7 +269,7 @@ class Match extends Stmt {
     Void visit() {
         Object mainExpreVisitd = mainExpre.visit();
         if(mainExpreVisitd == null)
-            Language.error("Can't match null", keyword.line, keyword.file_name);
+            Runtime.error("Can't match null", keyword.line, keyword.file_name);
         for (Map.Entry<Expre, Stmt> entry : branches.entrySet()) {
             Expre condition = entry.getKey();
             Stmt stmt = entry.getValue();
@@ -295,9 +295,9 @@ class Function extends Stmt {
     Token name;
     List<Token> parameters;
     List<Stmt> body;
-    Language lang;
+    Runtime lang;
 
-    Function(Token name, List<Token> parameters, List<Stmt> body, Language lang){
+    Function(Token name, List<Token> parameters, List<Stmt> body, Runtime lang){
         this.name = name;
         this.parameters = parameters;
         this.body = body;
@@ -359,8 +359,8 @@ class ClassDeclre extends Stmt {
     Function eq;
     Function call;
     Token name;
-    Language lang;
-    ClassDeclre(List<Stmt> classBody, Token name, List<Token> parameters, Function to_string, Function eq, Function call,Language lang){
+    Runtime lang;
+    ClassDeclre(List<Stmt> classBody, Token name, List<Token> parameters, Function to_string, Function eq, Function call,Runtime lang){
         this.classBody = classBody;
         this.name = name;
         this.parameters = parameters;
@@ -380,8 +380,8 @@ class ClassDeclre extends Stmt {
 class EnumDecl extends Stmt {
     Token keyword;
     List<Token> identfiers;
-    Language lang;
-    EnumDecl(Token keyword, List<Token> identfiers, Language lang){
+    Runtime lang;
+    EnumDecl(Token keyword, List<Token> identfiers, Runtime lang){
         this.keyword = keyword;
         this.identfiers = identfiers;
         this.lang = lang;
@@ -389,7 +389,7 @@ class EnumDecl extends Stmt {
     @Override
     Void visit() {
         for (int i = 0; i < identfiers.size(); i++)
-            lang.environment.define(identfiers.get(i).value.toString(), Language.int_to_Double(i));
+            lang.environment.define(identfiers.get(i).value.toString(), Util.int_to_Double(i));
         return null;
     }
 }
@@ -398,8 +398,8 @@ class Import extends Stmt {
     Token keyword;
     String string_path;
     Token identfier;
-    Language lang;
-    Import(Token keyword, String string_path, Token identfier, Language lang){
+    Runtime lang;
+    Import(Token keyword, String string_path, Token identfier, Runtime lang){
         this.keyword = keyword;
         this.string_path = string_path;
         this.identfier = identfier;
@@ -409,7 +409,7 @@ class Import extends Stmt {
     Void visit() {
 
         if(Thread.currentThread().getStackTrace().length > 500)
-            Language.error("Please remove any circular dependency in file imports", keyword.line, keyword.file_name);
+            Runtime.error("Please remove any circular dependency in file imports", keyword.line, keyword.file_name);
 
         Path path = Paths.get(string_path);
         // Local file path:
@@ -418,7 +418,7 @@ class Import extends Stmt {
             path = parent_dir.resolve(path);
         }
 
-        List<Stmt> all_statements = Language.lex_then_parse(Language.read_source(string_path, lang), lang, path.getFileName().toString());
+        List<Stmt> all_statements = Util.lex_then_parse(Util.read_source(string_path, lang), lang, path.getFileName().toString());
 
         Environment prev = lang.environment;
         if(identfier != null){

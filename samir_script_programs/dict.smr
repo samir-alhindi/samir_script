@@ -8,4 +8,5 @@ dict["Muhammed"] = 22;
 dict[5] = "Hello";
 dict[true] = "Yup";
 
-println dict;
+for key in dict.keys() do
+    println dict[key];

@@ -1,17 +1,12 @@
 import java.util.ArrayList;
 import java.util.List;
 
-interface SamirCallable {
-    int arity();
-    Object call(List<Object> arguments);
-}
-
 class SamirFunction implements SamirCallable {
     final Function declaration;
     final Environment closure;
-    Language lang;
+    Runtime lang;
     List<String> parameter_names;
-    SamirFunction(Function declaration, Environment closure, Language lang){
+    SamirFunction(Function declaration, Environment closure, Runtime lang){
         this.declaration = declaration;
         this.closure = closure;
         this.lang = lang;
@@ -43,7 +38,7 @@ class SamirFunction implements SamirCallable {
         lang.environment = environment;
         // Check if stack overflow:
         if(lang.enviStack.size() > 1024)
-            Language.error("function caused a stack overflow", declaration.name.line, declaration.name.file_name);
+            Runtime.error("function caused a stack overflow", declaration.name.line, declaration.name.file_name);
         try{
             for (Stmt stmt : declaration.body)
                 stmt.visit();
@@ -83,9 +78,9 @@ class ReturnException extends RuntimeException {
 class SamirLambda implements SamirCallable {
     final Lambda declaration;
     final Environment closure;
-    Language lang;
+    Runtime lang;
     List<String> parameter_names;
-    SamirLambda(Lambda declaration, Environment closure, Language lang){
+    SamirLambda(Lambda declaration, Environment closure, Runtime lang){
         this.declaration = declaration;
         this.closure = closure;
         this.lang = lang;
@@ -118,7 +113,7 @@ class SamirLambda implements SamirCallable {
         lang.environment = environment;
         // Check if stack overflow:
         if(lang.enviStack.size() > 1024)
-            Language.error("lambda caused a stack overflow", declaration.token.line, declaration.token.file_name);
+            Runtime.error("lambda caused a stack overflow", declaration.token.line, declaration.token.file_name);
         
         Object value = declaration.body.visit();
             

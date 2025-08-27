@@ -2,10 +2,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-class SamirPairList {
+class SamirPairList implements Subscriptable{
     List<SamirPair> list;
-    SamirPairList(DictInstance dict, Language lang){
+    Runtime lang;
+    SamirPairList(DictInstance dict, Runtime lang){
         list = new ArrayList<>();
+        this.lang = lang;
         for (Map.Entry<Object, Object> entry : dict.hashMap.entrySet()){
             SamirPair pair = new SamirPair(entry.getKey(), entry.getValue(), lang);
             list.add(pair);
@@ -13,8 +15,9 @@ class SamirPairList {
         
     }
 
-    SamirPairList(ListInstance a, ListInstance b, Language lang){
+    SamirPairList(ListInstance a, ListInstance b, Runtime lang){
         list = new ArrayList<>();
+        this.lang = lang;
         int size = Math.min(a.arrayList.size(), b.arrayList.size());
         for(int i = 0; i < size; i++)
             list.add(new SamirPair(a.arrayList.get(i), b.arrayList.get(i), lang));
@@ -24,20 +27,34 @@ class SamirPairList {
     public String toString() {
         String result = "(";
         for (SamirPair pair : list){
-            result += "(" + Language.stringify(pair.first) + ", " + Language.stringify(pair.second) + ")" + ", ";
+            result += "(" + Util.stringify(pair.first) + ", " + Util.stringify(pair.second) + ")" + ", ";
         }
             
         if(result.length() > 2)
             result = result.substring(0, result.length() - 2);
         return result + ")";
     }
+
+    @Override
+    public SamirPair get_item(Object index) {
+        int i = Util.checkValidIndex(index, list.size(), lang);
+        return list.get(i);
+    }
+
+    @Override
+    public SamirPair set_item(Object index, Object item) {
+        int i = Util.checkValidIndex(index, list.size(), lang);
+        SamirPair pair = NativeFunctions.check_type(item, SamirPair.class, "PairLists can only contain Pairs", lang.line, lang.cur_file_name);
+        list.set(i, pair);
+        return pair;
+    }
 }
 
 
- class SamirPair extends SamirInstance{
+ class SamirPair extends SamirInstance {
     Object first;
     Object second;
-    SamirPair(Object first, Object second, Language lang){
+    SamirPair(Object first, Object second, Runtime lang){
         super(lang);
         this.first = first;
         this.second = second;
@@ -48,6 +65,6 @@ class SamirPairList {
 
     @Override
     public String toString() {
-        return "(" + Language.stringify(first) + ", " + Language.stringify(second) + ")";
+        return "(" + Util.stringify(first) + ", " + Util.stringify(second) + ")";
     }
  }

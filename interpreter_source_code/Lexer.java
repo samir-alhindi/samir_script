@@ -23,7 +23,7 @@ public class Lexer {
     ArrayList<Token> lex (){
 
         if(source.length() == 0)
-            Language.error("empty file !", 0, file_name);
+            Runtime.error("empty file !", 0, file_name);
 
         tokens.clear();
         current = source.charAt(0);
@@ -91,7 +91,7 @@ public class Lexer {
                     }
                     //Error cases:
                     else if(current == '.' && found_dot)
-                        Language.error("Number can't have more than 1 dot !!!", line, file_name);
+                        Runtime.error("Number can't have more than 1 dot !!!", line, file_name);
                     
                 }
                 Double num_val = Double.valueOf(num_str);
@@ -114,7 +114,7 @@ public class Lexer {
                     }
                 }
                 if(current == '\0')
-                    Language.error("unterminated string", stringStart, file_name);
+                    Runtime.error("unterminated string", stringStart, file_name);
                 addToken(TokenType.STRING, string);
                 advance();
             }
@@ -298,7 +298,7 @@ public class Lexer {
         }
 
         else
-            Language.error(current + "Is Illegal char !!!", line, file_name);
+            Runtime.error(current + "Is Illegal char !!!", line, file_name);
 
         }
 

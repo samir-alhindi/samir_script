@@ -10,9 +10,9 @@ class SamirClass extends SamirInstance implements SamirCallable{
     Function to_string;
     Function eq;
     Function call;
-    Language lang;
+    Runtime lang;
     ListInstance all_Instances;
-    SamirClass(ClassDeclre declaration, Environment closure, Language lang){
+    SamirClass(ClassDeclre declaration, Environment closure, Runtime lang){
         super(lang);
         this.class_name = declaration.name.value.toString();
         this.declaration = declaration;
@@ -66,7 +66,7 @@ class SamirInstance implements SamirCallable{
     SamirClass samir_class;
     String class_name;
 
-    SamirInstance(SamirClass samir_class, List<Object> constructer_args, Language lang){
+    SamirInstance(SamirClass samir_class, List<Object> constructer_args, Runtime lang){
         this.samir_class = samir_class;
         this.environment = new Environment(samir_class.closure);
         this.class_name = samir_class.declaration.name.value.toString();
@@ -95,7 +95,7 @@ class SamirInstance implements SamirCallable{
 
 
     // For inherting native classes:
-    SamirInstance(Language lang){
+    SamirInstance(Runtime lang){
         this.environment = new Environment(lang.environment);
     }
 
@@ -104,7 +104,7 @@ class SamirInstance implements SamirCallable{
         if(this.samir_class.to_string == null)
             return "<" + samir_class.class_name + " instance " + this.hashCode() + ">";
         SamirCallable to_string = (SamirCallable) environment.variables.get("__str__");
-        return Language.stringify(to_string.call(null));
+        return Util.stringify(to_string.call(null));
     }
 
     @Override
@@ -113,7 +113,7 @@ class SamirInstance implements SamirCallable{
             return super.equals(obj);
         SamirCallable eq = (SamirCallable) environment.variables.get("__eq__");
         if(eq.arity() != 1)
-            Language.error("__eq__() must take exactly 1 argument", samir_class.lang.line, samir_class.declaration.name.file_name);
+            Runtime.error("__eq__() must take exactly 1 argument", samir_class.lang.line, samir_class.declaration.name.file_name);
         Object result = eq.call(Arrays.asList(obj));
         NativeFunctions.check_type(result, Boolean.class, "__eq__() must return a boolean value", samir_class.lang.line, samir_class.lang.cur_file_name);
         return (Boolean) result;
@@ -124,7 +124,7 @@ class SamirInstance implements SamirCallable{
     @Override
     public int arity() {
         if(samir_class.call == null)
-            Language.error("cannot call instance of class '" + class_name + "' because it doesn't implement __call__() ", samir_class.lang.line, samir_class.lang.cur_file_name);
+            Runtime.error("cannot call instance of class '" + class_name + "' because it doesn't implement __call__() ", samir_class.lang.line, samir_class.lang.cur_file_name);
         return ((SamirCallable) environment.variables.get("__call__")).arity();
     }
 
@@ -138,7 +138,7 @@ class SamirInstance implements SamirCallable{
 }
 
  class Importinstance extends SamirInstance {
-    Importinstance(Language lang, Token import_name){
+    Importinstance(Runtime lang, Token import_name){
         super(lang);
         this.class_name = import_name.value.toString();
     }

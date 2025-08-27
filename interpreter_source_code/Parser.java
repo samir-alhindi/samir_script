@@ -8,9 +8,9 @@ public class Parser{
     int pos = 0;
     Token current;
     ArrayList<Token> tokens = new ArrayList<>();
-    Language lang;
+    Runtime lang;
 
-    Parser(ArrayList<Token> tokens, Language lang){
+    Parser(ArrayList<Token> tokens, Runtime lang){
         this.tokens = tokens;
         this.lang = lang;
         pos = 0;
@@ -62,14 +62,14 @@ public class Parser{
         Token keyword = current;
         advance();
         if( ! currentIs(TokenType.STRING))
-            Language.error("expected file path after 'import' keyword", current.line, current.file_name);
+            Runtime.error("expected file path after 'import' keyword", current.line, current.file_name);
         String path = (String) current.value;
         advance();
         Token identifier = null;
         if(currentIs(TokenType.AS)){
             advance();
             if( ! currentIs(TokenType.IDENTIFIER))
-                Language.error("expected identifier after 'as' keyword", current.line, current.file_name);
+                Runtime.error("expected identifier after 'as' keyword", current.line, current.file_name);
             identifier = current;
             advance();
         }
@@ -78,12 +78,12 @@ public class Parser{
 
     Stmt enumDeclaration(){
         if( ! currentIs(TokenType.L_CUR))
-            Language.error("expected '{' after enum keyword", current.line, current.file_name);
+            Runtime.error("expected '{' after enum keyword", current.line, current.file_name);
         Token keyword = current;
         advance();
 
         if( ! currentIs(TokenType.IDENTIFIER))
-            Language.error("expected at least 1 identifier inside enum body", current.line, current.file_name);
+            Runtime.error("expected at least 1 identifier inside enum body", current.line, current.file_name);
         var identfiers = new ArrayList<Token>();
         identfiers.add(current);
         advance();
@@ -91,12 +91,12 @@ public class Parser{
         while(currentIs(TokenType.COMMA)){
             advance();
             if( ! currentIs(TokenType.IDENTIFIER))
-                Language.error("expected identfier after ','", current.line, current.file_name);
+                Runtime.error("expected identfier after ','", current.line, current.file_name);
             identfiers.add(current);
             advance();
         }
         if( ! currentIs(TokenType.R_CUR))
-            Language.error("expected closing '}' after enum body", current.line, current.file_name);
+            Runtime.error("expected closing '}' after enum body", current.line, current.file_name);
         advance();
 
         return new EnumDecl(keyword, identfiers, lang);
@@ -106,18 +106,18 @@ public class Parser{
 
     Stmt classDeclaration(){
         if( ! currentIs(TokenType.IDENTIFIER))
-            Language.error("Expected identifier after 'class' keyword", current.line - 1, current.file_name);
+            Runtime.error("Expected identifier after 'class' keyword", current.line - 1, current.file_name);
         Token name = current;
         advance();
 
         if( ! currentIs(TokenType.L_PAR))
-            Language.error("Expected '(' after class name", name.line, current.file_name);
+            Runtime.error("Expected '(' after class name", name.line, current.file_name);
         advance();
 
         List<Token> parameters = parameters();
 
         if( ! currentIs(TokenType.L_CUR))
-            Language.error("Expected '{' after class name", current.line - 1, current.file_name);
+            Runtime.error("Expected '{' after class name", current.line - 1, current.file_name);
         advance();
 
         List<Stmt> classBody = new ArrayList<>();
@@ -148,7 +148,7 @@ public class Parser{
         }
 
         if( ! currentIs(TokenType.R_CUR))
-            Language.error("Expected '}' after class '" + name.value + "' body", name.line, name.file_name);
+            Runtime.error("Expected '}' after class '" + name.value + "' body", name.line, name.file_name);
         advance();
 
         return new ClassDeclre(classBody, name, parameters, to_string, eq, call, lang);
@@ -157,12 +157,12 @@ public class Parser{
 
     Stmt function(){
         if( ! currentIs(TokenType.IDENTIFIER))
-            Language.error("Expected identifier after 'func' keyword", current.line, current.file_name);
+            Runtime.error("Expected identifier after 'func' keyword", current.line, current.file_name);
         Token name = current;
         advance();
 
         if( ! currentIs(TokenType.L_PAR))
-            Language.error("Expected '(' after function name", name.line, name.file_name);
+            Runtime.error("Expected '(' after function name", name.line, name.file_name);
         advance();
 
         List<Token> parameters = parameters();
@@ -171,12 +171,12 @@ public class Parser{
         if(currentIs(TokenType.ARROW)){
             advance();
             if( ! currentIs(TokenType.IDENTIFIER) && ! currentIs(TokenType.NIL))
-                Language.error("expected data type after '->'", current.line, current.file_name);
+                Runtime.error("expected data type after '->'", current.line, current.file_name);
             advance();
         }
 
         if( ! currentIs(TokenType.L_CUR))
-            Language.error("Expected '{' before function body", current.line -1, current.file_name);
+            Runtime.error("Expected '{' before function body", current.line -1, current.file_name);
         advance();
 
         List<Stmt> body = block();
@@ -190,38 +190,38 @@ public class Parser{
         var parameters = new ArrayList<Token>();
         if( ! currentIs(TokenType.R_PAR)){
             if( ! currentIs(TokenType.IDENTIFIER))
-                Language.error("Expected parameter name", current.line, current.file_name);
+                Runtime.error("Expected parameter name", current.line, current.file_name);
             parameters.add(current);
             advance();
             // Check for type hint:
             if(currentIs(TokenType.COLON)){
                 advance();
                 if( ! currentIs(TokenType.IDENTIFIER))
-                    Language.error("Expected data type after ':'", current.line, current.file_name);
+                    Runtime.error("Expected data type after ':'", current.line, current.file_name);
                 advance();
             }
             while(currentIs(TokenType.COMMA)){
                 advance();
                 if( ! currentIs(TokenType.IDENTIFIER))
-                    Language.error("Expected parameter name", current.line, current.file_name);
+                    Runtime.error("Expected parameter name", current.line, current.file_name);
                 parameters.add(current);
                 advance();
                 // Check for type hint
                 if(currentIs(TokenType.COLON)){
                     advance();
                     if( ! currentIs(TokenType.IDENTIFIER))
-                        Language.error("Expected data type after ':'", current.line, current.file_name);
+                        Runtime.error("Expected data type after ':'", current.line, current.file_name);
                     advance();
                 }
             }
 
             if(parameters.size() >= 255)
-                Language.error("Can't have more than 255 parameters", current.line, current.file_name);
+                Runtime.error("Can't have more than 255 parameters", current.line, current.file_name);
                 
         }
 
         if( ! currentIs(TokenType.R_PAR))
-            Language.error("Expected closing ')'", current.line, current.file_name);
+            Runtime.error("Expected closing ')'", current.line, current.file_name);
         advance();
 
         return parameters;
@@ -229,7 +229,7 @@ public class Parser{
 
     Stmt varDeclaration(){
         if( ! currentIs(TokenType.IDENTIFIER))
-            Language.error("expected identifier after var keyword", current.line, current.file_name);
+            Runtime.error("expected identifier after var keyword", current.line, current.file_name);
         Token varName = current;
         advance();
 
@@ -237,7 +237,7 @@ public class Parser{
         if(currentIs(TokenType.COLON)){
             advance();
             if( ! currentIs(TokenType.IDENTIFIER))
-                Language.error("expected data type after ':'", current.line, current.file_name);
+                Runtime.error("expected data type after ':'", current.line, current.file_name);
             advance();
         }
 
@@ -249,7 +249,7 @@ public class Parser{
         }
 
         if( ! currentIs(TokenType.EOS))
-            Language.error("expected ';' after end of statement", current.line - 1, current.file_name);
+            Runtime.error("expected ';' after end of statement", current.line - 1, current.file_name);
         advance();
 
         return new VarDeclare(varName, initializer, lang);
@@ -300,7 +300,7 @@ public class Parser{
     Stmt forStmt(){
 
         if( ! currentIs(TokenType.IDENTIFIER))
-            Language.error("expected identfier after 'for' keyword", current.line, current.file_name);
+            Runtime.error("expected identfier after 'for' keyword", current.line, current.file_name);
         Token forVar = current;
         Token secondForVar = null;
         advance();
@@ -309,19 +309,19 @@ public class Parser{
         if(currentIs(TokenType.COMMA)){
             advance();
             if( ! currentIs(TokenType.IDENTIFIER))
-                Language.error("expected identfier after ','", current.line, current.file_name);
+                Runtime.error("expected identfier after ','", current.line, current.file_name);
             secondForVar = current;
             advance();
         }
 
         if( ! currentIs(TokenType.IN))
-            Language.error("expected 'in' keyword after identfier", current.line, current.file_name);
+            Runtime.error("expected 'in' keyword after identfier", current.line, current.file_name);
         advance();
 
         Expre iterable = expression();
 
         if( ! currentIs(TokenType.DO))
-            Language.error("expected 'do' keyword after iterable", current.line, current.file_name);
+            Runtime.error("expected 'do' keyword after iterable", current.line, current.file_name);
         advance();
         Stmt body = statement();
 
@@ -333,7 +333,7 @@ public class Parser{
         advance();
         Expre mainExpre = expression();
         if( ! currentIs(TokenType.WITH))
-            Language.error("expected 'with' keyword after match expression", current.line, current.file_name);
+            Runtime.error("expected 'with' keyword after match expression", current.line, current.file_name);
         advance();
 
         LinkedHashMap<Expre, Stmt> branches = new LinkedHashMap<>();
@@ -342,7 +342,7 @@ public class Parser{
             advance();
             Expre condition = expression();
             if( ! currentIs(TokenType.ARROW))
-                Language.error("expected '->' after match case", current.line, current.file_name);
+                Runtime.error("expected '->' after match case", current.line, current.file_name);
             advance();
             Stmt branch = statement();
             branches.put(condition, branch);
@@ -352,7 +352,7 @@ public class Parser{
         if(currentIs(TokenType.ELSE)){
             advance();
             if( ! currentIs(TokenType.ARROW))
-                Language.error("expected '->' after else match case", current.line, current.file_name);
+                Runtime.error("expected '->' after else match case", current.line, current.file_name);
             advance();
             elseBranch = statement();
         }
@@ -365,7 +365,7 @@ public class Parser{
         Token keyword = current;
         advance();
         if( ! currentIs(TokenType.EOS))
-            Language.error("Expected ';' after break statement", keyword.line, keyword.file_name);
+            Runtime.error("Expected ';' after break statement", keyword.line, keyword.file_name);
         advance();
 
         return new Break(keyword);
@@ -375,7 +375,7 @@ public class Parser{
         Token keyword = current;
         advance();
         if( ! currentIs(TokenType.EOS))
-            Language.error("Expected ';' after continue statement", keyword.line, keyword.file_name);
+            Runtime.error("Expected ';' after continue statement", keyword.line, keyword.file_name);
         advance();
 
         return new Continue(keyword);
@@ -389,7 +389,7 @@ public class Parser{
             value = expression();
         
         if( ! currentIs(TokenType.EOS))
-            Language.error("Expected ';' after return statement", keyword.line, keyword.file_name);
+            Runtime.error("Expected ';' after return statement", keyword.line, keyword.file_name);
         
         advance();
 
@@ -400,7 +400,7 @@ public class Parser{
     Stmt whileStatement(){
         Expre condition = expression();
         if( ! currentIs(TokenType.DO))
-            Language.error("expected 'do' keyword after while condition", current.line, current.file_name);
+            Runtime.error("expected 'do' keyword after while condition", current.line, current.file_name);
         advance();
         Stmt body = statement();
 
@@ -413,7 +413,7 @@ public class Parser{
 
         Expre condition = expression();
         if( ! currentIs(TokenType.THEN))
-            Language.error("expected 'then' keyword after if condition", current.line, current.file_name);
+            Runtime.error("expected 'then' keyword after if condition", current.line, current.file_name);
         advance();
         Stmt thenBranch = statement();
         branches.put(condition, thenBranch);
@@ -422,7 +422,7 @@ public class Parser{
             advance();
             condition = expression();
             if( ! currentIs(TokenType.THEN))
-                Language.error("expected 'then' keyword after elif condition", current.line, current.file_name);
+                Runtime.error("expected 'then' keyword after elif condition", current.line, current.file_name);
             advance();
             thenBranch = statement();
             branches.put(condition, thenBranch);
@@ -444,7 +444,7 @@ public class Parser{
             statements.add(declaration());
         
         if( ! currentIs(TokenType.R_CUR))
-            Language.error("Expected '}' after block.", blockStart.line, blockStart.file_name);
+            Runtime.error("Expected '}' after block.", blockStart.line, blockStart.file_name);
         
         advance();
 
@@ -459,9 +459,9 @@ public class Parser{
         if( ! current.type.equals(TokenType.EOS)){
             if(print_type.line == current.line){
                 // The user probably wanted to concatenate strings but forgot the '+':
-                Language.error("Expected closing ';' to end print statement\nReminder: you must use '+' to print multiple things", current.line, current.file_name);
+                Runtime.error("Expected closing ';' to end print statement\nReminder: you must use '+' to print multiple things", current.line, current.file_name);
             }
-            Language.error("Expected closing ';' to end print statement", current.line - 1, current.file_name);
+            Runtime.error("Expected closing ';' to end print statement", current.line - 1, current.file_name);
         }
             
         advance();
@@ -472,7 +472,7 @@ public class Parser{
     Stmt expresionStatement(){
         Expre expre = expression();
         if( ! current.type.equals(TokenType.EOS))
-            Language.error("Expected closing ';' to end statement", current.line - 1, current.file_name);
+            Runtime.error("Expected closing ';' to end statement", current.line - 1, current.file_name);
         advance();
         return new ExpressionStmt(expre);
     }
@@ -493,7 +493,7 @@ public class Parser{
 
             if(expre instanceof Variable){
                 Token varName = ( (Variable) expre ).token;
-                return new AssignExpre(varName, newValue, opp, lang);
+                return new Assignment(varName, newValue, opp, lang);
             }
 
             else if(expre instanceof Get){
@@ -502,10 +502,10 @@ public class Parser{
             }
 
             else if(expre instanceof Subscript)
-                return new CollectionAssign( (Subscript) expre, newValue, opp);
+                return new SubscriptAssign( (Subscript) expre, newValue, opp, lang);
             
 
-            Language.error("Invalid assignment target", opp.line, opp.file_name);
+            Runtime.error("Invalid assignment target", opp.line, opp.file_name);
 
         }
 
@@ -523,24 +523,24 @@ public class Parser{
 
             if( ! currentIs(TokenType.ARROW)){
                 if( ! currentIs(TokenType.IDENTIFIER))
-                    Language.error("Expected parameter name after lambda delaration", current.line, current.file_name);
+                    Runtime.error("Expected parameter name after lambda delaration", current.line, current.file_name);
                 parameters.add(current);
                 advance();
                 while(currentIs(TokenType.COMMA)){
                     advance();
                     if( ! currentIs(TokenType.IDENTIFIER))
-                        Language.error("Expected parameter name", current.line, current.file_name);
+                        Runtime.error("Expected parameter name", current.line, current.file_name);
                     parameters.add(current);
                     advance();
                 }
 
                 if(parameters.size() >= 255)
-                    Language.error("Can't have more than 255 parameters", current.line, current.file_name);
+                    Runtime.error("Can't have more than 255 parameters", current.line, current.file_name);
                     
             }
 
             if( ! currentIs(TokenType.ARROW))
-                Language.error("Expected closing '->' after lambda parameters", current.line, current.file_name);
+                Runtime.error("Expected closing '->' after lambda parameters", current.line, current.file_name);
             advance();
 
             Expre body = expression();
@@ -562,7 +562,7 @@ public class Parser{
             advance();
             Expre middle = expression();
             if(! currentIs(TokenType.ELSE))
-                Language.error("expected else after ternary expression condition", current.line, current.file_name);
+                Runtime.error("expected else after ternary expression condition", current.line, current.file_name);
             advance();
             Expre right = expression();
             left = new Ternary(left, middle, right, keyword);
@@ -605,7 +605,7 @@ public class Parser{
             Token opToken = current;
             advance();
             Expre right = comparison();
-            expre = new BinOpExpre(expre, opToken, right, lang);
+            expre = new BinOp(expre, opToken, right, lang);
         }
 
         return expre;
@@ -618,7 +618,7 @@ public class Parser{
             Token opToken = current;
             advance();
             Expre right = term();
-            expre = new BinOpExpre(expre, opToken, right, lang);
+            expre = new BinOp(expre, opToken, right, lang);
         }
 
         return expre;
@@ -631,7 +631,7 @@ public class Parser{
             Token opToken = current;
             advance();
             Expre right = factor();
-            expre = new BinOpExpre(expre, opToken, right, lang);
+            expre = new BinOp(expre, opToken, right, lang);
         }
         return expre;
     }
@@ -643,7 +643,7 @@ public class Parser{
             Token opToken = current;
             advance();
             Expre right = unary();
-            expre = new BinOpExpre(expre, opToken, right, lang);
+            expre = new BinOp(expre, opToken, right, lang);
         }
 
         return expre;
@@ -654,7 +654,7 @@ public class Parser{
             Token opToken = current;
             advance();
             Expre right = unary();
-            return new UnaryOpExpre(right, opToken);
+            return new UnaryOp(right, opToken);
         }
 
         return call_subscript_get();
@@ -673,15 +673,15 @@ public class Parser{
                     advance();
                     Expre index = expression();
                     if(! currentIs(TokenType.R_BRACKET))
-                        Language.error("Expected closing ']' to end index", bracket.line, bracket.file_name);
+                        Runtime.error("Expected closing ']' to end index", bracket.line, bracket.file_name);
                     advance();
-                    expre = new Subscript(bracket, expre, index);
+                    expre = new Subscript(bracket, expre, index, lang);
                 }
                 case DOT -> {
                     Token dot = current;
                     advance();
                     if( ! currentIs(TokenType.IDENTIFIER))
-                        Language.error("Expected identifier after '.'", dot.line, dot.file_name);
+                        Runtime.error("Expected identifier after '.'", dot.line, dot.file_name);
                     Token member = current;
                     advance();
                     expre = new Get(expre, dot, member, lang);
@@ -711,7 +711,7 @@ public class Parser{
         while(currentIs(TokenType.COMMA)){
 
             if(arguments.size() >= 255)
-                Language.error("Can't have more than 255 args !", current.line, current.file_name);
+                Runtime.error("Can't have more than 255 args !", current.line, current.file_name);
 
             advance();
             arg = expression();
@@ -719,7 +719,7 @@ public class Parser{
         }
 
         if( ! currentIs(TokenType.R_PAR))
-            Language.error("Expected ')' to close call.", current.line, current.file_name);
+            Runtime.error("Expected ')' to close call.", current.line, current.file_name);
         advance();
 
         return new Call(callee, current, arguments, lang);
@@ -731,20 +731,20 @@ public class Parser{
 
         if(curType.equals(TokenType.TRUE)){
             advance();
-            return new LiteralExpre(tok, true, lang);
+            return new Literal(tok, true, lang);
         }
         else if(curType.equals(TokenType.FALSE)){
             advance();
-            return new LiteralExpre(tok, false, lang);
+            return new Literal(tok, false, lang);
         }
         else if(curType.equals(TokenType.NIL)){
             advance();
-            return new LiteralExpre(tok, null, lang);
+            return new Literal(tok, null, lang);
         }
 
         else if(currentIs(TokenType.Double, TokenType.STRING)){
             advance();
-            return new LiteralExpre(tok, tok.value, lang);
+            return new Literal(tok, tok.value, lang);
         }
             
         else if(currentIs(TokenType.IDENTIFIER)){
@@ -756,9 +756,9 @@ public class Parser{
             advance();
             Expre expre = expression();
             if( ! current.type.equals(TokenType.R_PAR))
-                Language.error("Expected closing ')' !", current.line, current.file_name);
+                Runtime.error("Expected closing ')' !", current.line, current.file_name);
             advance();
-            return new GroupingExpre(expre);
+            return new Grouping(expre);
         }
 
         else if(curType.equals(TokenType.L_BRACKET)){
@@ -769,7 +769,7 @@ public class Parser{
                 listContents.add(expression());
             while( ! currentIs(TokenType.R_BRACKET)){
                 if( ! currentIs(TokenType.COMMA))
-                    Language.error("Expected ',' between list elements", current.line, current.file_name);
+                    Runtime.error("Expected ',' between list elements", current.line, current.file_name);
                 advance();
                 listContents.add(expression());
             }
@@ -791,7 +791,7 @@ public class Parser{
             }
         }
 
-        Language.error("Invalid syntax !", current.line, current.file_name);
+        Runtime.error("Invalid syntax !", current.line, current.file_name);
         return null;
     }
 
@@ -803,7 +803,7 @@ public class Parser{
 
         while(! currentIs(TokenType.R_CUR)){
             if( ! currentIs(TokenType.COMMA))
-                Language.error("Expected ',' between Dict elements", tok.line, tok.file_name);
+                Runtime.error("Expected ',' between Dict elements", tok.line, tok.file_name);
             advance();
             pair = key_value_pair(tok);
             output.put(pair.getKey(), pair.getValue());
@@ -816,7 +816,7 @@ public class Parser{
     AbstractMap.SimpleEntry<Expre, Expre> key_value_pair(Token tok){
         Expre key = expression();
         if(! currentIs(TokenType.COLON))
-            Language.error("key value pairs must be separated by ':'", tok.line, tok.file_name);
+            Runtime.error("key value pairs must be separated by ':'", tok.line, tok.file_name);
         advance();
         Expre value = expression();
 
@@ -828,7 +828,7 @@ public class Parser{
     void advance(){
         TokenType type = current.type;
         if(type.equals(TokenType.EOF))
-            Language.error("cannot advance anymore, already reached EOF !", current.line, current.file_name);
+            Runtime.error("cannot advance anymore, already reached EOF !", current.line, current.file_name);
         pos += 1;
         current = tokens.get(pos);
     }

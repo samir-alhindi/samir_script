@@ -75,15 +75,7 @@ var add = lambda x -> lambda y -> x + y;
 println add(2)(3);
 
 # Classes:-
-class Person {
-    var name;
-    var age;
-
-    # Constructer:-
-    func _init(name, age){
-        self.name = name;
-        self.age = age;
-    }
+class Person(name: string, age: number) {
 
     # Methods:-
     func greeting(){
@@ -91,7 +83,7 @@ class Person {
     }
 
     # to string method:-
-    func _toString(){
+    func __str__(){
         return name + " : " + str(age);
     }
 

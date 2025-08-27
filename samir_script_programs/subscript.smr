@@ -1,8 +1,9 @@
 
-var names = List();
+var names = [];
 names.add("Samir");
 names.add([1, 2, 3]);
 
+println names[0][-1];
 
 println [
     [1, 2, 3],
@@ -10,4 +11,4 @@ println [
     [7, 8, 9]
 ][0][-1];
 
-
+println "Samir"[-5];

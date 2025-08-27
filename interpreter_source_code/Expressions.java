@@ -14,10 +14,10 @@ abstract class Expre {
 
 }
 
-class LiteralExpre extends Expre {
+class Literal extends Expre {
     Object literal;
-    Language lang;
-    LiteralExpre(Token token, Object literal, Language lang){
+    Runtime lang;
+    Literal(Token token, Object literal, Runtime lang){
         this.token = token;
         this.literal = literal;
         this.lang = lang;
@@ -52,7 +52,7 @@ class LiteralExpre extends Expre {
                 do{
                     i++;
                     if(i >= og_string.length())
-                        Language.error("unterminated '{', Perhaps you want an escape character '\\{' instead", token.line, token.file_name);
+                        Runtime.error("unterminated '{', Perhaps you want an escape character '\\{' instead", token.line, token.file_name);
                     expression += og_string.charAt(i);
                 } while(og_string.charAt(i) != '}');
 
@@ -63,7 +63,7 @@ class LiteralExpre extends Expre {
                 Parser parser = new Parser(tokens, lang);
                 Expre ast = parser.expression();
                 Object result = ast.visit();
-                output += Language.stringify(result);
+                output += Util.stringify(result);
                 // Move past the '}':
                 i++;
             }
@@ -71,14 +71,14 @@ class LiteralExpre extends Expre {
             else if(og_string.charAt(i) == '\\'){
                 i++;
                 if(i >= og_string.length())
-                    Language.error("escape char '\\' must be followed by another char (\\n,\\t,\\{)", token.line, token.file_name);
+                    Runtime.error("escape char '\\' must be followed by another char (\\n,\\t,\\{)", token.line, token.file_name);
                 switch (og_string.charAt(i)) {
                     case 'n'-> output += System.lineSeparator();
                     case 't' -> output += '\t';
                     case '{' -> output += '{';
                     case '}' -> output += '}';
                     case '\\' -> output += '\\';
-                    default -> Language.error("invalid escape character: \\" + og_string.charAt(i), token.line, token.file_name);
+                    default -> Runtime.error("invalid escape character: \\" + og_string.charAt(i), token.line, token.file_name);
                 }
                 i++;
             }
@@ -98,8 +98,8 @@ class LiteralExpre extends Expre {
 
 class ListLiteral extends Expre {
     List<Expre> elements;
-    Language lang;
-    ListLiteral(Token token, List<Expre> elements, Language lang){
+    Runtime lang;
+    ListLiteral(Token token, List<Expre> elements, Runtime lang){
         this.token = token;
         this.elements = elements;
         this.lang = lang;
@@ -116,8 +116,8 @@ class ListLiteral extends Expre {
 
 class DictLiteral extends Expre {
     Map<Expre, Expre> map;
-    Language lang;
-    DictLiteral(Token token, Map<Expre, Expre> map, Language lang){
+    Runtime lang;
+    DictLiteral(Token token, Map<Expre, Expre> map, Runtime lang){
         this.token = token;
         this.map = map;
         this.lang = lang;
@@ -134,12 +134,12 @@ class DictLiteral extends Expre {
     }
 }
 
-class BinOpExpre extends Expre {
+class BinOp extends Expre {
     Expre left_node;
     Expre right_node;
-    Language lang;
+    Runtime lang;
 
-    BinOpExpre(Expre left_node, Token op_token, Expre right_node, Language lang){
+    BinOp(Expre left_node, Token op_token, Expre right_node, Runtime lang){
         this.left_node = left_node;
         this.token = op_token;
         this.right_node = right_node;
@@ -224,7 +224,7 @@ class BinOpExpre extends Expre {
 
             }
             else{
-                Language.error("'+' operands must both be strings or numbers or Lists", token.line, token.file_name);
+                Runtime.error("'+' operands must both be strings or numbers or Lists", token.line, token.file_name);
             }
         }
 
@@ -241,14 +241,14 @@ class BinOpExpre extends Expre {
 
     private void checkNumberOperands(Object left, Object right){
         if(left instanceof Double && right instanceof Double) return;
-        Language.error("both operands must be numbers", token.line, token.file_name);
+        Runtime.error("both operands must be numbers", token.line, token.file_name);
     }
 
 }
 
-class UnaryOpExpre extends Expre {
+class UnaryOp extends Expre {
     Expre child_node;
-    UnaryOpExpre(Expre child_node, Token op_token){
+    UnaryOp(Expre child_node, Token op_token){
         this.child_node = child_node;
         this.token = op_token;
         }
@@ -279,20 +279,20 @@ class UnaryOpExpre extends Expre {
 
     private void checkNumberOperand(Object child){
         if(child instanceof Double) return;
-        Language.error("operand must be a number", token.line, token.file_name);
+        Runtime.error("operand must be a number", token.line, token.file_name);
     }
 
     private void checkBooleanoperand(Object child){
         if(child instanceof Boolean) return;
-        Language.error("operand must be a boolean", token.line, token.file_name);
+        Runtime.error("operand must be a boolean", token.line, token.file_name);
     }
 
 
     }
 
-    class GroupingExpre extends Expre {
+    class Grouping extends Expre {
         Expre child_node;
-        GroupingExpre(Expre node){
+        Grouping(Expre node){
             this.child_node = node;
         }
 
@@ -308,8 +308,8 @@ class UnaryOpExpre extends Expre {
         }
 
 class Variable extends Expre {
-    Language lang;
-    Variable(Token token, Language lang){
+    Runtime lang;
+    Variable(Token token, Runtime lang){
         this.token = token;
         this.lang = lang;
     }
@@ -320,13 +320,13 @@ class Variable extends Expre {
     }
 }
 
-class AssignExpre extends Expre {
+class Assignment extends Expre {
     Expre right;
     Token opp;
     Token varName;
-    Language lang;
+    Runtime lang;
 
-    AssignExpre(Token varName, Expre right, Token opp, Language lang){
+    Assignment(Token varName, Expre right, Token opp, Runtime lang){
         this.varName = varName;
         this.right = right;
         this.opp = opp;
@@ -381,7 +381,7 @@ class AssignExpre extends Expre {
 
                 }
                 else
-                    Language.error("'+=' opperands must both be numbers or strings or Lists", opp.line, opp.file_name);
+                    Runtime.error("'+=' opperands must both be numbers or strings or Lists", opp.line, opp.file_name);
             }
         }
 
@@ -391,51 +391,43 @@ class AssignExpre extends Expre {
 
     private void checkNumberOperands(Object left, Object right){
         if(left instanceof Double && right instanceof Double) return;
-        Language.error("both operands must be numbers", token.line, token.file_name);
+        Runtime.error("both operands must be numbers", token.line, token.file_name);
     }
 }
 
-class CollectionAssign extends Expre {
+class SubscriptAssign extends Expre {
     Subscript subscript;
     Expre newValue;
-    CollectionAssign(Subscript subscript, Expre newValue, Token token){
+    Runtime runtime;
+    SubscriptAssign(Subscript subscript, Expre newValue, Token token, Runtime runtime){
         this.subscript = subscript;
         this.newValue = newValue;
         this.token = token;
+        this.runtime = runtime;
     }
     @Override
     Object visit() {
-        
-        Object collectionVisited = subscript.collection.visit();
-        Object indexVisited = subscript.index.visit();
-        Object newValueVisited = newValue.visit();
 
-        if(collectionVisited instanceof ListInstance){
-            int final_index = ((ListInstance)collectionVisited).checkValidIndex(indexVisited);
-            ((ListInstance)collectionVisited).arrayList.set(final_index, newValueVisited);
-        }
+        Object collection = subscript.collection.visit();
+        Object index = subscript.index.visit();
+        Object new_value = newValue.visit();
 
-        else if(collectionVisited instanceof String){
+        return switch(collection){
+            case Subscriptable s -> s.set_item(index, new_value);
+            case String s -> string(s, index, new_value);
+            default -> Runtime.error("Cannot do subscript assignment on value of type: "+Util.typeOf(collection), runtime.line, runtime.cur_file_name);
+        };
 
-            if(newValueVisited instanceof String == false || ((String) newValueVisited).length() != 1)
-                Language.error("string[index] must be set to a string of length 1", token.line, token.file_name);
+    }
 
-            int finalIndex = Subscript.Inner.checkValidIndex(indexVisited, collectionVisited.toString(), token);
-            char[] chars = ((String) collectionVisited).toCharArray();
-            chars[finalIndex] = ((String) newValueVisited).charAt(0);
-            collectionVisited = new String(chars);
-        }
-
-        else if(collectionVisited instanceof DictInstance){
-            ( (DictInstance) collectionVisited).hashMap.put(indexVisited, newValueVisited);
-        }
-
-        else
-            Language.error("Invalid assignment target", token.line, token.file_name);
-
-        
-
-        return collectionVisited;
+    String string(String s, Object index, Object new_value){
+        String val = NativeFunctions.check_type(new_value, String.class, "string[index] new value must be a string and not of type: "+Util.typeOf(new_value), runtime.line, runtime.cur_file_name);
+        if(val.length() != 1)
+            Runtime.error("string[index] new value must be of length 1", runtime.line, runtime.cur_file_name);
+        int i = Util.checkValidIndex(index, s.length(), runtime);
+        StringBuilder sb = new StringBuilder(s);
+        sb.setCharAt(i, val.charAt(0));
+        return sb.toString();
     }
 }
 
@@ -451,7 +443,7 @@ class BinBoolOp extends Expre {
     Object visit() {
         Object left = this.left.visit();
         if(left instanceof Boolean == false)
-            Language.error("(and, or) operands must be boolean values ", token.line, token.file_name);
+            Runtime.error("(and, or) operands must be boolean values ", token.line, token.file_name);
 
         if(tokenIs(TokenType.OR) && left.equals(true))
             return left;
@@ -466,9 +458,9 @@ class Call extends Expre {
     Expre callee;
     Token paren;
     List<Expre> arguments;
-    Language lang;
+    Runtime lang;
 
-    Call(Expre callee, Token paren, List<Expre> arguments, Language lang){
+    Call(Expre callee, Token paren, List<Expre> arguments, Runtime lang){
         this.callee = callee;
         this.paren = paren;
         this.arguments = arguments;
@@ -486,12 +478,12 @@ class Call extends Expre {
             arguments.add(arg.visit());
         
         if(callee instanceof SamirCallable == false)
-            Language.error("Can only call functions, Lambdas and classes !", paren.line, paren.file_name);
+            Runtime.error("Can only call functions, Lambdas and classes !", paren.line, paren.file_name);
 
         SamirCallable thingToCall = (SamirCallable)callee;
 
         if(arguments.size() != thingToCall.arity())
-            Language.error("Expected " + thingToCall.arity() + " args but got " + arguments.size(), paren.line, paren.file_name);
+            Runtime.error("Expected " + thingToCall.arity() + " args but got " + arguments.size(), paren.line, paren.file_name);
 
         lang.line = paren.line;
         lang.cur_file_name = paren.file_name;
@@ -511,100 +503,38 @@ class Subscript extends Expre {
 
     Expre index;
     Expre collection;
+    Runtime lang;
 
-    Subscript(Token bracket, Expre collection, Expre index){
+    Subscript(Token bracket, Expre collection, Expre index, Runtime lang){
         this.token = bracket;
         this.collection = collection;
         this.index = index;
+        this.lang = lang;
     }
 
     @Override
     Object visit() {
 
-        Object collectionVisited = collection.visit();
-        Object indexVisited = index.visit();
+        Object collection = this.collection.visit();
+        Object index = this.index.visit();
 
-        if(collectionVisited instanceof ListInstance){
-            int final_index = ((ListInstance)collectionVisited).checkValidIndex(indexVisited);
-            return ((ListInstance)collectionVisited).arrayList.get(final_index);
-        }
-
-        else if(collectionVisited instanceof String){
-            int final_index = Inner.checkValidIndex(indexVisited, (String) collectionVisited, token);
-            return ((String) collectionVisited).charAt(final_index) + "";
-        }
-
-        else if(collectionVisited instanceof DictInstance){
-            if(((DictInstance)collectionVisited).hashMap.containsKey(indexVisited) == false)
-                Language.error("Key: " + indexVisited.toString() + " not found in Dict", token.line, token.file_name);
-            return ((DictInstance)collectionVisited).hashMap.get(indexVisited);
-        }
-
-        else if(collectionVisited instanceof SamirPairList){
-            int final_index = Inner.checkValidIndex(indexVisited, (SamirPairList) collectionVisited, token);
-            return ((SamirPairList)collectionVisited).list.get(final_index);
-        }
-
-
-        return null;
+        lang.line = token.line;
+        return switch(collection){
+            case Subscriptable s -> s.get_item(index);
+            case String s -> "" + s.charAt(Util.checkValidIndex(index, s.length(), lang));
+            default -> Runtime.error("The value: '" + collection.toString() + "'' of type: '" + Util.typeOf(collection) + "' is not subscriptable", token.line, token.file_name);
+        };
     }
 
-        class Inner {
-            static int checkValidIndex(Object object, String string, Token token){
-                if(object instanceof Double == false)
-                    Language.error("string index must be a number", token.line, token.file_name);
-                Double index = (Double) object;
-
-                if(index % 1 != 0)
-                    Language.error("argument must be a whole number", token.line, token.file_name);
-
-                if(index >= string.length())
-                    Language.error("index " + index.intValue() + " out of bounds for size " + string.length(), token.line, token.file_name);
-                
-                // Negative index:
-                if(index < 0){
-                    Double actualIndex = index + string.length();
-                    if(actualIndex < 0)
-                        Language.error("index " + index.intValue() + " out of bounds for size " + string.length(), token.line, token.file_name);
-                    index = actualIndex;
-        }
-        
-        return index.intValue();
-
-            }
-        
-        static int checkValidIndex(Object object, SamirPairList samir_pair_list, Token token){
-                if(object instanceof Double == false)
-                    Language.error("string index must be a number", token.line, token.file_name);
-                Double index = (Double) object;
-
-                if(index % 1 != 0)
-                    Language.error("argument must be a whole number", token.line, token.file_name);
-
-                if(index >= samir_pair_list.list.size())
-                    Language.error("index " + index.intValue() + " out of bounds for size " + samir_pair_list.list.size(), token.line, token.file_name);
-                
-                // Negative index:
-                if(index < 0){
-                    Double actualIndex = index + samir_pair_list.list.size();
-                    if(actualIndex < 0)
-                        Language.error("index " + index.intValue() + " out of bounds for size " + samir_pair_list.list.size(), token.line, token.file_name);
-                    index = actualIndex;
-        }
-        
-        return index.intValue();
-        }
-
-        }
 }
 
 class Get extends Expre {
 
     Expre instanceVar;
     Token memberVar;
-    Language lang;
+    Runtime lang;
 
-    Get(Expre instanceVar, Token dot, Token memberVar, Language lang){
+    Get(Expre instanceVar, Token dot, Token memberVar, Runtime lang){
         this.instanceVar = instanceVar;
         this.token = dot;
         this.memberVar = memberVar;
@@ -615,7 +545,7 @@ class Get extends Expre {
     Object visit() {
         Object object = instanceVar.visit();
         if(object instanceof SamirInstance == false)
-            Language.error("can only access members from class instances", token.line, token.file_name);
+            Runtime.error("can only access members from class instances", token.line, token.file_name);
         SamirInstance instance = (SamirInstance) object;
 
         String memberName = memberVar.value.toString();
@@ -627,7 +557,7 @@ class Get extends Expre {
         }
         
         String instanceType = (instance instanceof Importinstance) ? "import" : "class";
-        Language.error(memberName + " not found in " +  instanceType + ": " + instance.class_name, token.line, token.file_name);
+        Runtime.error(memberName + " not found in " +  instanceType + ": " + instance.class_name, token.line, token.file_name);
 
         // Unreachable code:
         return null;
@@ -638,9 +568,9 @@ class Set extends Expre {
     Get member;
     Expre newValue;
     Token opp;
-    Language lang;
+    Runtime lang;
 
-    Set(Get member, Expre newValue, Token opp, Language lang){
+    Set(Get member, Expre newValue, Token opp, Runtime lang){
         this.member = member;
         this.newValue = newValue;
         this.opp = opp;
@@ -659,7 +589,7 @@ class Set extends Expre {
         if(instance.environment.variables.containsKey(member.memberVar.value))
             leftVisited = instance.environment.get(member.memberVar);
         else
-            Language.error(member.memberVar.value + " not found in instance of class: " + instance.samir_class.declaration.name.value, opp.line, opp.file_name);
+            Runtime.error(member.memberVar.value + " not found in instance of class: " + instance.samir_class.declaration.name.value, opp.line, opp.file_name);
 
         switch(opp.type){
             case TokenType.EQUALS -> {
@@ -702,7 +632,7 @@ class Set extends Expre {
 
                 }
                 else
-                    Language.error("'+=' opperands must both be numbers or strings or Lists", opp.line, opp.file_name);
+                    Runtime.error("'+=' opperands must both be numbers or strings or Lists", opp.line, opp.file_name);
             }
         }
 
@@ -713,16 +643,16 @@ class Set extends Expre {
 
     private void checkNumberOperands(Object left, Object right){
         if(left instanceof Double && right instanceof Double) return;
-        Language.error("both operands must be numbers", token.line, token.file_name);
+        Runtime.error("both operands must be numbers", token.line, token.file_name);
     }
 }
 
 class Lambda extends Expre {
     List<Token> parameters;
     Expre body;
-    Language lang;
+    Runtime lang;
 
-    Lambda(Token keyword, List<Token> parameters, Expre body, Language lang){
+    Lambda(Token keyword, List<Token> parameters, Expre body, Runtime lang){
         this.token = keyword;
         this.parameters = parameters;
         this.body = body;
@@ -749,7 +679,7 @@ class Ternary extends Expre {
     Object visit() {
         Object condition = middle.visit();
         if(condition instanceof Boolean == false)
-            Language.error("Ternary condition must be a boolean expression", token.line, token.file_name);
+            Runtime.error("Ternary condition must be a boolean expression", token.line, token.file_name);
         Object result = (Boolean) condition ? left.visit() : right.visit();
         return result;
     }
