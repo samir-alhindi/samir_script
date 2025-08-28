@@ -22,20 +22,6 @@ public class NativeFunctions {
         return (T) object;
     }
 
-    static <T> T check_type(Object object, Class<?> type, String log, int line, String file_name){
-        if(object == null || object.getClass() != type)
-            Runtime.error(log, line, file_name);
-        return (T) object;
-    }
-
-    static <T> T check_interface(Object object, Class<?> the_interface, String log, int line, String file_name){
-            for (Class<?> c : object.getClass().getInterfaces())
-                if (c == the_interface)
-                    return (T) object;
-            Runtime.error(log, line, file_name);
-            return null;
-        }
-
     <T> T check_interface(Object object, Class<T> the_interface, String log){
         for (Class<?> c : object.getClass().getInterfaces())
             if (c == the_interface)
@@ -57,7 +43,7 @@ public class NativeFunctions {
 
             @Override
             public Object call(List<Object> arguments) {
-                return new ListInstance(new ArrayList<>(), lang);
+                return new SamirList(new ArrayList<>(), lang);
             }
 
             @Override
@@ -76,7 +62,7 @@ public class NativeFunctions {
 
             @Override
             public Object call(List<Object> arguments) {
-                return new DictInstance(new HashMap<Object, Object>(), lang);
+                return new SamirDict(new HashMap<Object, Object>(), lang);
             }
 
             @Override
@@ -198,8 +184,8 @@ public class NativeFunctions {
                 Object arg = arguments.get(0);
                 int result = switch(arg){
                     case String s -> s.length();
-                    case ListInstance l -> l.arrayList.size();
-                    case DictInstance d -> d.hashMap.size();
+                    case SamirList l -> l.arrayList.size();
+                    case SamirDict d -> d.hashMap.size();
                     case SamirPairList p -> p.list.size();
                     default -> -1;
                 };
@@ -336,12 +322,12 @@ public class NativeFunctions {
             @Override
             public Object call(List<Object> arguments) {
                 Object arg = arguments.get(0);
-                ListInstance listInstance = check_type(arg, ListInstance.class, "enumarate() arg must be a list");
+                SamirList listInstance = check_type(arg, SamirList.class, "enumarate() arg must be a list");
                 // Generate indices:
                 Double[] indices_array = new Double[listInstance.arrayList.size()];
                 for(int i = 0; i < listInstance.arrayList.size(); i++)
                     indices_array[i] = Util.int_to_Double(i);
-                ListInstance indices_list = ListInstance.create_filled_list(indices_array, lang);
+                SamirList indices_list = SamirList.create_filled_list(indices_array, lang);
                 return new SamirPairList(indices_list, listInstance, lang);
             }
             
@@ -354,8 +340,8 @@ public class NativeFunctions {
 
             @Override
             public Object call(List<Object> arguments) {
-                ListInstance a =  check_type(arguments.get(0), ListInstance.class, "first zip arg must be a list");
-                ListInstance b = check_type(arguments.get(1), ListInstance.class, "second zip arg must be be list");
+                SamirList a =  check_type(arguments.get(0), SamirList.class, "first zip arg must be a list");
+                SamirList b = check_type(arguments.get(1), SamirList.class, "second zip arg must be be list");
                 return new SamirPairList(a, b, lang);
             }
             
@@ -367,10 +353,10 @@ public class NativeFunctions {
             public int arity() {return 2;}
 
             @Override
-            public ListInstance call(List<Object> arguments) {
+            public SamirList call(List<Object> arguments) {
                 String word = check_type(arguments.get(0), String.class, "first arg of split() must be a string");
                 String split = check_type(arguments.get(1), String.class, "second arg of split() must be a string");
-                return ListInstance.create_filled_list(word.split(split), lang);
+                return SamirList.create_filled_list(word.split(split), lang);
             }
             
         });
@@ -443,7 +429,7 @@ public class NativeFunctions {
                 var arraylist = new ArrayList<Double>();
                 for (; step > 0 ? from < to : to < from; from += step)
                     arraylist.add(Util.int_to_Double(from));
-                return ListInstance.create_filled_list(arraylist.toArray(), lang);
+                return SamirList.create_filled_list(arraylist.toArray(), lang);
             }
         });
 
@@ -454,7 +440,7 @@ public class NativeFunctions {
 
             @Override
             public Object call(List<Object> arguments) {
-                return new DictInstance(new HashMap<>(globals.variables), lang);
+                return new SamirDict(new HashMap<>(globals.variables), lang);
             }
 
         });
@@ -466,7 +452,7 @@ public class NativeFunctions {
 
             @Override
             public Object call(List<Object> arguments) {
-                return new DictInstance(new HashMap<>(lang.environment.variables), lang);
+                return new SamirDict(new HashMap<>(lang.environment.variables), lang);
             }
 
         });
@@ -545,12 +531,12 @@ public class NativeFunctions {
             public int arity() {return 1;}
 
             @Override
-            public DictInstance call(List<Object> arguments) {
+            public SamirDict call(List<Object> arguments) {
                 Object arg = arguments.get(0);
                 return switch(arg){
-                    case SamirFunction f -> new DictInstance(new HashMap<>(f.closure.variables), lang);
-                    case SamirLambda l -> new DictInstance(new HashMap<>(l.closure.variables), lang);
-                    default -> (DictInstance) Runtime.error("Cannot get closure for the type: " + Util.typeOf(arg), lang.line, lang.cur_file_name);
+                    case SamirFunction f -> new SamirDict(new HashMap<>(f.closure.variables), lang);
+                    case SamirLambda l -> new SamirDict(new HashMap<>(l.closure.variables), lang);
+                    default -> (SamirDict) Runtime.error("Cannot get closure for the type: " + Util.typeOf(arg), lang.line, lang.cur_file_name);
                 };
             }
         });
@@ -561,12 +547,12 @@ public class NativeFunctions {
             public int arity() {return 1;}
 
             @Override
-            public ListInstance call(List<Object> arguments) {
+            public SamirList call(List<Object> arguments) {
                 Object arg = arguments.get(0);
                 switch(arg){
-                    case SamirFunction f -> {return ListInstance.create_filled_list(f.parameter_names, lang);}
-                    case SamirLambda l -> {return ListInstance.create_filled_list(l.parameter_names, lang);}
-                    default -> {return (ListInstance) Runtime.error("Cannot get parameter names for type: " + Util.typeOf(arg), lang.line, lang.cur_file_name);}
+                    case SamirFunction f -> {return SamirList.create_filled_list(f.parameter_names, lang);}
+                    case SamirLambda l -> {return SamirList.create_filled_list(l.parameter_names, lang);}
+                    default -> {return (SamirList) Runtime.error("Cannot get parameter names for type: " + Util.typeOf(arg), lang.line, lang.cur_file_name);}
                 }
             }
 

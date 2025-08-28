@@ -8,7 +8,7 @@ public class Main {
         }
         // For debuging:
         else{
-            Runtime lang = new Runtime("samir_script_programs\\subscript_assign.smr");
+            Runtime lang = new Runtime("samir_script_programs\\circle.smr");
             lang.run();
         }
         

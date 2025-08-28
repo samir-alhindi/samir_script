@@ -2,9 +2,9 @@
 func bubble_sort(list){
     var i = 0;
     var j = 0;
-    while i < list.size do{
-        while j < list.size - 1 do{
-            if list.get(j) > list.get(j + 1) then
+    while i < len(list) do{
+        while j < len(list) - 1 do{
+            if list[j] > list.get(j + 1) then
                 list.swap(j, j + 1);
             j = j + 1;
         }
@@ -18,14 +18,14 @@ func selection_sort(list){
 
     var output = [];
     var i = 0;
-    var size = list.size;
+    var size = len(list);
 
     while i < size do {
         var j = 1;
         var smallest = list[0];
         var smlIndex = 0;
-        while j < list.size do {
-            if list.get(j) < smallest then{
+        while j < len(list) do {
+            if list[j] < smallest then{
                 smallest = list[j];
                 smlIndex = j;
             }

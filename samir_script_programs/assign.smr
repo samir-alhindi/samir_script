@@ -8,4 +8,4 @@ var z = 3;
 println z = y = x = 4; 
 
 # All of these will print '4':
-println x; println y; println d;
+println x; println y; println z;

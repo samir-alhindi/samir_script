@@ -19,3 +19,9 @@ println x;
 println y;
 println z;
 println test.thing;
+
+var a = [1, 2, 3];
+var b = [4, 5];
+println a + b;
+println a;
+println b;

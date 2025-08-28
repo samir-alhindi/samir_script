@@ -2,16 +2,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class DictInstance extends SamirInstance implements Subscriptable {
+public class SamirDict extends SamirObject implements Subscriptable {
 
     HashMap<Object, Object> hashMap;
     Runtime lang;
 
-    DictInstance(HashMap<Object, Object> hashMap, Runtime runtime){
-        super(runtime);
+    SamirDict(HashMap<Object, Object> hashMap, Runtime runtime){
+        super(new Environment(runtime.environment), "Dict");
         this.hashMap = hashMap;
         this.lang = runtime;
-        class_name = "Dict";
 
         // Methods:
         this.environment.define("keys", new SamirCallable(){
@@ -20,8 +19,8 @@ class DictInstance extends SamirInstance implements Subscriptable {
             public int arity() {return 0;}
 
             @Override
-            public ListInstance call(List<Object> arguments) {
-                return ListInstance.create_filled_list(hashMap.keySet(), runtime);
+            public SamirList call(List<Object> arguments) {
+                return SamirList.create_filled_list(hashMap.keySet(), runtime);
             }
         });
 
@@ -32,7 +31,7 @@ class DictInstance extends SamirInstance implements Subscriptable {
 
             @Override
             public Object call(List<Object> arguments) {
-                return new SamirPairList(DictInstance.this, runtime);
+                return new SamirPairList(SamirDict.this, runtime);
             }
 
         });

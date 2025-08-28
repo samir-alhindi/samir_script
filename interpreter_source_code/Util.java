@@ -56,7 +56,7 @@ public class Util {
     }
 
     static int checkValidIndex(Object object, int len, Runtime lang){
-        NativeFunctions.check_type(object, Double.class, "index must be a number", lang.line, lang.cur_file_name);
+        Util.check_type(object, Double.class, "index must be a number", lang.line, lang.cur_file_name);
         Double index = (Double) object;
 
         if(index % 1 != 0)
@@ -91,14 +91,37 @@ public class Util {
             case String x -> "string";
             case Double d -> "number";
             case Boolean b -> "boolean";
-            case ListInstance l -> "List";
-            case SamirPair s -> "Pair";
-            case SamirClass c -> "class";
             case SamirFunction f -> "function";
-            case SamirInstance s -> s.class_name;
             case SamirLambda l -> "lambda";
-            case SamirPairList p -> "PairList";
+            case SamirObject o -> o.type;
             default -> "native callable";
     };
 }
+
+    static <T> T check_type(Object object, Class<?> type, String log, int line, String file_name){
+        if(object != null)
+            if(type.isInstance(object))
+                return (T) object;
+        return (T) Runtime.error(log, line, file_name);
+        
+    }
+
+    static <T> T check_interface(Object object, Class<?> the_interface, String log, int line, String file_name){
+            for (Class<?> c : object.getClass().getInterfaces())
+                if (c == the_interface)
+                    return (T) object;
+            Runtime.error(log, line, file_name);
+            return null;
+        }
+
+    static boolean token_is(Token tok, TokenType... allTypes){
+        TokenType curType = tok.type;
+        for (TokenType type : allTypes)
+            if(curType.equals(type))
+                return true;
+        return false;
+    }
+
+
 }
+

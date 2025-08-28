@@ -20,4 +20,6 @@ func get_list(){
 
 #println letters[0].x.x.x.x;
 var a = A(5);
-println [1, 2, 3].size;
+#println [1, 2, 3].size;
+
+println "Samir".thing = 5;

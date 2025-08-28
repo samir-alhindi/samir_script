@@ -3,16 +3,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-class ListInstance extends SamirInstance implements Subscriptable{
+public class SamirList extends SamirObject implements Subscriptable{
 
     ArrayList<Object> arrayList;
     Runtime lang;
 
-    ListInstance(ArrayList<Object> arrayList, Runtime lang){
-        super(lang);
+    SamirList(ArrayList<Object> arrayList, Runtime lang){
+        super(new Environment(lang.environment), "List");
         this.arrayList = arrayList;
         this.lang = lang;
-        this.class_name = "List";
 
         // Create append/add method for list object:
         this.environment.define("add", new SamirCallable(){
@@ -90,8 +89,8 @@ class ListInstance extends SamirInstance implements Subscriptable{
             public int arity() {return 0;}
 
             @Override
-            public ListInstance call(List<Object> arguments) {
-                ListInstance new_list = new ListInstance(new ArrayList<>(), lang);  
+            public SamirList call(List<Object> arguments) {
+                SamirList new_list = new SamirList(new ArrayList<>(), lang);  
                 for (Object item : arrayList)
                     new_list.arrayList.add(item);
                 return new_list;
@@ -131,8 +130,8 @@ class ListInstance extends SamirInstance implements Subscriptable{
             public int arity() {return 1;}
 
             @Override
-            public ListInstance call(List<Object> arguments) {
-                NativeFunctions.check_interface(arguments.get(0), SamirCallable.class, "sortCustom() arg must be a callable", lang.line, lang.cur_file_name);
+            public SamirList call(List<Object> arguments) {
+                Util.check_interface(arguments.get(0), SamirCallable.class, "sortCustom() arg must be a callable", lang.line, lang.cur_file_name);
                 SamirCallable callable = (SamirCallable) arguments.get(0);
                 if(callable.arity() != 1)
                     Runtime.error("sortCustom() arg must be a callable that takes exactly 1 arg", lang.line, lang.cur_file_name);
@@ -147,7 +146,7 @@ class ListInstance extends SamirInstance implements Subscriptable{
                             Collections.swap(arrayList, j, j+1);
                     }
                 }
-                return ListInstance.this;
+                return SamirList.this;
             }
 
         });
@@ -158,14 +157,14 @@ class ListInstance extends SamirInstance implements Subscriptable{
             public int arity() {return 1;}
 
             @Override
-            public ListInstance call(List<Object> arguments) {
-                NativeFunctions.check_interface(arguments.get(0), SamirCallable.class, "map() arg must be a callable (function name, lambda)", lang.line, lang.cur_file_name);
+            public SamirList call(List<Object> arguments) {
+                Util.check_interface(arguments.get(0), SamirCallable.class, "map() arg must be a callable (function name, lambda)", lang.line, lang.cur_file_name);
                 SamirCallable callable = (SamirCallable) arguments.get(0);
                 if(callable.arity() != 1)
                     Runtime.error("map() arg must be a callable that takes exactly 1 arg", lang.line, lang.cur_file_name);
                 for (int i = 0; i < arrayList.size(); i++)
                     arrayList.set(i, callable.call(Arrays.asList(arrayList.get(i))));
-                return ListInstance.this;
+                return SamirList.this;
             }
 
         });
@@ -177,18 +176,18 @@ class ListInstance extends SamirInstance implements Subscriptable{
 
             @Override
             public Object call(List<Object> arguments) {
-                NativeFunctions.check_interface(arguments.get(0), SamirCallable.class, "filter() arg must be a callable (function name, lambda)", lang.line, lang.cur_file_name);
+                Util.check_interface(arguments.get(0), SamirCallable.class, "filter() arg must be a callable (function name, lambda)", lang.line, lang.cur_file_name);
                 SamirCallable callable = (SamirCallable) arguments.get(0);
                 if(callable.arity() != 1)
                     Runtime.error("filter() arg must be a callable that takes exactly 1 arg", lang.line, lang.cur_file_name);
                 var output = new ArrayList<Object>();
                 for (Object item : arrayList){
                     Object result = callable.call(Arrays.asList(item));
-                    NativeFunctions.check_type(result, Boolean.class, "filter() arg must be a callable that returns a boolean value (true or false)", lang.line, lang.cur_file_name);
+                    Util.check_type(result, Boolean.class, "filter() arg must be a callable that returns a boolean value (true or false)", lang.line, lang.cur_file_name);
                     if(((Boolean) result).equals(true))
                         output.add(item);
                 }
-                return ListInstance.create_filled_list(output, lang);
+                return SamirList.create_filled_list(output, lang);
             }
 
         });
@@ -201,7 +200,7 @@ class ListInstance extends SamirInstance implements Subscriptable{
 
             @Override
             public Object call(List<Object> arguments) {
-                NativeFunctions.check_interface(arguments.get(0), SamirCallable.class, "reduce() arg must be a callable (function, lambda)", lang.line, lang.cur_file_name);
+                Util.check_interface(arguments.get(0), SamirCallable.class, "reduce() arg must be a callable (function, lambda)", lang.line, lang.cur_file_name);
                 SamirCallable callable = (SamirCallable) arguments.get(0);
                 if(callable.arity() != 2)
                     Runtime.error("reduce() arg must be a callable that takes 2 args", lang.line, lang.cur_file_name);
@@ -232,8 +231,8 @@ class ListInstance extends SamirInstance implements Subscriptable{
         return (Double) (double) arrayList.size();
     }
 
-    static <T> ListInstance create_filled_list(Iterable<T> items, Runtime lang){
-        ListInstance list = new ListInstance(new ArrayList<>(), lang);
+    static <T> SamirList create_filled_list(Iterable<T> items, Runtime lang){
+        SamirList list = new SamirList(new ArrayList<>(), lang);
         Object add_method_uncast = list.environment.variables.get("add");
         SamirCallable add_method = (SamirCallable) add_method_uncast;
         for (Object item : items) {
@@ -244,8 +243,14 @@ class ListInstance extends SamirInstance implements Subscriptable{
         return list;
     }
 
-    static <T> ListInstance create_filled_list(T[] items, Runtime lang){
-        return ListInstance.create_filled_list(Arrays.asList(items), lang);
+    static <T> SamirList create_filled_list(T[] items, Runtime lang){
+        return SamirList.create_filled_list(Arrays.asList(items), lang);
+    }
+
+    static SamirList combine_2_lists(SamirList a, SamirList b, Runtime runtime){
+        var arrayList = new ArrayList<>(a.arrayList);
+        arrayList.addAll(b.arrayList);
+        return new SamirList(arrayList, runtime);
     }
 
     @Override

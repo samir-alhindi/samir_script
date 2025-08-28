@@ -198,8 +198,8 @@ class For extends Stmt {
         if(iterable instanceof String)
             for (char c : ((String) iterable).toCharArray())
                 list.add(c + "");
-        else if(iterable instanceof ListInstance)
-            for (Object object : ((ListInstance) iterable).arrayList)
+        else if(iterable instanceof SamirList)
+            for (Object object : ((SamirList) iterable).arrayList)
                 list.add(object);
         else if (iterable instanceof SamirPairList)
             for (SamirPair pair : ((SamirPairList) iterable).list)
@@ -212,7 +212,7 @@ class For extends Stmt {
         lang.enviStack.add(lasEnvi);
         lang.environment = newEnvi;
 
-        if((iterable instanceof String || iterable instanceof ListInstance) && second_identfier != null)
+        if((iterable instanceof String || iterable instanceof SamirList) && second_identfier != null)
             Runtime.error("Can only use 2 variables in a for loop to iterate over PairList", identfier.line, identfier.file_name);
         
         boolean unpacking = second_identfier != null;
@@ -422,7 +422,7 @@ class Import extends Stmt {
 
         Environment prev = lang.environment;
         if(identfier != null){
-            Importinstance import_obejct = new Importinstance(lang, identfier);
+            SamirImport import_obejct = new SamirImport(lang, identfier);
             lang.environment.define(identfier.value.toString(), import_obejct);
             lang.environment = import_obejct.environment;
         }

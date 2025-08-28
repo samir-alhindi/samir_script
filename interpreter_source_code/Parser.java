@@ -780,7 +780,7 @@ public class Parser{
         else if(curType.equals(TokenType.L_CUR)){
             Token token = current;
             advance();
-            HashMap<Expre, Expre> hashMap;
+            LinkedHashMap<Expre, Expre> hashMap;
             if( ! currentIs(TokenType.R_CUR)){
                 hashMap = dict_contents(token);
                 return new DictLiteral(token, hashMap, lang);
@@ -795,10 +795,10 @@ public class Parser{
         return null;
     }
 
-    HashMap<Expre, Expre> dict_contents(Token tok){
+    LinkedHashMap<Expre, Expre> dict_contents(Token tok){
 
         AbstractMap.SimpleEntry<Expre, Expre> pair = key_value_pair(tok);
-        HashMap<Expre, Expre> output = new HashMap<>();
+        LinkedHashMap<Expre, Expre> output = new LinkedHashMap<>();
         output.put(pair.getKey(), pair.getValue());
 
         while(! currentIs(TokenType.R_CUR)){
@@ -839,7 +839,6 @@ public class Parser{
             if(curType.equals(type))
                 return true;
         return false;
-        
     }
 
     Token peekNext(){

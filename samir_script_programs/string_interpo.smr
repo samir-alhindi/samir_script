@@ -2,11 +2,9 @@
 
 var name: string = "Samir";
 var age: number = 20;
-class Person {
-    var name;
-}
-var person = Person();
-person.name = "Rayyan";
+class Person(name: string){}
+
+var person = Person("Rayyan");
 
 println "Hello my name is {name}, I am {age} years old.";
 println "My name is: {person.name}";
@@ -20,4 +18,4 @@ println "before tab\tafter tab";
 println "{name = 15}";
 println name;
 
-println "{";
+println "\{";

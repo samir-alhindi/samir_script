@@ -1,5 +1,5 @@
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -11,7 +11,6 @@ abstract class Expre {
     boolean tokenIs(TokenType type){
         return token.type.equals(type);
     }
-
 }
 
 class Literal extends Expre {
@@ -28,13 +27,12 @@ class Literal extends Expre {
         if(token.type.equals(TokenType.STRING))
             return string();
         return literal;
-        
     }
 
     String string(){
 
-        // No interpolation needed:-
         String og_string = (String) literal;
+        // No interpolation needed:-
         if( ! og_string.contains("{") && ! og_string.contains("\\"))
             return og_string;
         
@@ -47,7 +45,7 @@ class Literal extends Expre {
                 continue;
             }
             // Else it is '{':
-            if(og_string.charAt(i) == '{'){
+            else if(og_string.charAt(i) == '{'){
                 String expression = "";
                 do{
                     i++;
@@ -56,7 +54,6 @@ class Literal extends Expre {
                     expression += og_string.charAt(i);
                 } while(og_string.charAt(i) != '}');
 
-                // We found the closing '}':
                 Lexer lexer = new Lexer(expression, token.file_name);
                 lexer.line = token.line;
                 ArrayList<Token> tokens = lexer.lex();
@@ -88,7 +85,6 @@ class Literal extends Expre {
         return output;
     }
     
-
     @Override
     public String toString() {
         if(literal == null) return "nil";
@@ -105,12 +101,11 @@ class ListLiteral extends Expre {
         this.lang = lang;
     }
     @Override
-    ListInstance visit() {
-        ArrayList<Object> elementsVisited = new ArrayList<>();
-        for (Expre element : elements) 
-            elementsVisited.add(element.visit());
-        ListInstance list =  new ListInstance(elementsVisited, lang);
-        return list;
+    SamirList visit() {
+        ArrayList<Object> elements = new ArrayList<>();
+        for (Expre element : this.elements) 
+            elements.add(element.visit());
+        return new SamirList(elements, lang);
     }
 }
 
@@ -124,13 +119,13 @@ class DictLiteral extends Expre {
     }
     @Override
     Object visit() {
-        var output = new HashMap<Object, Object>();
+        var output = new LinkedHashMap<Object, Object>();
         for (Map.Entry<Expre, Expre> pair : map.entrySet()) {
             Object key = pair.getKey().visit();
             Object value = pair.getValue().visit();
             output.put(key, value);
         }
-        return new DictInstance(output, lang);
+        return new SamirDict(output, lang);
     }
 }
 
@@ -152,45 +147,23 @@ class BinOp extends Expre {
         Object left = left_node.visit();
         Object right = right_node.visit();
 
-        if(tokenIs(TokenType.MINUS)){
-            checkNumberOperands(left, right);
-            return (double) left - (double) right;
-        }
-
-        else if(tokenIs(TokenType.MULTIPLY)){
-            checkNumberOperands(left, right);
-            return (double) left * (double) right;
-        }
-
-        else if(tokenIs(TokenType.DIVIDE)){
-            checkNumberOperands(left, right);
-            return (double) left / (double) right;
-        }
-
-        else if(tokenIs(TokenType.MOD)){
-            checkNumberOperands(left, right);
-            return (double) left % (double) right;
-        }
-
-        else if(tokenIs(TokenType.GREATER_THAN)){
-            checkNumberOperands(left, right);
-            return (double) left > (double) right;
-        }
-
-        else if(tokenIs(TokenType.GREATER_THAN_OR_EQUAL)){
-            checkNumberOperands(left, right);
-            return (double) left >= (double) right;
-        }
-
-        else if(tokenIs(TokenType.LESS_THAN)){
-            checkNumberOperands(left, right);
-            return (double) left < (double) right;
-        }
-
-        else if(tokenIs(TokenType.LESS_THAN_OR_EQUAL)){
-            checkNumberOperands(left, right);
-            return (double) left <= (double) right;
-        }
+        // Numeric opperations:-
+        if(Util.token_is(token,
+            TokenType.MINUS, TokenType.MULTIPLY, TokenType.DIVIDE, TokenType.MOD, TokenType.GREATER_THAN,
+            TokenType.GREATER_THAN_OR_EQUAL,TokenType.LESS_THAN, TokenType.LESS_THAN_OR_EQUAL)){
+                checkNumberOperands(left, right);
+                switch(token.type){
+                    case PLUS -> {return (double) left + (double) right;}
+                    case MINUS -> {return (double) left - (double) right;}
+                    case MULTIPLY -> {return (double) left * (double) right;}
+                    case DIVIDE -> {return (double) left / (double) right;}
+                    case MOD -> {return (double) left % (double) right;}
+                    case GREATER_THAN -> {return (double) left > (double) right;}
+                    case GREATER_THAN_OR_EQUAL -> {return (double) left >= (double) right;}
+                    case LESS_THAN -> {return (double) left < (double) right;}
+                    case LESS_THAN_OR_EQUAL -> {return (double) left <= (double) right;}
+                }
+            }
 
         else if(tokenIs(TokenType.DOUBLE_EQUAL)){
             if(left == null && right != null) return false;
@@ -205,27 +178,17 @@ class BinOp extends Expre {
         }
 
         else if(tokenIs(TokenType.PLUS)){
-            if(left instanceof Double && right instanceof Double){
+            if(left instanceof Double && right instanceof Double)
                 return (double) left + (double) right;
-            }
-            else if(left instanceof String && right instanceof String){
+            
+            else if(left instanceof String && right instanceof String)
                 return (String) left + (String) right;
-            }
-            else if(left instanceof ListInstance){
-                if(right instanceof ListInstance){
-                    ListInstance combined = new ListInstance(new ArrayList<>(), lang);
-                    for (Object item : ((ListInstance)left).arrayList)
-                        combined.arrayList.add(item);
-                    for (Object item : ((ListInstance)right).arrayList)
-                        combined.arrayList.add(item);
-                    combined.environment.variables.put("size", ((ListInstance) left).getSize() + ((ListInstance) right).getSize());
-                    return combined;
-                }
+            
+            else if(left instanceof SamirList && right instanceof SamirList)
+                return SamirList.combine_2_lists((SamirList) left, (SamirList) right, lang);
 
-            }
-            else{
+            else
                 Runtime.error("'+' operands must both be strings or numbers or Lists", token.line, token.file_name);
-            }
         }
 
         // Unreachable code:
@@ -257,36 +220,19 @@ class UnaryOp extends Expre {
     @Override
     public String toString() {
         return "(" + token.type  + ", " + child_node + ")";
-        }
+    }
 
 
     @Override
     Object visit() {
         Object right = child_node.visit();
 
-        if(tokenIs(TokenType.MINUS)){
-            checkNumberOperand(right);
-            return -(double) right;
-        }
-        else if(tokenIs(TokenType.NOT)){
-            checkBooleanoperand(right);
-            return ! (boolean) right;
-        }
-
-        // Unreachable:
-        return null;
+        return switch(token.type){
+            case MINUS -> right instanceof Double ? -(double) right : Runtime.error("operand must be a number", token.line, token.file_name);
+            case NOT -> right instanceof Boolean ? ! (boolean) right : Runtime.error("operand must be a boolean", token.line, token.file_name);
+            default ->  "This condition will never run :)";
+        };
     }
-
-    private void checkNumberOperand(Object child){
-        if(child instanceof Double) return;
-        Runtime.error("operand must be a number", token.line, token.file_name);
-    }
-
-    private void checkBooleanoperand(Object child){
-        if(child instanceof Boolean) return;
-        Runtime.error("operand must be a boolean", token.line, token.file_name);
-    }
-
 
     }
 
@@ -305,7 +251,7 @@ class UnaryOp extends Expre {
         Object visit() {
             return child_node.visit();
         }
-        }
+    }
 
 class Variable extends Expre {
     Runtime lang;
@@ -330,6 +276,7 @@ class Assignment extends Expre {
         this.varName = varName;
         this.right = right;
         this.opp = opp;
+        this.token = opp;
         this.lang = lang;
     }
     @Override
@@ -337,52 +284,31 @@ class Assignment extends Expre {
 
         Object newValue = null;
 
-        Object rightVisited = right.visit();
-        Object leftVisited = lang.environment.get(varName);
+        Object right = this.right.visit();
+        Object left = lang.environment.get(varName);
 
-        switch(opp.type){
-            case TokenType.EQUALS -> {
-                newValue = rightVisited;
-            } 
-            case TokenType.MINUS_EQUAL ->{
-                checkNumberOperands(leftVisited, rightVisited);
-                newValue = (Double) leftVisited - (Double) rightVisited;
-            }
-            case TokenType.MULTIPLY_EQUAL ->{
-                checkNumberOperands(leftVisited, rightVisited);
-                newValue = (Double) leftVisited * (Double) rightVisited;
-            }
-            case TokenType.DIVIDE_EQUAL ->{
-                checkNumberOperands(leftVisited, rightVisited);
-                newValue = (Double) leftVisited / (Double) rightVisited;
-            }
-            case TokenType.MOD_EQUAL ->{
-                checkNumberOperands(leftVisited, rightVisited);
-                newValue = (Double) leftVisited % (Double) rightVisited;
-            }
-            case TokenType.PLUS_EQUAL -> {
+        if(Util.token_is(opp, TokenType.MINUS_EQUAL, TokenType.MULTIPLY_EQUAL, TokenType.DIVIDE_EQUAL, TokenType.MOD_EQUAL)){
+            checkNumberOperands(left, right);
+            newValue = switch(opp.type){
+                case MINUS_EQUAL -> (double) left - (double) right;
+                case MULTIPLY_EQUAL -> (double) left * (double) right;
+                case DIVIDE_EQUAL -> (double) left / (double) right;
+                default -> (double) left % (double) right;
+            };
+        }
 
-                if(leftVisited instanceof Double && rightVisited instanceof Double)
-                    newValue = (Double) leftVisited + (Double) rightVisited;
+        else if(tokenIs(TokenType.EQUALS))
+            newValue = right;
 
-                else if(leftVisited instanceof String && rightVisited instanceof String)
-                    newValue = (String) leftVisited + (String) rightVisited;
-        
-                else if(leftVisited instanceof ListInstance){
-                    if(rightVisited instanceof ListInstance){
-                        ListInstance combined = new ListInstance(new ArrayList<>(), lang);
-                        for (Object item : ((ListInstance)leftVisited).arrayList)
-                            combined.arrayList.add(item);
-                        for (Object item : ((ListInstance)rightVisited).arrayList)
-                            combined.arrayList.add(item);
-                        combined.environment.variables.put("size", ((ListInstance) leftVisited).getSize() + ((ListInstance) rightVisited).getSize());
-                        newValue = combined;
-                    }
-
-                }
-                else
-                    Runtime.error("'+=' opperands must both be numbers or strings or Lists", opp.line, opp.file_name);
-            }
+        else if(tokenIs(TokenType.PLUS_EQUAL)){
+            if(left instanceof Double && right instanceof Double)
+                newValue = (Double) left + (Double) right;
+            else if(left instanceof String && right instanceof String)
+                newValue = (String) left + (String) right;
+            else if(left instanceof SamirList && right instanceof SamirList)
+                newValue = SamirList.combine_2_lists((SamirList) left, (SamirList) right, lang);
+            else
+                Runtime.error("'+=' opperands must both be numbers or strings or Lists", opp.line, opp.file_name);
         }
 
         lang.environment.assign(varName, newValue);
@@ -421,7 +347,7 @@ class SubscriptAssign extends Expre {
     }
 
     String string(String s, Object index, Object new_value){
-        String val = NativeFunctions.check_type(new_value, String.class, "string[index] new value must be a string and not of type: "+Util.typeOf(new_value), runtime.line, runtime.cur_file_name);
+        String val = Util.check_type(new_value, String.class, "string[index] new value must be a string and not of type: "+Util.typeOf(new_value), runtime.line, runtime.cur_file_name);
         if(val.length() != 1)
             Runtime.error("string[index] new value must be of length 1", runtime.line, runtime.cur_file_name);
         int i = Util.checkValidIndex(index, s.length(), runtime);
@@ -474,7 +400,7 @@ class Call extends Expre {
         List<Object> arguments = new ArrayList<>();
             
             
-        for (Expre arg : this.arguments) 
+        for (Expre arg : this.arguments)
             arguments.add(arg.visit());
         
         if(callee instanceof SamirCallable == false)
@@ -532,102 +458,94 @@ class Get extends Expre {
 
     Expre instanceVar;
     Token memberVar;
-    Runtime lang;
+    Runtime runtime;
 
-    Get(Expre instanceVar, Token dot, Token memberVar, Runtime lang){
+    Get(Expre instanceVar, Token dot, Token memberVar, Runtime runtime){
         this.instanceVar = instanceVar;
         this.token = dot;
         this.memberVar = memberVar;
-        this.lang = lang;
+        this.runtime = runtime;
     }
 
     @Override
     Object visit() {
-        Object object = instanceVar.visit();
-        if(object instanceof SamirInstance == false)
-            Runtime.error("can only access members from class instances", token.line, token.file_name);
-        SamirInstance instance = (SamirInstance) object;
+
+        Object visited = instanceVar.visit();
+        SamirObject object = Util.check_type(visited, SamirObject.class, "Can only get members from objects and not: "+Util.typeOf(visited), token.line, token.file_name);
 
         String memberName = memberVar.value.toString();
-        lang.line = token.line;
+        runtime.line = token.line;
 
-        if(instance.environment.variables.containsKey(memberName)){
-            Object value = instance.environment.variables.get(memberName);
-                return value;
+        if(object.environment.variables.containsKey(memberName)){
+            Object value = object.environment.variables.get(memberName);
+            return value;
         }
         
-        String instanceType = (instance instanceof Importinstance) ? "import" : "class";
-        Runtime.error(memberName + " not found in " +  instanceType + ": " + instance.class_name, token.line, token.file_name);
-
-        // Unreachable code:
-        return null;
+        return Runtime.error(memberName + " not found in object of type: " + object.type, token.line, token.file_name);
     }
 }
 
 class Set extends Expre {
-    Get member;
-    Expre newValue;
+    Get get;
+    Expre right_side;
     Token opp;
     Runtime lang;
 
-    Set(Get member, Expre newValue, Token opp, Runtime lang){
-        this.member = member;
-        this.newValue = newValue;
+    Set(Get get, Expre right_side, Token opp, Runtime lang){
+        this.get = get;
+        this.right_side = right_side;
         this.opp = opp;
         this.lang = lang;
     }
 
     Object visit(){
 
-        SamirInstance instance = (SamirInstance) member.instanceVar.visit();
+        Object visited = get.instanceVar.visit();
+        SamirObject object = Util.check_type(visited, SamirObject.class, "can only set members of objects not of type: "+Util.typeOf(visited), opp.line, opp.file_name);
 
-        Object rightVisited = newValue.visit();
-        Object leftVisited = null;
+        Object og_value = object.environment.variables.containsKey(get.memberVar.value) ?
+            og_value = object.environment.get(get.memberVar)
+            : Runtime.error(get.memberVar.value.toString() + " not found in object of type: " + object.type, opp.line, opp.file_name);
 
-        Object newValueObject = null;
-
-        if(instance.environment.variables.containsKey(member.memberVar.value))
-            leftVisited = instance.environment.get(member.memberVar);
-        else
-            Runtime.error(member.memberVar.value + " not found in instance of class: " + instance.samir_class.declaration.name.value, opp.line, opp.file_name);
-
+        Object right_side = this.right_side.visit();
+        Object new_val = null;
         switch(opp.type){
             case TokenType.EQUALS -> {
-                newValueObject = rightVisited;
+                new_val = right_side;
             } 
             case TokenType.MINUS_EQUAL ->{
-                checkNumberOperands(leftVisited, rightVisited);
-                newValueObject = (Double) leftVisited - (Double) rightVisited;
+                checkNumberOperands(og_value, right_side);
+                new_val = (Double) og_value - (Double) right_side;
             }
             case TokenType.MULTIPLY_EQUAL ->{
-                checkNumberOperands(leftVisited, rightVisited);
-                newValueObject = (Double) leftVisited * (Double) rightVisited;
+                checkNumberOperands(og_value, right_side);
+                new_val = (Double) og_value * (Double) right_side;
             }
             case TokenType.DIVIDE_EQUAL ->{
-                checkNumberOperands(leftVisited, rightVisited);
-                newValueObject = (Double) leftVisited / (Double) rightVisited;
+                checkNumberOperands(og_value, right_side);
+                new_val = (Double) og_value / (Double) right_side;
             }
             case TokenType.MOD_EQUAL ->{
-                checkNumberOperands(leftVisited, rightVisited);
-                newValueObject = (Double) leftVisited % (Double) rightVisited;
+                checkNumberOperands(og_value, right_side);
+                new_val = (Double) og_value % (Double) right_side;
             }
             case TokenType.PLUS_EQUAL -> {
 
-                if(leftVisited instanceof Double && rightVisited instanceof Double)
-                    newValueObject = (Double) leftVisited + (Double) rightVisited;
+                if(og_value instanceof Double && right_side instanceof Double)
+                    new_val = (Double) og_value + (Double) right_side;
 
-                else if(leftVisited instanceof String && rightVisited instanceof String)
-                    newValueObject = (String) leftVisited + (String) rightVisited;
+                else if(og_value instanceof String && right_side instanceof String)
+                    new_val = (String) og_value + (String) right_side;
         
-                else if(leftVisited instanceof ListInstance){
-                    if(rightVisited instanceof ListInstance){
-                        ListInstance combined = new ListInstance(new ArrayList<>(), lang);
-                        for (Object item : ((ListInstance)leftVisited).arrayList)
+                else if(og_value instanceof SamirList){
+                    if(right_side instanceof SamirList){
+                        SamirList combined = new SamirList(new ArrayList<>(), lang);
+                        for (Object item : ((SamirList)og_value).arrayList)
                             combined.arrayList.add(item);
-                        for (Object item : ((ListInstance)rightVisited).arrayList)
+                        for (Object item : ((SamirList)right_side).arrayList)
                             combined.arrayList.add(item);
-                        combined.environment.variables.put("size", ((ListInstance) leftVisited).getSize() + ((ListInstance) rightVisited).getSize());
-                        newValueObject = combined;
+                        combined.environment.variables.put("size", ((SamirList) og_value).getSize() + ((SamirList) right_side).getSize());
+                        new_val = combined;
                     }
 
                 }
@@ -637,8 +555,8 @@ class Set extends Expre {
         }
 
         
-        instance.environment.variables.put(member.memberVar.value.toString(), newValueObject);
-        return newValueObject;
+        object.environment.variables.put(get.memberVar.value.toString(), new_val);
+        return new_val;
     }
 
     private void checkNumberOperands(Object left, Object right){
