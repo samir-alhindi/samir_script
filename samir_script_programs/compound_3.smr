@@ -1,0 +1,50 @@
+
+var a = [1, 2, 3, 4, 11];
+println a[0] += 10;
+println a;
+
+println a[1] -= 10;
+println a;
+
+println a[2] *= 10;
+println a;
+
+println a[3] /= 10;
+println a;
+
+println a[4] %= 10;
+println a;
+
+var b = {
+    "num" : 4
+};
+
+println b["num"] += 1;
+println b;
+
+println b["num"] -= 1;
+println b;
+
+println b["num"] *= 3;
+println b;
+
+println b["num"] /= 4;
+println b;
+
+println b["num"] %= 2;
+println b;
+
+println b["num"] = 4;
+println b;
+
+var c = "Samir";
+println c[0] = "x";
+println c;
+
+var pair_list = {"key" : 1, "other_key" : 2}.items();
+println pair_list;
+println pair_list[0];
+println pair_list[1];
+
+println pair_list[0] = Pair("Samir", 99);
+println pair_list;

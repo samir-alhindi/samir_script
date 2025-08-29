@@ -14,7 +14,7 @@ public class SamirString extends SamirObject implements Subscriptable {
         return string.charAt(i);
     }
     @Override
-    public Object set_item(Object index, Object item) {
+    public Object set_item(Object index, Object item, Token opp) {
         //int i = Util.checkValidIndex(index, string.length(), runtime);
         return "";
 

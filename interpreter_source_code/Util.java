@@ -122,6 +122,40 @@ public class Util {
         return false;
     }
 
+    static Object run_compound_assignment(Object left, Object right, Token opp, Runtime runtime){
+        Object newValue = null;
+        if(Util.token_is(opp, TokenType.MINUS_EQUAL, TokenType.MULTIPLY_EQUAL, TokenType.DIVIDE_EQUAL, TokenType.MOD_EQUAL)){
+            checkNumberOperands(left, right, opp);
+            newValue = switch(opp.type){
+                case MINUS_EQUAL -> (double) left - (double) right;
+                case MULTIPLY_EQUAL -> (double) left * (double) right;
+                case DIVIDE_EQUAL -> (double) left / (double) right;
+                default -> (double) left % (double) right;
+            };
+        }
+
+        else if(opp.type ==  TokenType.EQUALS)
+            newValue = right;
+
+        else if(opp.type == TokenType.PLUS_EQUAL){
+            if(left instanceof Double && right instanceof Double)
+                newValue = (Double) left + (Double) right;
+            else if(left instanceof String && right instanceof String)
+                newValue = (String) left + (String) right;
+            else if(left instanceof SamirList && right instanceof SamirList)
+                newValue = SamirList.combine_2_lists((SamirList) left, (SamirList) right, runtime);
+            else
+                Runtime.error("'+=' opperands must both be numbers or strings or Lists", opp.line, opp.file_name);
+        }
+
+        return newValue;
+    }
+
+    static void checkNumberOperands(Object left, Object right, Token token){
+        if(left instanceof Double && right instanceof Double) return;
+        Runtime.error("both operands must be numbers", token.line, token.file_name);
+    }
+
 
 }
 

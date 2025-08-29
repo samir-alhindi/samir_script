@@ -260,10 +260,11 @@ public class SamirList extends SamirObject implements Subscriptable{
     }
 
     @Override
-    public Object set_item(Object index, Object item) {
+    public Object set_item(Object index, Object right_side, Token opp) {
         int i = Util.checkValidIndex(index, arrayList.size(), lang);
-        arrayList.set(i, item);
-        return item;
+        Object new_value = Util.run_compound_assignment(arrayList.get(i), right_side, opp, lang);
+        arrayList.set(i, new_value);
+        return new_value;
     }
 
 }

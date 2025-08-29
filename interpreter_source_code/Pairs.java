@@ -44,7 +44,9 @@ class SamirPairList extends SamirObject implements Subscriptable{
     }
 
     @Override
-    public SamirPair set_item(Object index, Object item) {
+    public SamirPair set_item(Object index, Object item, Token opp) {
+        if(opp.type != TokenType.EQUALS)
+            Runtime.error("SamirPair[index] assignment only works with '='", opp.line, opp.file_name);
         int i = Util.checkValidIndex(index, list.size(), runtime);
         SamirPair pair = Util.check_type(item, SamirPair.class, "PairLists can only contain Pairs", runtime.line, runtime.cur_file_name);
         list.set(i, pair);
@@ -53,7 +55,7 @@ class SamirPairList extends SamirObject implements Subscriptable{
 }
 
 
- class SamirPair extends SamirObject {
+class SamirPair extends SamirObject {
     Object first;
     Object second;
     SamirPair(Object first, Object second, Runtime runtime){

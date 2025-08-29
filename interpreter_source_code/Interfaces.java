@@ -7,7 +7,7 @@ interface SamirCallable {
 
 interface Subscriptable {
     Object get_item(Object index);
-    Object set_item(Object index, Object item);
+    Object set_item(Object index, Object item, Token opp);
 }
 
     

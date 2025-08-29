@@ -57,9 +57,14 @@ public class SamirDict extends SamirObject implements Subscriptable {
     }
 
     @Override
-    public Object set_item(Object key, Object item) {
-        hashMap.put(key, item);
-        return item;
+    public Object set_item(Object key, Object right_side, Token opp) {
+
+        Object new_val = hashMap.containsKey(key) ?
+        Util.run_compound_assignment(hashMap.get(key), right_side, opp, lang) :
+        right_side;
+
+        hashMap.put(key, new_val);
+        return new_val;
     }
 
 

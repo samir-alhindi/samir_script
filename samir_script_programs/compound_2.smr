@@ -10,3 +10,7 @@ var test = Test();
 println test.thing += " world";
 println test.otherThing += [4, 5];
 println test.numberThing %= 7;
+
+println test.thing;
+println test.otherThing;
+println test.numberThing;
